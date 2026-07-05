@@ -53,11 +53,8 @@ using json = nlohmann::json;
 
 std::atomic<bool> g_running{true};
 
-std::ofstream debug_log("debug_log.txt", std::ios::trunc);
-#define LOG(x) debug_log << x << std::endl;
-
-std::ofstream error_log("error.txt", std::ios::trunc);
-#define ERROR_LOG(x) error_log << x << std::endl;
+#define LOG(x)
+#define ERROR_LOG(x)
 
 
 AccountManager g_accountManager;
@@ -309,11 +306,6 @@ void UpdateUI() {
     
     
     std::string jsonStr = jRoot.dump();
-    FILE* f = fopen("debug_json.txt", "w");
-    if(f) {
-        fwrite(jsonStr.c_str(), 1, jsonStr.length(), f);
-        fclose(f);
-    }
     std::wstring script = L"window.updateAccounts(String.raw`" + s2ws(jsonStr) + L"`);";
     g_webview->ExecuteScript(script.c_str(), nullptr);
 }
