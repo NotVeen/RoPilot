@@ -1,0 +1,259 @@
+#include "RobloxAPI.h"
+#include <windows.h>
+#include <winhttp.h>
+#include "../vendor/json.hpp"
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+#pragma comment(lib, "winhttp.lib")
+
+using json = nlohmann::json;
+
+namespace RobloxAPI {
+
+    std::wstring s2ws(const std::string& str) {
+        if (str.empty()) return std::wstring();
+        int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+        std::wstring wstrTo(size_needed, 0);
+        MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+        return wstrTo;
+    }
+
+    std::string ExtractHeader(const std::string& headers, const std::string& key) {
+        std::string lowerHeaders = headers;
+        std::transform(lowerHeaders.begin(), lowerHeaders.end(), lowerHeaders.begin(), ::tolower);
+        std::string lowerKey = key;
+        std::transform(lowerKey.begin(), lowerKey.end(), lowerKey.begin(), ::tolower);
+        
+        size_t pos = lowerHeaders.find(lowerKey + ": ");
+        if (pos != std::string::npos) {
+            pos += lowerKey.length() + 2;
+            size_t end = lowerHeaders.find("\r", pos);
+            if (end == std::string::npos) end = lowerHeaders.length();
+            return headers.substr(pos, end - pos);
+        }
+        return "";
+    }
+
+    std::string HttpRequest(const std::wstring& method, const std::wstring& host, const std::wstring& path, const std::string& cookie, const std::string& extraHeaders, const std::string& body, std::string* outHeaders) {
+        HINTERNET hSession = WinHttpOpen(L"Roblox Account Manager / 1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+        if (!hSession) return "";
+
+        HINTERNET hConnect = WinHttpConnect(hSession, host.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
+        if (!hConnect) { WinHttpCloseHandle(hSession); return ""; }
+
+        HINTERNET hRequest = WinHttpOpenRequest(hConnect, method.c_str(), path.c_str(), NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
+        if (!hRequest) { WinHttpCloseHandle(hConnect); WinHttpCloseHandle(hSession); return ""; }
+
+        std::string headers = "";
+        if (!cookie.empty()) {
+            headers += "Cookie: .ROBLOSECURITY=" + cookie + "\r\n";
+        }
+        if (!extraHeaders.empty()) {
+            headers += extraHeaders;
+        }
+
+        std::wstring wHeaders = s2ws(headers);
+        
+        BOOL bResults = WinHttpSendRequest(hRequest, wHeaders.c_str(), wHeaders.length(), (LPVOID)(body.empty() ? NULL : body.c_str()), body.length(), body.length(), 0);
+
+        std::string response;
+        if (bResults) {
+            bResults = WinHttpReceiveResponse(hRequest, NULL);
+        }
+
+        if (bResults) {
+            // Get Headers if requested
+            if (outHeaders) {
+                DWORD dwSize = 0;
+                WinHttpQueryHeaders(hRequest, WINHTTP_QUERY_RAW_HEADERS_CRLF, WINHTTP_HEADER_NAME_BY_INDEX, NULL, &dwSize, WINHTTP_NO_HEADER_INDEX);
+                if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+                    std::vector<WCHAR> headerBuffer(dwSize / sizeof(WCHAR));
+                    if (WinHttpQueryHeaders(hRequest, WINHTTP_QUERY_RAW_HEADERS_CRLF, WINHTTP_HEADER_NAME_BY_INDEX, headerBuffer.data(), &dwSize, WINHTTP_NO_HEADER_INDEX)) {
+                        int size_needed = WideCharToMultiByte(CP_UTF8, 0, headerBuffer.data(), -1, NULL, 0, NULL, NULL);
+                        std::string strOut(size_needed, 0);
+                        WideCharToMultiByte(CP_UTF8, 0, headerBuffer.data(), -1, &strOut[0], size_needed, NULL, NULL);
+                        *outHeaders = strOut;
+                    }
+                }
+            }
+
+            DWORD dwSize = 0;
+            DWORD dwDownloaded = 0;
+            do {
+                dwSize = 0;
+                if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) break;
+                if (dwSize == 0) break;
+
+                std::vector<char> buffer(dwSize + 1);
+                ZeroMemory(buffer.data(), dwSize + 1);
+
+                if (WinHttpReadData(hRequest, (LPVOID)buffer.data(), dwSize, &dwDownloaded)) {
+                    response.append(buffer.data(), dwDownloaded);
+                }
+            } while (dwSize > 0);
+        }
+
+        WinHttpCloseHandle(hRequest);
+        WinHttpCloseHandle(hConnect);
+        WinHttpCloseHandle(hSession);
+
+        return response;
+    }
+
+    std::string GetCSRFToken(const std::string& cookie) {
+        std::string outHeaders;
+        HttpRequest(L"POST", L"auth.roblox.com", L"/v2/logout", cookie, "", "", &outHeaders);
+        return ExtractHeader(outHeaders, "x-csrf-token");
+    }
+
+    std::string GetAuthTicket(const std::string& cookie, const std::string& csrfToken) {
+        std::string headers = "x-csrf-token: " + csrfToken + "\r\nReferer: https://www.roblox.com/\r\nContent-Type: application/json\r\n";
+        std::string outHeaders;
+        HttpRequest(L"POST", L"auth.roblox.com", L"/v1/authentication-ticket", cookie, headers, "", &outHeaders);
+        return ExtractHeader(outHeaders, "rbx-authentication-ticket");
+    }
+
+    bool GetPresence(const std::string& cookie, const std::string& userId, std::string& outJobId, int& outPresenceType) {
+        std::string headers = "Content-Type: application/json\r\n";
+        std::string body = "{\"userIds\": [" + userId + "]}";
+        std::string outHeaders;
+        std::string response = HttpRequest(L"POST", L"presence.roblox.com", L"/v1/presence/users", cookie, headers, body, &outHeaders);
+        if (response.empty()) return false;
+
+        try {
+            auto j = json::parse(response);
+            if (j.contains("userPresences") && j["userPresences"].is_array() && j["userPresences"].size() > 0) {
+                auto presence = j["userPresences"][0];
+                outPresenceType = presence.value("userPresenceType", 0);
+                outJobId = presence.value("gameId", "");
+                if (outJobId.empty()) {
+                    outJobId = "";
+                }
+                return true;
+            }
+        } catch (...) {}
+        return false;
+    }
+
+    UserInfo GetUserInfo(const std::string& cookie) {
+        UserInfo info;
+        // 1. Get UserId and Username
+        std::string authapi = HttpRequest(L"GET", L"users.roblox.com", L"/v1/users/authenticated", cookie, "", "", nullptr);
+        if (!authapi.empty()) {
+            try {
+                auto j = json::parse(authapi);
+                if (j.contains("id")) info.UserId = j["id"].get<long long>();
+                if (j.contains("name")) info.Username = j["name"].get<std::string>();
+                if (j.contains("displayName")) info.DisplayName = j["displayName"].get<std::string>();
+            } catch (...) {}
+        }
+        
+        // 2. Get Avatar Thumbnail
+        if (info.UserId != 0) {
+            std::wstring path = L"/v1/users/avatar-headshot?userIds=" + std::to_wstring(info.UserId) + L"&size=150x150&format=Png&isCircular=true";
+            std::string thumbData = HttpRequest(L"GET", L"thumbnails.roblox.com", path, cookie, "", "", nullptr);
+            try {
+                auto j = json::parse(thumbData);
+                if (j.contains("data") && j["data"].is_array() && j["data"].size() > 0) {
+                    info.ThumbnailUrl = j["data"][0]["imageUrl"].get<std::string>();
+                }
+            } catch (...) {}
+        }
+        
+        return info;
+    }
+}
+RobloxAPI::GameInfo RobloxAPI::GetGameInfo(const std::string& cookie, const std::string& placeId) {
+    GameInfo info;
+    info.PlaceId = placeId;
+    std::string response = HttpRequest(L"GET", L"games.roblox.com", std::wstring(L"/v1/games/multiget-place-details?placeIds=") + std::wstring(placeId.begin(), placeId.end()), cookie);
+    try {
+        json j = json::parse(response);
+        if (j.is_array() && j.size() > 0) {
+            info.Name = j[0].value("name", "Unknown Game");
+        }
+    } catch (...) {}
+    
+    std::string thumbResponse = HttpRequest(L"GET", L"thumbnails.roblox.com", std::wstring(L"/v1/places/gameicons?placeIds=") + std::wstring(placeId.begin(), placeId.end()) + L"&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false", cookie);
+    try {
+        json j = json::parse(thumbResponse);
+        if (j.contains("data") && j["data"].is_array() && j["data"].size() > 0) {
+            info.ThumbnailUrl = j["data"][0].value("imageUrl", "");
+        }
+    } catch (...) {}
+    return info;
+}
+
+std::vector<RobloxAPI::GameSearchResult> RobloxAPI::SearchGames(const std::string& query) {
+    std::vector<GameSearchResult> results;
+    
+    // URL encode query
+    std::string encodedQuery;
+    for (char c : query) {
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') encodedQuery += c;
+        else if (c == ' ') encodedQuery += '+';
+        else {
+            char buf[4];
+            sprintf_s(buf, "%%%02X", (unsigned char)c);
+            encodedQuery += buf;
+        }
+    }
+    
+    std::wstring path = L"/search-api/omni-search?searchQuery=" + s2ws(encodedQuery) + L"&pageType=games&sessionId=12345678-1234-1234-1234-123456789012";
+    
+    std::string response = HttpRequest(L"GET", L"apis.roblox.com", path, "", "");
+    try {
+        json j = json::parse(response);
+        if (j.contains("searchResults") && j["searchResults"].is_array()) {
+            std::string universeIdsParams = "";
+            std::vector<GameSearchResult*> tempRefs;
+            
+            for (auto& group : j["searchResults"]) {
+                if (group.contains("contentGroupType") && group["contentGroupType"] == "Game" && group.contains("contents")) {
+                    for (auto& content : group["contents"]) {
+                        GameSearchResult r;
+                        r.UniverseId = content.value("universeId", 0LL);
+                        r.RootPlaceId = content.value("rootPlaceId", 0LL);
+                        r.Name = content.value("name", "Unknown");
+                        r.PlayerCount = content.value("playerCount", 0LL);
+                        r.Upvotes = content.value("totalUpVotes", 0LL);
+                        results.push_back(r);
+                    }
+                }
+            }
+            
+            // Now batch fetch thumbnails
+            if (!results.empty()) {
+                std::string paramList = "";
+                for (size_t i = 0; i < results.size(); ++i) {
+                    if (i > 0) paramList += "&universeIds=";
+                    else paramList += "universeIds=";
+                    paramList += std::to_string(results[i].UniverseId);
+                }
+                
+                std::wstring thumbPath = L"/v1/games/icons?" + s2ws(paramList) + L"&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false";
+                std::string thumbResponse = HttpRequest(L"GET", L"thumbnails.roblox.com", thumbPath, "", "");
+                
+                try {
+                    json tj = json::parse(thumbResponse);
+                    if (tj.contains("data") && tj["data"].is_array()) {
+                        for (auto& t : tj["data"]) {
+                            long long targetId = t.value("targetId", 0LL);
+                            std::string url = t.value("imageUrl", "");
+                            for (auto& r : results) {
+                                if (r.UniverseId == targetId) {
+                                    r.ThumbnailUrl = url;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch(...) {}
+            }
+        }
+    } catch (...) {}
+    
+    return results;
+}

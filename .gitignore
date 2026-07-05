@@ -1,0 +1,25 @@
+# Build outputs
+/build/
+/bin/
+*.exe
+*.obj
+*.lib
+*.dll
+*.res
+*.pdb
+
+# Data directories
+browser_data/
+main_data/
+accounts.json
+
+# Visual Studio files
+.vs/
+*.sln
+*.vcxproj
+*.user
+*.suo
+
+# System files
+.DS_Store
+Thumbs.db

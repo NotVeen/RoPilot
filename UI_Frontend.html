@@ -1,0 +1,827 @@
+#pragma once
+
+const char* HTML_CONTENT = R"HTML(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoPilot</title>
+    <style>
+        /* CSS Reset & Variables */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-deep: #0a0a0a;
+            --bg-sidebar: #111111;
+            --bg-card: #1a1a1a;
+            --bg-hover: #222222;
+            --border-color: #2a2a2a;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --text-green: #4ade80;
+            --text-yellow: #facc15;
+            --btn-bg: #222222;
+            --btn-hover: #333333;
+            --btn-danger: #3b1313;
+            --btn-danger-hover: #5c1818;
+            --text-danger: #f87171;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            user-select: none; /* Disable text selection */
+        }
+        
+        input {
+            user-select: auto;
+        }
+
+        /* Titlebar */
+        .titlebar {
+            height: 48px;
+            background-color: var(--bg-deep);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            user-select: none;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .titlebar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            letter-spacing: 0.3px;
+        }
+
+        .title-badge {
+            background-color: #222;
+            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .drag-area {
+            flex-grow: 1;
+            height: 100%;
+            cursor: default;
+        }
+
+        .titlebar-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .control-btn:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .control-btn.close:hover {
+            background-color: var(--btn-danger);
+            color: var(--text-danger);
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 8px;
+            flex-shrink: 0;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sidebar.collapsed {
+            width: 72px;
+        }
+
+        .hamburger-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 16px 12px 12px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 8px;
+            transition: color 0.2s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #1a1a1a;
+            border-radius: 0;
+        }
+        
+        .sidebar.collapsed .hamburger-btn {
+            padding: 16px 8px 12px 8px;
+        }
+        
+        .hamburger-btn:hover {
+            color: #fff;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 13px;
+            transition: background 0.2s, color 0.2s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed .nav-item {
+            padding: 12px 10px;
+        }
+        
+        .nav-text {
+            white-space: nowrap;
+            margin-left: 12px;
+            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 1;
+            max-width: 150px;
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            max-width: 0;
+            margin-left: 0;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background-color: #1f1f1f;
+            color: #ffffff;
+            box-shadow: inset 2px 0 0 var(--text-main);
+        }
+
+        .sidebar-spacer {
+            flex-grow: 1;
+        }
+
+        .btn-add-account {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .add-account-text {
+            white-space: nowrap;
+            margin-left: 8px;
+            transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            max-width: 150px;
+        }
+        
+        .sidebar.collapsed .add-account-text {
+            opacity: 0;
+            max-width: 0;
+            margin-left: 0;
+        }
+
+        .btn-add-account:hover {
+            background-color: #dddddd;
+        }
+
+        .add-menu-item {
+            padding: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: center;
+        }
+        .add-menu-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background-color: var(--bg-deep);
+            scrollbar-gutter: stable;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Cards Grid / Wrappers */
+        .accounts-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #222;
+            position: relative;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border: 2px solid var(--bg-card);
+        }
+
+        .status-dot.online { background-color: var(--text-green); }
+        .status-dot.offline { background-color: var(--text-muted); }
+        .status-dot.loading { background-color: var(--text-yellow); }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .userid {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat-box {
+            background-color: #111;
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .stat-value.green { color: var(--text-green); }
+        .stat-value.yellow { color: var(--text-yellow); }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-launch {
+            flex-grow: 1;
+            background-color: var(--btn-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-launch:hover {
+            background-color: var(--btn-hover);
+        }
+
+        .btn-icon {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            flex-shrink: 0;
+        }
+
+        .btn-icon:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .btn-icon.danger:hover {
+            background-color: var(--btn-danger);
+            color: var(--text-danger);
+            border-color: var(--btn-danger-hover);
+        }
+
+        .btn-remove {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .btn-remove:hover {
+            background-color: var(--btn-danger);
+            color: var(--text-danger);
+            border-color: var(--btn-danger-hover);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: #333;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 1px solid #444;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Empty State */
+        .empty-state {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 400px;
+            color: var(--text-muted);
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .empty-state svg {
+            width: 72px;
+            height: 72px;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            color: var(--text-main);
+            font-size: 20px;
+            margin: 0 0 8px 0;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            margin: 0;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+
+        /* Groups */
+        .group-container {
+            margin-bottom: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .group-header {
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .group-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .group-header-left h3 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .group-badge {
+            background: var(--bg-hover);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .group-content-wrapper {
+            display: grid;
+            grid-template-rows: 1fr;
+            transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .group-container.collapsed .group-content-wrapper {
+            grid-template-rows: 0fr;
+        }
+
+        .group-content {
+            overflow: hidden;
+        }
+
+        .group-content-inner {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            min-height: 20px;
+            transition: background 0.2s;
+        }
+        
+        .group-container.collapsed .group-header {
+            border-bottom: none;
+        }
+
+        .group-container.collapsed .chevron {
+            transform: rotate(-90deg);
+        }
+
+        .chevron {
+            transition: transform 0.2s ease;
+            color: var(--text-muted);
+        }
+
+        .group-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .card.dragging {
+            opacity: 0.5;
+        }
+
+        .group-content.drag-over {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+
+        /* Animations */
+        #add-menu {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            display: flex;
+        }
+        #add-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        #cookie-modal, #group-modal {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            display: flex;
+            backdrop-filter: blur(4px);
+        }
+        #cookie-modal.show, #group-modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #cookie-modal-content, #group-modal-content {
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+        #cookie-modal.show #cookie-modal-content, #group-modal.show #group-modal-content {
+            transform: scale(1);
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Resize Handles */
+        .resize-edge { position: absolute; z-index: 9999; }
+        .resize-edge.top { top: 0; left: 8px; right: 8px; height: 5px; cursor: n-resize; }
+        .resize-edge.bottom { bottom: 0; left: 8px; right: 8px; height: 5px; cursor: s-resize; }
+        .resize-edge.left { top: 8px; bottom: 8px; left: 0; width: 5px; cursor: w-resize; }
+        .resize-edge.right { top: 8px; bottom: 8px; right: 0; width: 5px; cursor: e-resize; }
+        .resize-edge.top-left { top: 0; left: 0; width: 8px; height: 8px; cursor: nw-resize; }
+        .resize-edge.top-right { top: 0; right: 0; width: 8px; height: 8px; cursor: ne-resize; }
+        .resize-edge.bottom-left { bottom: 0; left: 0; width: 8px; height: 8px; cursor: sw-resize; }
+        .resize-edge.bottom-right { bottom: 0; right: 0; width: 8px; height: 8px; cursor: se-resize; }
+
+        /* Scrollbar Redesign */
+        ::-webkit-scrollbar {
+            width: 14px;
+            height: 14px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a3a;
+            border-radius: 10px;
+            border: 4px solid var(--bg-deep); /* Creates the gap effect */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .main-content {
+            overflow-y: auto;
+        }
+
+        /* Search Box */
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 12px;
+            width: 250px;
+            transition: border-color 0.2s;
+            flex-shrink: 0;
+        }
+        .search-box:focus-within {
+            border-color: #555;
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+            margin-left: 8px;
+        }
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Resize Handles -->
+    <div class="resize-edge top" data-edge="3"></div>
+    <div class="resize-edge bottom" data-edge="6"></div>
+    <div class="resize-edge left" data-edge="1"></div>
+    <div class="resize-edge right" data-edge="2"></div>
+    <div class="resize-edge top-left" data-edge="4"></div>
+    <div class="resize-edge top-right" data-edge="5"></div>
+    <div class="resize-edge bottom-left" data-edge="7"></div>
+    <div class="resize-edge bottom-right" data-edge="8"></div>
+
+    <!-- Titlebar -->
+    <div class="titlebar">
+        <div class="titlebar-left">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE0klEQVR4nK1XW4iWVRRd++8fTR3tYoMZo1OSlEVWvlRP9dCVoaIUy66opRgVYfRQCfZgRYgNXbGLRBkVoRFF6CAkCJEhZkXZxQgjuptW3phxnBXrd33jnq//H51yw8e57bP2Pvvsy/kCgySSEREkOQ7APQAqAJ6IiK3F2mAx/0UC0tdonuQokl/wIH1F8phD7cPhEMlK7ueNJI9ye4kFd5Pscv+KzJME98Mry6uUNY2IXpLDSZ6kfsmktIDvAOwGUAXQBGCv5rzWx6+9xhtLstn9+pagtSN5GUmB7SL5BslhxabUDiX5LMlef8+Jr8RTMd8rJHeS/J7klXUtwYN3O8yMoh63c80zpI6C+/3t8r72Eu8sY4hH9KOt2+cTlWwuACMAjLEZe7x0ipmlkNZe1xyA4d5fcX88gNd0deYN88FYwmwB0Fw3UkhW3S6yxgJRaLUknhk8NN2S+E8wRmGph7OsPgvY+XpswlYA3V77C8BtSQmddA2AWwGcDWCsv8kAJHg1gKGFcO01RhizleRVllW7gpDnRoS0mw3gxboeCnwNYEpE7DH4OQDOt7KiHwCsj4hPCycFsAHAWQ3w5kXE0lrUJAf80h5dxLX6PR7Pldncbh7A/Fq7w7xywL3GEBaNpcN+0y85kWwm+XsSXAgXXW2eVSVhm0i+SXJFKSuK1jgM2xNWgSv6g+Sx2QGnlUKvaB/w+oYELk8/3Q7WRnK0eSaTfCvxbfT8fQ2wb8gKLCe5zybrcn+L155KoHeTbCK5hORPntOe90mea/75Ke6f8dxmY3aZX32FM7Q4guSOOvc5h2RrMttj5t9Yh7c42cXmWew57R1H8uY6/H+THFmNiN3OdvLcIkEoMl4mucAh9BuA+0k+qGhw7l8I4D0AbQCWAJgE4GlbQmvTnZxmR8RDrhO9KRK6I2KnvPU6F5ZaiBX5geRNAKZ53OlCMsMgSyNisddk3h0A1gE4DcAFEaErUb5QaF9L8lsA25MCtYOSvF4ZaRaAS9GYlEZrYQNglEE+9ImqXv8YwDYnpfEuNhrDuWB5A+y1VZvqcSeWSJ+0PNVC2vwKOs5j5XM5WtXtNRYu5TbZWlOMoUz4q/cVNUZ8HwG4N0eCrmOIv6PdzndoLbT3P+/xhbKA506Ut5N8VZXSWJenhHZ7+dj9yjEPZKS+V8z/JRUjktst/HOX+DHOovOUO9KBo5YObV6F2QQA+1OZrqTrkNkKRdXPJbXiKDrDGKKf5VsRISVWAJgKoMsl+hcx1MpyKsMLeGSo2+l5onHvSmtzPNdn8apPLOoAICervWbSSTNVShYoHiS9Pnm7xysjYgvJiwA86T2dAF4oqi+ONPGAL33gk+5xbdD9r7UvNHy218iL1Tpfk9uRJN+2kJkkjzf4OpIdxpjgSif6zJHUkgrW4f0bZCq8leTUdJfnee3RNHej55T5ClqWcAYvvPRcX+2Cs8rjwnllBdE2kid7riMpMTPz/1fhk1JimV56ek/0u1/UmRR7x9VQxe7MjDcYBapuH3GN35rf9WldCaag9SRf8gtqn/d9Il8y72H/I4bb0ST/NPiirJj7xf+iSvFAtNJO2S/rDnQvRQbUj8a7LiLLrFjODzJzJSLudAlWZdX1yNyFMMW9ft1U1JQfxF/D+AeQdxFJK/yGAQAAAABJRU5ErkJggg==" width="22" height="22" />
+            <span><strong style="font-weight: 600;">RoPilot</strong><span style="color: var(--text-muted); font-size: 13px; margin-left: 6px; font-weight: 400;">by NotVeen</span></span>
+        </div>
+        <div class="drag-area" id="drag-area"></div>
+        <div class="titlebar-controls">
+            <button class="control-btn" id="btn-minimize">
+                <svg width="14" height="2" viewBox="0 0 14 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 0H14V2H0V0Z" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="btn-maximize">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M2 0C0.895431 0 0 0.895431 0 2V10C0 11.1046 0.895431 12 2 12H10C11.1046 12 12 11.1046 12 10V2C12 0.895431 11.1046 0 10 0H2ZM2 2H10V10H2V2Z" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="control-btn close" id="btn-close">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M4.58579 6L0.292893 1.70711L1.70711 0.292893L6 4.58579L10.2929 0.292893L11.7071 1.70711L7.41421 6L11.7071 10.2929L10.2929 11.7071L6 7.41421L1.70711 11.7071L0.292893 10.2929L4.58579 6Z" fill="currentColor"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <button class="hamburger-btn" id="btn-hamburger">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+                <span class="nav-text" style="margin-left: 14px;">Menu</span>
+            </button>
+            <div class="nav-item active" id="nav-accounts">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="nav-text">Accounts</span>
+            </div>
+            <div class="nav-item" id="nav-games">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span class="nav-text">Games</span>
+            </div>
+            <div class="nav-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span class="nav-text">Settings</span>
+            </div>
+            
+            <div class="sidebar-spacer"></div>
+            
+            <div style="position: relative; width: 100%;">
+                <div id="add-menu" style="position: absolute; bottom: 100%; left: 0; width: 208px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 8px; flex-direction: column; overflow: hidden; z-index: 100;">
+                    <div class="add-menu-item" id="btn-add-browser">Add via Browser</div>
+                    <div class="add-menu-item" id="btn-add-cookie">Add via Cookie</div>
+                </div>
+                <button class="btn-add-account" id="btn-add-account">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span class="add-account-text">Add Account</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Accounts Page -->
+            <div id="page-accounts" class="page-container active" style="display: block;">
+                <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <h1 class="page-title">Active Accounts</h1>
+                        <div class="page-subtitle">Manage and monitor your connected Roblox instances.</div>
+                    </div>
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <div class="search-box">
+                        </div>
+                        <div class="search-box">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="search-input" placeholder="Search accounts..." autocomplete="off" spellcheck="false" />
+                        </div>
+                        <button class="btn-icon" id="btn-create-group" title="Create Group" style="border-radius: 50%;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="accounts-wrapper" id="accounts-grid">
+                    <!-- Accounts will be injected here -->
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-6.219-8.56"></path></svg>
+                        <h3>Loading</h3>
+                        <p>Fetching your accounts...</p>
+                    </div>
+                </div>
+            </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    
