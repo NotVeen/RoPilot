@@ -109,7 +109,11 @@ void ProcessWebMessage(const std::string& msg) {
             BrowserLogin::OpenLoginBrowser(g_webviewEnv.Get(), [](const std::string& cookie) {
                 if (!cookie.empty()) {
                     if (g_accountManager.AddAccount(cookie)) {
-                        SendStatusMessage("Account added successfully!", false);
+                        std::string username = "Account";
+                        for (const auto& acc : g_accountManager.GetAccounts()) {
+                            if (acc.Cookie == cookie) { username = acc.Info.Username; break; }
+                        }
+                        SendStatusMessage(username + " added successfully!", false);
                         UpdateUI();
                     } else {
                         SendStatusMessage("Failed to add account. Invalid cookie?", true);
@@ -122,7 +126,11 @@ void ProcessWebMessage(const std::string& msg) {
         else if (action == "add_cookie") {
             std::string cookie = j.value("cookie", "");
             if (g_accountManager.AddAccount(cookie)) {
-                SendStatusMessage("Account added successfully!", false);
+                std::string username = "Account";
+                for (const auto& acc : g_accountManager.GetAccounts()) {
+                    if (acc.Cookie == cookie) { username = acc.Info.Username; break; }
+                }
+                SendStatusMessage(username + " added successfully!", false);
                 UpdateUI();
             } else {
                 SendStatusMessage("Failed to add account. Invalid cookie?", true);
@@ -133,16 +141,18 @@ void ProcessWebMessage(const std::string& msg) {
             std::string placeId = j.value("placeId", "");
             
             bool alreadyRunning = false;
+            std::string username = "Account";
             for (const auto& acc : g_accountManager.GetAccounts()) {
-                if (acc.Cookie == cookie && acc.ProcessId != 0) {
-                    if (IsProcessRunning(acc.ProcessId)) {
+                if (acc.Cookie == cookie) {
+                    username = acc.Info.Username;
+                    if (acc.ProcessId != 0 && IsProcessRunning(acc.ProcessId)) {
                         alreadyRunning = true;
-                        break;
                     }
+                    break;
                 }
             }
             if (alreadyRunning) {
-                SendStatusMessage("Account instance is already running!", true);
+                SendStatusMessage(username + " is already running!", true);
                 return;
             }
 
@@ -151,7 +161,7 @@ void ProcessWebMessage(const std::string& msg) {
             if (Launcher::LaunchAccount(cookie, placeId, errorMsg, outPID)) {
                 g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
                 UpdateUI();
-                SendStatusMessage("Launched successfully!", false);
+                SendStatusMessage(username + " launched successfully!", false);
             } else {
                 UpdateUI();
                 SendStatusMessage(errorMsg, true);
@@ -326,6 +336,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             mmi->ptMaxPosition.x = mi.rcWork.left - mi.rcMonitor.left;
             mmi->ptMaxPosition.y = mi.rcWork.top - mi.rcMonitor.top;
         }
+        mmi->ptMinTrackSize.x = 940;
+        mmi->ptMinTrackSize.y = 500;
         return 0;
     }
     case WM_APP + 2: {
@@ -448,8 +460,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             #ifndef DWMWA_BORDER_COLOR
             #define DWMWA_BORDER_COLOR 34
             #endif
-            COLORREF darkColor = RGB(42, 42, 42); // match --border-color #2a2a2a
+            DWORD darkColor = 0x00111111;
             pDwmSetWindowAttribute(g_hWnd, DWMWA_BORDER_COLOR, &darkColor, sizeof(darkColor));
+            DWORD cornerPref = 2; // DWMWCP_ROUND
+            pDwmSetWindowAttribute(g_hWnd, 33, &cornerPref, sizeof(cornerPref));
         }
         FreeLibrary(hDwm);
     }

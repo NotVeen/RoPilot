@@ -756,8 +756,8 @@ const char* HTML_CONTENT = R"HTML(
     <!-- Titlebar -->
     <div class="titlebar">
         <div class="titlebar-left">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE0klEQVR4nK1XW4iWVRRd++8fTR3tYoMZo1OSlEVWvlRP9dCVoaIUy66opRgVYfRQCfZgRYgNXbGLRBkVoRFF6CAkCJEhZkXZxQgjuptW3phxnBXrd33jnq//H51yw8e57bP2Pvvsy/kCgySSEREkOQ7APQAqAJ6IiK3F2mAx/0UC0tdonuQokl/wIH1F8phD7cPhEMlK7ueNJI9ye4kFd5Pscv+KzJME98Mry6uUNY2IXpLDSZ6kfsmktIDvAOwGUAXQBGCv5rzWx6+9xhtLstn9+pagtSN5GUmB7SL5BslhxabUDiX5LMlef8+Jr8RTMd8rJHeS/J7klXUtwYN3O8yMoh63c80zpI6C+/3t8r72Eu8sY4hH9KOt2+cTlWwuACMAjLEZe7x0ipmlkNZe1xyA4d5fcX88gNd0deYN88FYwmwB0Fw3UkhW3S6yxgJRaLUknhk8NN2S+E8wRmGph7OsPgvY+XpswlYA3V77C8BtSQmddA2AWwGcDWCsv8kAJHg1gKGFcO01RhizleRVllW7gpDnRoS0mw3gxboeCnwNYEpE7DH4OQDOt7KiHwCsj4hPCycFsAHAWQ3w5kXE0lrUJAf80h5dxLX6PR7Pldncbh7A/Fq7w7xywL3GEBaNpcN+0y85kWwm+XsSXAgXXW2eVSVhm0i+SXJFKSuK1jgM2xNWgSv6g+Sx2QGnlUKvaB/w+oYELk8/3Q7WRnK0eSaTfCvxbfT8fQ2wb8gKLCe5zybrcn+L155KoHeTbCK5hORPntOe90mea/75Ke6f8dxmY3aZX32FM7Q4guSOOvc5h2RrMttj5t9Yh7c42cXmWew57R1H8uY6/H+THFmNiN3OdvLcIkEoMl4mucAh9BuA+0k+qGhw7l8I4D0AbQCWAJgE4GlbQmvTnZxmR8RDrhO9KRK6I2KnvPU6F5ZaiBX5geRNAKZ53OlCMsMgSyNisddk3h0A1gE4DcAFEaErUb5QaF9L8lsA25MCtYOSvF4ZaRaAS9GYlEZrYQNglEE+9ImqXv8YwDYnpfEuNhrDuWB5A+y1VZvqcSeWSJ+0PNVC2vwKOs5j5XM5WtXtNRYu5TbZWlOMoUz4q/cVNUZ8HwG4N0eCrmOIv6PdzndoLbT3P+/xhbKA506Ut5N8VZXSWJenhHZ7+dj9yjEPZKS+V8z/JRUjktst/HOX+DHOovOUO9KBo5YObV6F2QQA+1OZrqTrkNkKRdXPJbXiKDrDGKKf5VsRISVWAJgKoMsl+hcx1MpyKsMLeGSo2+l5onHvSmtzPNdn8apPLOoAICervWbSSTNVShYoHiS9Pnm7xysjYgvJiwA86T2dAF4oqi+ONPGAL33gk+5xbdD9r7UvNHy218iL1Tpfk9uRJN+2kJkkjzf4OpIdxpjgSif6zJHUkgrW4f0bZCq8leTUdJfnee3RNHej55T5ClqWcAYvvPRcX+2Cs8rjwnllBdE2kid7riMpMTPz/1fhk1JimV56ek/0u1/UmRR7x9VQxe7MjDcYBapuH3GN35rf9WldCaag9SRf8gtqn/d9Il8y72H/I4bb0ST/NPiirJj7xf+iSvFAtNJO2S/rDnQvRQbUj8a7LiLLrFjODzJzJSLudAlWZdX1yNyFMMW9ft1U1JQfxF/D+AeQdxFJK/yGAQAAAABJRU5ErkJggg==" width="22" height="22" />
-            <span><strong style="font-weight: 600;">RoPilot</strong><span style="color: var(--text-muted); font-size: 13px; margin-left: 6px; font-weight: 400;">by NotVeen</span></span>
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE0klEQVR4nK1XW4iWVRRd++8fTR3tYoMZo1OSlEVWvlRP9dCVoaIUy66opRgVYfRQCfZgRYgNXbGLRBkVoRFF6CAkCJEhZkXZxQgjuptW3phxnBXrd33jnq//H51yw8e57bP2Pvvsy/kCgySSEREkOQ7APQAqAJ6IiK3F2mAx/0UC0tdonuQokl/wIH1F8phD7cPhEMlK7ueNJI9ye4kFd5Pscv+KzJME98Mry6uUNY2IXpLDSZ6kfsmktIDvAOwGUAXQBGCv5rzWx6+9xhtLstn9+pagtSN5GUmB7SL5BslhxabUDiX5LMlef8+Jr8RTMd8rJHeS/J7klXUtwYN3O8yMoh63c80zpI6C+/3t8r72Eu8sY4hH9KOt2+cTlWwuACMAjLEZe7x0ipmlkNZe1xyA4d5fcX88gNd0deYN88FYwmwB0Fw3UkhW3S6yxgJRaLUknhk8NN2S+E8wRmGph7OsPgvY+XpswlYA3V77C8BtSQmddA2AWwGcDWCsv8kAJHg1gKGFcO01RhizleRVllW7gpDnRoS0mw3gxboeCnwNYEpE7DH4OQDOt7KiHwCsj4hPCycFsAHAWQ3w5kXE0lrUJAf80h5dxLX6PR7Pldncbh7A/Fq7w7xywL3GEBaNpcN+0y85kWwm+XsSXAgXXW2eVSVhm0i+SXJFKSuK1jgM2xNWgSv6g+Sx2QGnlUKvaB/w+oYELk8/3Q7WRnK0eSaTfCvxbfT8fQ2wb8gKLCe5zybrcn+L155KoHeTbCK5hORPntOe90mea/75Ke6f8dxmY3aZX32FM7Q4guSOOvc5h2RrMttj5t9Yh7c42cXmWew57R1H8uY6/H+THFmNiN3OdvLcIkEoMl4mucAh9BuA+0k+qGhw7l8I4D0AbQCWAJgE4GlbQmvTnZxmR8RDrhO9KRK6I2KnvPU6F5ZaiBX5geRNAKZ53OlCMsMgSyNisddk3h0A1gE4DcAFEaErUb5QaF9L8lsA25MCtYOSvF4ZaRaAS9GYlEZrYQNglEE+9ImqXv8YwDYnpfEuNhrDuWB5A+y1VZvqcSeWSJ+0PNVC2vwKOs5j5XM5WtXtNRYu5TbZWlOMoUz4q/cVNUZ8HwG4N0eCrmOIv6PdzndoLbT3P+/xhbKA506Ut5N8VZXSWJenhHZ7+dj9yjEPZKS+V8z/JRUjktst/HOX+DHOovOUO9KBo5YObV6F2QQA+1OZrqTrkNkKRdXPJbXiKDrDGKKf5VsRISVWAJgKoMsl+hcx1MpyKsMLeGSo2+l5onHvSmtzPNdn8apPLOoAICervWbSSTNVShYoHiS9Pnm7xysjYgvJiwA86T2dAF4oqi+ONPGAL33gk+5xbdD9r7UvNHy218iL1Tpfk9uRJN+2kJkkjzf4OpIdxpjgSif6zJHUkgrW4f0bZCq8leTUdJfnee3RNHej55T5ClqWcAYvvPRcX+2Cs8rjwnllBdE2kid7riMpMTPz/1fhk1JimV56ek/0u1/UmRR7x9VQxe7MjDcYBapuH3GN35rf9WldCaag9SRf8gtqn/d9Il8y72H/I4bb0ST/NPiirJj7xf+iSvFAtNJO2S/rDnQvRQbUj8a7LiLLrFjODzJzJSLudAlWZdX1yNyFMMW9ft1U1JQfxF/D+AeQdxFJK/yGAQAAAABJRU5ErkJggg==" width="28" height="28" style="margin-right: 2px;" />
+            <span><strong style="font-weight: 700; font-size: 16px;">RoPilot</strong><span style="color: var(--text-muted); font-size: 14px; margin-left: 12px; font-weight: 500;">v1.0.0 by NotVeen</span></span>
         </div>
         <div class="drag-area" id="drag-area"></div>
         <div class="titlebar-controls">
@@ -828,7 +828,7 @@ const char* HTML_CONTENT = R"HTML(
             <div id="page-accounts" class="page-container active" style="display: block;">
                 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
-                        <h1 class="page-title">Active Accounts</h1>
+                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Manage Accounts</h1>
                         <div class="page-subtitle">Manage and monitor your connected Roblox instances.</div>
                     </div>
                     <div style="display: flex; gap: 16px; align-items: center;">
@@ -849,7 +849,7 @@ const char* HTML_CONTENT = R"HTML(
                 <div class="accounts-wrapper" id="accounts-grid">
                     <!-- Accounts will be injected here -->
                     <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-6.219-8.56"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         <h3>Loading</h3>
                         <p>Fetching your accounts...</p>
                     </div>
@@ -860,7 +860,7 @@ const char* HTML_CONTENT = R"HTML(
     <div id="toast" class="toast"></div>
 
     <!-- Create Group Modal -->
-    <div id="group-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div id="group-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div id="group-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Create Group</h2>
@@ -878,7 +878,7 @@ const char* HTML_CONTENT = R"HTML(
     </div>
 
     <!-- Cookie Login Modal -->
-    <div id="cookie-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div id="cookie-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div id="cookie-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 500px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Add Account via Cookie</h2>
@@ -896,7 +896,7 @@ const char* HTML_CONTENT = R"HTML(
     </div>
 
     <!-- Rename Group Modal -->
-    <div id="rename-group-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+    <div id="rename-group-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="rename-group-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Rename Group</h2>
@@ -915,7 +915,7 @@ const char* HTML_CONTENT = R"HTML(
     </div>
 
     <!-- Delete Group Modal -->
-    <div id="delete-group-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+    <div id="delete-group-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="delete-group-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ff5252;">Delete Group</h2>
@@ -933,7 +933,7 @@ const char* HTML_CONTENT = R"HTML(
     </div>
 
     <!-- Kill Instance Modal -->
-    <div id="kill-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+    <div id="kill-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="kill-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ff5252;">Kill Instance</h2>
@@ -951,7 +951,7 @@ const char* HTML_CONTENT = R"HTML(
     </div>
 
     <!-- Remove Account Modal -->
-    <div id="remove-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+    <div id="remove-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="remove-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ff5252;">Remove Account</h2>
@@ -968,14 +968,14 @@ const char* HTML_CONTENT = R"HTML(
         </div>
     </div>
     <!-- Kill All Modal -->
-    <div id="kill-all-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+    <div id="kill-all-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="kill-all-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ff5252;">Running Instances Detected</h2>
                 <button class="btn-icon" onclick="document.getElementById('kill-all-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
             </div>
             <div style="padding: 20px;">
-                <p style="color: var(--text-muted); margin-bottom: 0; font-size: 14px;">RoPilot detected existing Roblox instances running. It is recommended to close them before using RoPilot. Would you like to terminate all running Roblox instances?</p>
+                <p style="color: var(--text-muted); margin-bottom: 0; font-size: 14px;">To make multi-instance work properly, you must terminate all currently running Roblox instances before launching new ones. Do you want to terminate them now?</p>
             </div>
             <div style="padding: 16px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
                 <button class="btn-secondary" onclick="document.getElementById('kill-all-modal').classList.remove('show');" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer;">Keep Running</button>
@@ -1025,7 +1025,7 @@ const char* HTML_CONTENT = R"HTML(
                     if (accounts.length === 0) {
                         accountsGrid.innerHTML = `
                             <div class="empty-state">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                                 <h3>No Accounts Found</h3>
                                 <p>Click the "Add Account" button to connect your first Roblox instance.</p>
                             </div>
@@ -1142,7 +1142,7 @@ const char* HTML_CONTENT = R"HTML(
                                     <button class="btn-icon danger" onclick="window.removeAccount('${cookie}', '${username}')">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
-                                    ${acc.Status === 1 || acc.Status === 2 ? `<button class="btn-icon danger" onclick="window.killAccount('${cookie}', '${username}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>` : ''}
+                                    ${acc.Status === 1 || acc.Status === 2 ? `<button class="btn-icon danger" onclick="window.killAccount('${cookie}', '${username}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 L12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>` : ''}
                                 </div>
                             </div>`;
                         });
@@ -1211,14 +1211,33 @@ const char* HTML_CONTENT = R"HTML(
                 }
             };
             
+            window.createGroup = function() {
+                let modal = document.getElementById('group-modal');
+                if (modal) {
+                    modal.classList.add('show');
+                    let input = document.getElementById('group-input');
+                    if (input) {
+                        input.value = '';
+                        setTimeout(() => input.focus(), 50);
+                    }
+                }
+            };
+            
             window.renameGroup = function(oldName) {
+                // unescape html just in case
+                let div = document.createElement('div');
+                div.innerHTML = oldName;
+                oldName = div.textContent || div.innerText || '';
+
                 let modal = document.getElementById('rename-group-modal');
                 if (modal) {
                     modal.classList.add('show');
                     document.getElementById('rename-group-old-name').value = oldName;
                     let input = document.getElementById('rename-group-name-input');
-                    input.value = oldName;
-                    input.focus();
+                    if (input) {
+                        input.value = oldName;
+                        setTimeout(() => input.focus(), 50);
+                    }
                 }
             };
             
@@ -1409,9 +1428,13 @@ const char* HTML_CONTENT = R"HTML(
                         let idx = currentGroups.indexOf(oldName);
                         if (idx > -1) {
                             currentGroups[idx] = newName;
-                        } else if (!currentGroups.includes(newName)) {
+                        }
+                        
+                        currentGroups = currentGroups.filter(g => g !== oldName);
+                        if (!currentGroups.includes(newName)) {
                             currentGroups.push(newName);
                         }
+                        currentGroups = [...new Set(currentGroups)];
                         
                         syncLayout();
                     }
@@ -1505,6 +1528,23 @@ const char* HTML_CONTENT = R"HTML(
                 let modal = document.getElementById('kill-all-modal');
                 if (modal) modal.classList.add('show');
             };
+
+            // Drag window
+            let dragArea = document.getElementById('drag-area');
+            if (dragArea) {
+                dragArea.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName !== 'BUTTON') {
+                        window.chrome.webview.postMessage(JSON.stringify({ action: 'drag' }));
+                    }
+                });
+            }
+
+            // Close modals on outside click
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('show');
+                }
+            });
 
             // Resize Handles
             document.querySelectorAll('.resize-edge').forEach(edge => {
