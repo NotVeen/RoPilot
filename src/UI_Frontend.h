@@ -1027,7 +1027,7 @@ const char* HTML_CONTENT = R"HTML(
                             <div class="empty-state">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                                 <h3>No Accounts Found</h3>
-                                <p>Click the "Add Account" button to connect your first Roblox instance.</p>
+                                <p>Click the "Add Account" button to add your Roblox account.</p>
                             </div>
                         `;
                         return;
