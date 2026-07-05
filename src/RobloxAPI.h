@@ -3,25 +3,11 @@
 #include <vector>
 
 namespace RobloxAPI {
-    struct GameInfo {
-        std::string PlaceId;
-        std::string Name;
-        std::string ThumbnailUrl;
-    };
 
     struct UserInfo {
         std::string Username;
         std::string DisplayName;
         long long UserId = 0;
-        std::string ThumbnailUrl;
-    };
-
-    struct GameSearchResult {
-        long long UniverseId = 0;
-        long long RootPlaceId = 0;
-        std::string Name;
-        long long PlayerCount = 0;
-        long long Upvotes = 0;
         std::string ThumbnailUrl;
     };
 
@@ -33,7 +19,4 @@ namespace RobloxAPI {
     // Get Presence using own cookie
     bool GetPresence(const std::string& cookie, const std::string& userId, std::string& outJobId, int& outPresenceType);
 
-    UserInfo GetUserInfo(const std::string& cookie);
-    GameInfo GetGameInfo(const std::string& cookie, const std::string& placeId);
-    std::vector<GameSearchResult> SearchGames(const std::string& query);
-}
+    UserInfo GetUserInfo(const std::string& cookie);}
