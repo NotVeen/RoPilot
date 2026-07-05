@@ -14,6 +14,39 @@
 #include <fstream>
 #include <thread>
 #include <atomic>
+#include <tlhelp32.h>
+
+bool IsProcessRunning(DWORD pid) {
+    if (pid == 0) return false;
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, pid);
+    if (hProcess == NULL) return false;
+    DWORD exitCode = 0;
+    if (GetExitCodeProcess(hProcess, &exitCode)) {
+        CloseHandle(hProcess);
+        return exitCode == STILL_ACTIVE;
+    }
+    CloseHandle(hProcess);
+    return false;
+}
+
+bool IsAnyRobloxRunning() {
+    bool found = false;
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot != INVALID_HANDLE_VALUE) {
+        PROCESSENTRY32W pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32W);
+        if (Process32FirstW(hSnapshot, &pe32)) {
+            do {
+                if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
+                    found = true;
+                    break;
+                }
+            } while (Process32NextW(hSnapshot, &pe32));
+        }
+        CloseHandle(hSnapshot);
+    }
+    return found;
+}
 
 using namespace Microsoft::WRL;
 using json = nlohmann::json;
@@ -98,6 +131,21 @@ void ProcessWebMessage(const std::string& msg) {
         else if (action == "launch") {
             std::string cookie = j.value("cookie", "");
             std::string placeId = j.value("placeId", "");
+            
+            bool alreadyRunning = false;
+            for (const auto& acc : g_accountManager.GetAccounts()) {
+                if (acc.Cookie == cookie && acc.ProcessId != 0) {
+                    if (IsProcessRunning(acc.ProcessId)) {
+                        alreadyRunning = true;
+                        break;
+                    }
+                }
+            }
+            if (alreadyRunning) {
+                SendStatusMessage("Account instance is already running!", true);
+                return;
+            }
+
             std::string errorMsg;
             DWORD outPID = 0;
             if (Launcher::LaunchAccount(cookie, placeId, errorMsg, outPID)) {
@@ -115,6 +163,27 @@ void ProcessWebMessage(const std::string& msg) {
         }
         else if (action == "minimize") {
             ShowWindow(g_hWnd, SW_MINIMIZE);
+        }
+        else if (action == "kill_all") {
+            HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+            if (hSnapshot != INVALID_HANDLE_VALUE) {
+                PROCESSENTRY32W pe32;
+                pe32.dwSize = sizeof(PROCESSENTRY32W);
+                if (Process32FirstW(hSnapshot, &pe32)) {
+                    do {
+                        if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
+                            HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, pe32.th32ProcessID);
+                            if (hProcess) {
+                                TerminateProcess(hProcess, 0);
+                                CloseHandle(hProcess);
+                            }
+                        }
+                    } while (Process32NextW(hSnapshot, &pe32));
+                }
+                CloseHandle(hSnapshot);
+            }
+            SendStatusMessage("All Roblox instances terminated.", false);
+            UpdateUI();
         }
         else if (action == "maximize") {
             ShowWindow(g_hWnd, IsZoomed(g_hWnd) ? SW_RESTORE : SW_MAXIMIZE);
@@ -361,7 +430,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     int yPos = (screenH - winH) / 2;
 
     g_hWnd = CreateWindowW(L"MultiRobloxClass", L"RoPilot", 
-        WS_POPUP | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_THICKFRAME, xPos, yPos, winW, winH, 
+        WS_POPUP | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_THICKFRAME, xPos, yPos, winW, winH, 
         nullptr, nullptr, hInstance, nullptr);
 
     // Apply dark mode to the window border
@@ -477,6 +546,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                             g_webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(
                                 [](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
                                     UpdateUI();
+                                    
+                                    if (IsAnyRobloxRunning()) {
+                                        g_webview->ExecuteScript(L"if(window.showKillAllPrompt) window.showKillAllPrompt();", nullptr);
+                                    }
+                                    
                                     return S_OK;
                                 }).Get(), &token);
 

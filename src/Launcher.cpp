@@ -1,5 +1,7 @@
 #include "Launcher.h"
 #include "RobloxAPI.h"
+#include "HandleCloser.h"
+#include "RobloxAPI.h"
 #include <windows.h>
 #include <shlobj.h>
 #include <filesystem>
@@ -11,6 +13,7 @@ namespace fs = std::filesystem;
 namespace Launcher {
 
     HANDLE g_hMutex = NULL;
+    HANDLE g_hEvent = NULL;
 
     std::string FindRobloxExecutable() {
         char localPath[MAX_PATH];
@@ -82,6 +85,8 @@ namespace Launcher {
 
         std::vector<char> cmdLineMutable(cmdLine.begin(), cmdLine.end());
         cmdLineMutable.push_back('\0');
+        
+        HandleCloser::CloseRobloxHandles();
 
         if (!CreateProcessA(NULL, cmdLineMutable.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
             std::cerr << "CreateProcess failed (" << GetLastError() << ").\n";
@@ -96,9 +101,8 @@ namespace Launcher {
     }
 
     void InitializeMultiInstance() {
-        if (!g_hMutex) {
-            g_hMutex = CreateMutexA(NULL, TRUE, "ROBLOX_singletonMutex");
-        }
+        // Multi-instance is now handled via HandleCloser dynamically.
+        // We do not need to hold the singleton handles in RoPilot.
     }
 
     void ShutdownMultiInstance() {
@@ -106,6 +110,10 @@ namespace Launcher {
             ReleaseMutex(g_hMutex);
             CloseHandle(g_hMutex);
             g_hMutex = NULL;
+        }
+        if (g_hEvent) {
+            CloseHandle(g_hEvent);
+            g_hEvent = NULL;
         }
     }
 }
