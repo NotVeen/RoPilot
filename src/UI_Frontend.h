@@ -1036,9 +1036,8 @@ const char* HTML_CONTENT = R"HTML(
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
                 </div>
-                <h2 id="update-overlay-title" style="margin: 0 0 12px 0; font-size: 24px; font-weight: 600; color: white;">Downloading Update...</h2>
+                <h2 id="update-overlay-title" style="margin: 0 0 12px 0; font-size: 24px; font-weight: 600; color: white;">Downloading Update</h2>
                 <div id="update-overlay-desc" style="color: var(--text-muted); font-size: 14px; margin-bottom: 32px;">Fetching the latest features and fixes.</div>
-                
                 <div style="width: 300px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; position: relative;">
                     <div id="update-progress-bar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #4ade80; border-radius: 3px; transition: width 0.1s linear;"></div>
                 </div>
@@ -1105,7 +1104,7 @@ const char* HTML_CONTENT = R"HTML(
                 <button class="btn-icon" onclick="document.getElementById('changelog-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
             </div>
             <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
-                <div id="changelog-content" style="color: var(--text-muted); font-size: 14px; line-height: 1.6; font-family: inherit; margin: 0;"></div>
+                <div id="changelog-content" style="color: var(--text-muted); font-size: 14px; line-height: 1.6; font-family: inherit, 'Segoe UI Emoji', sans-serif; margin: 0;"></div>
             </div>
         </div>
     </div>
