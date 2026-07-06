@@ -6,6 +6,8 @@
 #include "Launcher.h"
 #include "RobloxAPI.h"
 #include "BrowserLogin.h"
+#include "HandleCloser.h"
+#include "InstallerQuarantine.h"
 #include "UI_Frontend.h"
 #include <json.hpp>
 #include <iostream>
@@ -412,6 +414,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         // Initialize Mutex
         Launcher::InitializeMultiInstance();
 
+        // Quarantine Roblox Installers
+        InstallerQuarantine::QuarantineInstallers();
+
     // Load Accounts
     g_accountManager.Load();
 
@@ -571,6 +576,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             DispatchMessage(&msg);
         }
 
+        InstallerQuarantine::RestoreInstallers();
         CoUninitialize();
         return (int)msg.wParam;
     } catch (const std::exception& e) {
