@@ -687,6 +687,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                             json jOut;
                                             jOut["action"] = "show_changelog";
                                             jOut["content"] = changelog;
+                                            jOut["version"] = Updater::CURRENT_VERSION;
                                             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
                                             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
                                         }

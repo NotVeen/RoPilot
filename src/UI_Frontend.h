@@ -1100,12 +1100,12 @@ const char* HTML_CONTENT = R"HTML(
                         <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
                         <path d="M12 8v4l3 3"></path>
                     </svg>
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 600;">What's New in RoPilot</h2>
+                    <h2 id="changelog-title" style="margin: 0; font-size: 18px; font-weight: 600;">What's New in RoPilot</h2>
                 </div>
                 <button class="btn-icon" onclick="document.getElementById('changelog-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
             </div>
             <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
-                <p id="changelog-content" style="color: var(--text-muted); font-size: 14px; line-height: 1.6; white-space: pre-wrap; font-family: inherit; margin: 0;"></p>
+                <div id="changelog-content" style="color: var(--text-muted); font-size: 14px; line-height: 1.6; font-family: inherit; margin: 0;"></div>
             </div>
         </div>
     </div>
@@ -1998,8 +1998,25 @@ const char* HTML_CONTENT = R"HTML(
                             if (promptModal) promptModal.classList.add('show');
                         }
                         else if (msg.action === 'show_changelog') {
+                            let titleEl = document.getElementById('changelog-title');
+                            if (titleEl && msg.version) titleEl.textContent = "What's New in RoPilot " + msg.version;
+                            
                             let contentEl = document.getElementById('changelog-content');
-                            if (contentEl) contentEl.textContent = msg.content;
+                            if (contentEl) {
+                                let content = msg.content;
+                                content = content.replace(/^###.*?\n/, ''); // Remove header
+                                let htmlContent = content
+                                    .replace(/^-\s+(.*)$/gm, '<li>$1</li>')
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                    .replace(/\n/g, '<br>');
+                                
+                                htmlContent = htmlContent.replace(/(<li>.*?<\/li>(?:<br>)*)+/g, match => {
+                                    return '<ul style="margin: 8px 0; padding-left: 20px;">' + match.replace(/<br>/g, '') + '</ul>';
+                                });
+                                
+                                contentEl.innerHTML = htmlContent;
+                            }
                             let clModal = document.getElementById('changelog-modal');
                             if (clModal) clModal.classList.add('show');
                         }
