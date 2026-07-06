@@ -743,22 +743,21 @@ const char* HTML_CONTENT = R"HTML(
             pointer-events: auto;
         }
 
-        #cookie-modal, #group-modal, #update-prompt-modal {
+        #cookie-modal, #group-modal, #update-prompt-modal, #changelog-modal {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
             display: flex;
-            backdrop-filter: blur(4px);
         }
-        #cookie-modal.show, #group-modal.show, #update-prompt-modal.show {
+        #cookie-modal.show, #group-modal.show, #update-prompt-modal.show, #changelog-modal.show {
             opacity: 1;
             pointer-events: auto;
         }
-        #cookie-modal-content, #group-modal-content, #update-prompt-content {
+        #cookie-modal-content, #group-modal-content, #update-prompt-content, #changelog-modal-content {
             transform: scale(0.95);
             transition: transform 0.2s ease;
         }
-        #cookie-modal.show #cookie-modal-content, #group-modal.show #group-modal-content, #update-prompt-modal.show #update-prompt-content {
+        #cookie-modal.show #cookie-modal-content, #group-modal.show #group-modal-content, #update-prompt-modal.show #update-prompt-content, #changelog-modal.show #changelog-modal-content {
             transform: scale(1);
         }
 
@@ -1088,6 +1087,25 @@ const char* HTML_CONTENT = R"HTML(
             <div style="padding: 16px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
                 <button class="btn-secondary" onclick="document.getElementById('update-prompt-modal').classList.remove('show');" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer;">Skip for Now</button>
                 <button class="btn-primary" id="btn-start-update" style="padding: 8px 16px; background: #4ade80; color: black; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Install Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Changelog Modal -->
+    <div id="changelog-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;" onclick="if(event.target === this) this.classList.remove('show');">
+        <div id="changelog-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 500px; max-width: 90%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                        <path d="M12 8v4l3 3"></path>
+                    </svg>
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 600;">What's New in RoPilot</h2>
+                </div>
+                <button class="btn-icon" onclick="document.getElementById('changelog-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div style="padding: 20px; overflow-y: auto; flex-grow: 1;">
+                <p id="changelog-content" style="color: var(--text-muted); font-size: 14px; line-height: 1.6; white-space: pre-wrap; font-family: inherit; margin: 0;"></p>
             </div>
         </div>
     </div>
@@ -1978,6 +1996,12 @@ const char* HTML_CONTENT = R"HTML(
                             if (verText) verText.textContent = msg.version;
                             let promptModal = document.getElementById('update-prompt-modal');
                             if (promptModal) promptModal.classList.add('show');
+                        }
+                        else if (msg.action === 'show_changelog') {
+                            let contentEl = document.getElementById('changelog-content');
+                            if (contentEl) contentEl.textContent = msg.content;
+                            let clModal = document.getElementById('changelog-modal');
+                            if (clModal) clModal.classList.add('show');
                         }
                         else if (msg.action === 'start_update') {
                             window.chrome.webview.postMessage(JSON.stringify({ action: 'start_update' }));

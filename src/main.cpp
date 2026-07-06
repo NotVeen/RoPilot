@@ -21,6 +21,7 @@
 #include <thread>
 #include <atomic>
 #include <tlhelp32.h>
+#include <sstream>
 
 bool IsProcessRunning(DWORD pid) {
     if (pid == 0) return false;
@@ -41,6 +42,7 @@ using namespace Microsoft::WRL;
 using json = nlohmann::json;
 
 std::atomic<bool> g_running{true};
+bool g_showChangelog = false;
 
 #define LOG(x)
 #define ERROR_LOG(x)
@@ -438,6 +440,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     try {
         CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
+        if (lpCmdLine && wcsstr(lpCmdLine, L"--updated") != nullptr) {
+            g_showChangelog = true;
+        }
+
         // Initialize Mutex
         Launcher::InitializeMultiInstance();
 
@@ -668,6 +674,24 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                             g_webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(
                                 [](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
                                     UpdateUI();
+                                    
+                                    if (g_showChangelog) {
+                                        std::ifstream clog("changelog.txt");
+                                        if (clog.is_open()) {
+                                            std::stringstream buffer;
+                                            buffer << clog.rdbuf();
+                                            std::string changelog = buffer.str();
+                                            clog.close();
+                                            remove("changelog.txt");
+                                            
+                                            json jOut;
+                                            jOut["action"] = "show_changelog";
+                                            jOut["content"] = changelog;
+                                            std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
+                                            g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
+                                        }
+                                        g_showChangelog = false;
+                                    }
                                     
                                     if (Launcher::IsAnyRobloxRunning()) {
                                         g_webview->ExecuteScript(L"if(window.showKillAllPrompt) window.showKillAllPrompt();", nullptr);

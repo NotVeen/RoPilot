@@ -64,6 +64,15 @@ std::string Updater::CheckForUpdate(std::string& outDownloadUrl) {
                 std::string name = asset.value("name", "");
                 if (name.find(".zip") != std::string::npos) {
                     outDownloadUrl = asset.value("browser_download_url", "");
+                    
+                    // Save changelog to file
+                    std::string body = j.value("body", "");
+                    std::ofstream clog("changelog.txt");
+                    if (clog.is_open()) {
+                        clog << body;
+                        clog.close();
+                    }
+                    
                     return tag;
                 }
             }
@@ -155,7 +164,7 @@ void Updater::ApplyUpdate(const std::string& zipPath) {
     file << "param($zipPath)\n";
     file << "Start-Sleep -Seconds 2\n";
     file << "Expand-Archive -Force -Path $zipPath -DestinationPath .\n";
-    file << "Start-Process 'RoPilot.exe'\n";
+    file << "Start-Process 'RoPilot.exe' -ArgumentList '--updated'\n";
     file << "Remove-Item $zipPath -Force\n";
     file << "Remove-Item $MyInvocation.MyCommand.Path -Force\n";
     file.close();
