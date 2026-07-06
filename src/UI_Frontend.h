@@ -2003,18 +2003,22 @@ const char* HTML_CONTENT = R"HTML(
                             
                             let contentEl = document.getElementById('changelog-content');
                             if (contentEl) {
-                                let content = msg.content;
-                                content = content.replace(/^###.*?\n/, ''); // Remove header
+                                let content = msg.content || '';
+                                content = content.replace(/\r\n/g, '\n');
+                                content = content.replace(/^#+.*?\n+/gm, '');
+                                content = content.trim();
+
                                 let htmlContent = content
                                     .replace(/^-\s+(.*)$/gm, '<li>$1</li>')
                                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                                    .replace(/\n/g, '<br>');
+                                    .replace(/\*(.*?)\*/g, '<em>$1</em>');
                                 
-                                htmlContent = htmlContent.replace(/(<li>.*?<\/li>(?:<br>)*)+/g, match => {
-                                    return '<ul style="margin: 8px 0; padding-left: 20px;">' + match.replace(/<br>/g, '') + '</ul>';
+                                htmlContent = htmlContent.replace(/(?:<li>.*?<\/li>\s*)+/g, match => {
+                                    let items = match.replace(/<\/li>\s*<li>/g, '</li><li>').trim();
+                                    return '<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">' + items + '</ul>';
                                 });
                                 
+                                htmlContent = htmlContent.replace(/\n/g, '<br>');
                                 contentEl.innerHTML = htmlContent;
                             }
                             let clModal = document.getElementById('changelog-modal');
