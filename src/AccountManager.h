@@ -3,7 +3,17 @@
 #include <vector>
 #include <windows.h>
 #include <mutex>
+#include <chrono>
 #include "RobloxAPI.h"
+
+struct AnalyticsState {
+    uint64_t lastSystemTime = 0;
+    uint64_t lastProcessTime = 0;
+    double cpuUsage = 0.0;
+    double ramUsageMB = 0.0;
+    std::chrono::system_clock::time_point launchTime;
+    bool hasLaunchTime = false;
+};
 
 struct Account {
     std::string Cookie;
@@ -12,6 +22,7 @@ struct Account {
     std::string JobId = "";
     DWORD ProcessId = 0;
     std::string Group = "Ungrouped";
+    AnalyticsState Analytics;
 };
 
 class AccountManager {
@@ -30,6 +41,7 @@ public:
     void SetGroups(const std::vector<std::string>& groups);
     void UpdateAccountPresence(const std::string& cookie, int status, const std::string& jobId);
     void UpdateAccountProcess(const std::string& cookie, int status, DWORD processId);
+    void UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics);
     void UpdateAccountInfo(const std::string& cookie, const RobloxAPI::UserInfo& info);
 
 private:

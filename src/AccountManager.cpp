@@ -188,6 +188,26 @@ void AccountManager::UpdateAccountProcess(const std::string& cookie, int status,
         if (acc.Cookie == cookie) {
             acc.Status = status;
             acc.ProcessId = processId;
+            if (processId != 0 && !acc.Analytics.hasLaunchTime) {
+                acc.Analytics.launchTime = std::chrono::system_clock::now();
+                acc.Analytics.hasLaunchTime = true;
+            } else if (processId == 0) {
+                acc.Analytics.hasLaunchTime = false;
+                acc.Analytics.cpuUsage = 0.0;
+                acc.Analytics.ramUsageMB = 0.0;
+                acc.Analytics.lastSystemTime = 0;
+                acc.Analytics.lastProcessTime = 0;
+            }
+            break;
+        }
+    }
+}
+
+void AccountManager::UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto& acc : m_Accounts) {
+        if (acc.Cookie == cookie) {
+            acc.Analytics = analytics;
             break;
         }
     }
