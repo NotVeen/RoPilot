@@ -6,6 +6,9 @@ namespace Launcher {
     // Finds the latest RobloxPlayerBeta.exe in %LOCALAPPDATA%\Roblox\Versions
     std::string FindRobloxExecutable();
 
+    // Checks if any Roblox instance is currently running
+    bool IsAnyRobloxRunning();
+
     // Fetches the ticket and launches the game
     bool LaunchAccount(const std::string& cookie, const std::string& placeId, std::string& outError, DWORD& outPID);
 

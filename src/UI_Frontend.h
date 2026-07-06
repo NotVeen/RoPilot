@@ -170,7 +170,53 @@ const char* HTML_CONTENT = R"HTML(
             padding: 12px 16px;
             border-radius: 8px;
             cursor: pointer;
+            outline: none;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+            transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 16px;
+            border-radius: 2px;
+            background-color: var(--text-main);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .nav-item.active::before {
+            opacity: 1;
+        }
+        .nav-item svg {
+            transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .analytics-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 4px 8px;
+            margin-top: 10px;
+            font-size: 11px;
             color: var(--text-muted);
+            font-family: 'Consolas', 'Courier New', monospace;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .analytics-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .dropdown-menu {
             font-weight: 600;
             font-size: 13px;
             transition: background 0.2s, color 0.2s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -179,6 +225,9 @@ const char* HTML_CONTENT = R"HTML(
         
         .sidebar.collapsed .nav-item {
             padding: 12px 10px;
+        }
+        .sidebar.collapsed .nav-item svg {
+            margin: 0;
         }
         
         .nav-text {
@@ -204,7 +253,6 @@ const char* HTML_CONTENT = R"HTML(
         .nav-item.active {
             background-color: #1f1f1f;
             color: #ffffff;
-            box-shadow: inset 2px 0 0 var(--text-main);
         }
 
         .sidebar-spacer {
@@ -638,6 +686,48 @@ const char* HTML_CONTENT = R"HTML(
             border: 1px solid #1a4a2a;
         }
 
+        /* Toggle Switch CSS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #2d2d3a;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--text-green);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+
 
         /* Animations */
         #add-menu {
@@ -739,6 +829,20 @@ const char* HTML_CONTENT = R"HTML(
         .search-box input::placeholder {
             color: var(--text-muted);
         }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-container {
+            display: none;
+        }
+        
+        .page-container.active {
+            display: block;
+            animation: fadeSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
     </style>
 </head>
 <body>
@@ -757,7 +861,7 @@ const char* HTML_CONTENT = R"HTML(
     <div class="titlebar">
         <div class="titlebar-left">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE0klEQVR4nK1XW4iWVRRd++8fTR3tYoMZo1OSlEVWvlRP9dCVoaIUy66opRgVYfRQCfZgRYgNXbGLRBkVoRFF6CAkCJEhZkXZxQgjuptW3phxnBXrd33jnq//H51yw8e57bP2Pvvsy/kCgySSEREkOQ7APQAqAJ6IiK3F2mAx/0UC0tdonuQokl/wIH1F8phD7cPhEMlK7ueNJI9ye4kFd5Pscv+KzJME98Mry6uUNY2IXpLDSZ6kfsmktIDvAOwGUAXQBGCv5rzWx6+9xhtLstn9+pagtSN5GUmB7SL5BslhxabUDiX5LMlef8+Jr8RTMd8rJHeS/J7klXUtwYN3O8yMoh63c80zpI6C+/3t8r72Eu8sY4hH9KOt2+cTlWwuACMAjLEZe7x0ipmlkNZe1xyA4d5fcX88gNd0deYN88FYwmwB0Fw3UkhW3S6yxgJRaLUknhk8NN2S+E8wRmGph7OsPgvY+XpswlYA3V77C8BtSQmddA2AWwGcDWCsv8kAJHg1gKGFcO01RhizleRVllW7gpDnRoS0mw3gxboeCnwNYEpE7DH4OQDOt7KiHwCsj4hPCycFsAHAWQ3w5kXE0lrUJAf80h5dxLX6PR7Pldncbh7A/Fq7w7xywL3GEBaNpcN+0y85kWwm+XsSXAgXXW2eVSVhm0i+SXJFKSuK1jgM2xNWgSv6g+Sx2QGnlUKvaB/w+oYELk8/3Q7WRnK0eSaTfCvxbfT8fQ2wb8gKLCe5zybrcn+L155KoHeTbCK5hORPntOe90mea/75Ke6f8dxmY3aZX32FM7Q4guSOOvc5h2RrMttj5t9Yh7c42cXmWew57R1H8uY6/H+THFmNiN3OdvLcIkEoMl4mucAh9BuA+0k+qGhw7l8I4D0AbQCWAJgE4GlbQmvTnZxmR8RDrhO9KRK6I2KnvPU6F5ZaiBX5geRNAKZ53OlCMsMgSyNisddk3h0A1gE4DcAFEaErUb5QaF9L8lsA25MCtYOSvF4ZaRaAS9GYlEZrYQNglEE+9ImqXv8YwDYnpfEuNhrDuWB5A+y1VZvqcSeWSJ+0PNVC2vwKOs5j5XM5WtXtNRYu5TbZWlOMoUz4q/cVNUZ8HwG4N0eCrmOIv6PdzndoLbT3P+/xhbKA506Ut5N8VZXSWJenhHZ7+dj9yjEPZKS+V8z/JRUjktst/HOX+DHOovOUO9KBo5YObV6F2QQA+1OZrqTrkNkKRdXPJbXiKDrDGKKf5VsRISVWAJgKoMsl+hcx1MpyKsMLeGSo2+l5onHvSmtzPNdn8apPLOoAICervWbSSTNVShYoHiS9Pnm7xysjYgvJiwA86T2dAF4oqi+ONPGAL33gk+5xbdD9r7UvNHy218iL1Tpfk9uRJN+2kJkkjzf4OpIdxpjgSif6zJHUkgrW4f0bZCq8leTUdJfnee3RNHej55T5ClqWcAYvvPRcX+2Cs8rjwnllBdE2kid7riMpMTPz/1fhk1JimV56ek/0u1/UmRR7x9VQxe7MjDcYBapuH3GN35rf9WldCaag9SRf8gtqn/d9Il8y72H/I4bb0ST/NPiirJj7xf+iSvFAtNJO2S/rDnQvRQbUj8a7LiLLrFjODzJzJSLudAlWZdX1yNyFMMW9ft1U1JQfxF/D+AeQdxFJK/yGAQAAAABJRU5ErkJggg==" width="28" height="28" style="margin-right: 2px;" />
-            <span><strong style="font-weight: 700; font-size: 16px;">RoPilot</strong><span style="color: var(--text-muted); font-size: 14px; margin-left: 12px; font-weight: 500;">v1.0.1 by NotVeen</span></span>
+            <span><strong style="font-weight: 700; font-size: 16px;">RoPilot</strong><span style="color: var(--text-muted); font-size: 14px; margin-left: 12px; font-weight: 500;">v1.0.2 by NotVeen</span></span>
         </div>
         <div class="drag-area" id="drag-area"></div>
         <div class="titlebar-controls">
@@ -797,7 +901,14 @@ const char* HTML_CONTENT = R"HTML(
                 </svg>
                 <span class="nav-text">Accounts</span>
             </div>
-                <div class="nav-item">
+            <div class="nav-item" id="nav-analytics">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                    <path d="M3 3v18h18"></path>
+                    <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+                </svg>
+                <span class="nav-text">Analytics</span>
+            </div>
+                <div class="nav-item" id="nav-settings">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -825,7 +936,7 @@ const char* HTML_CONTENT = R"HTML(
         <!-- Main Content -->
         <div class="main-content">
             <!-- Accounts Page -->
-            <div id="page-accounts" class="page-container active" style="display: block;">
+            <div id="page-accounts" class="page-container active">
                 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
                         <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Manage Accounts</h1>
@@ -840,9 +951,14 @@ const char* HTML_CONTENT = R"HTML(
                             <input type="text" id="search-input" placeholder="Search accounts..." autocomplete="off" spellcheck="false" />
                         </div>
 
-                        <button class="btn-icon" id="btn-create-group" title="Create Group" style="border-radius: 50%;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        </button>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button class="btn-icon" id="btn-create-group" title="Create Group" style="border-radius: 50%;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </button>
+                            <button class="btn-icon danger" onclick="window.showKillAllPrompt(true)" title="Kill All Instances" style="border-radius: 50%;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 L12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -854,6 +970,80 @@ const char* HTML_CONTENT = R"HTML(
                         <p>Fetching your accounts...</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="page-analytics" class="page-container">
+                <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Performance Analytics</h1>
+                        <div class="page-subtitle">Real-time statistics for your running Roblox instances.</div>
+                    </div>
+                    <div style="display: flex; gap: 16px; align-items: center;">
+                        <div class="search-box">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="search-input-analytics" placeholder="Search accounts..." autocomplete="off" spellcheck="false" />
+                        </div>
+                        <button class="btn-icon danger" onclick="window.showKillAllPrompt(true)" title="Kill All Instances" style="border-radius: 50%;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 L12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="accounts-wrapper" id="analytics-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                    <div class="empty-state">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 12px;"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+                        <h3>No Active Instances</h3>
+                        <p>Launch an account to see real-time analytics.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="page-settings" class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Settings</h1>
+                        <div class="page-subtitle">Configure RoPilot preferences.</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <div style="padding: 16px 0px; border-bottom: 1px solid var(--border-color);">
+                        <h3 style="margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">General</h3>
+                    </div>
+                    <div style="padding: 20px 0px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Automatic Updates</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">Automatically download and install new versions when you launch RoPilot.</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-auto-update">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Update Overlay -->
+            <div id="update-overlay" style="position: fixed; inset: 0; background: rgba(10, 10, 14, 0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); opacity: 0; pointer-events: none; transition: opacity 0.3s ease;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(74, 222, 128, 0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+                <h2 id="update-overlay-title" style="margin: 0 0 12px 0; font-size: 24px; font-weight: 600; color: white;">Downloading Update...</h2>
+                <div id="update-overlay-desc" style="color: var(--text-muted); font-size: 14px; margin-bottom: 32px;">Fetching the latest features and fixes.</div>
+                
+                <div style="width: 300px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; position: relative;">
+                    <div id="update-progress-bar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #4ade80; border-radius: 3px; transition: width 0.1s linear;"></div>
+                </div>
+                <div id="update-progress-text" style="margin-top: 12px; font-size: 13px; color: var(--text-muted); font-weight: 500;">0%</div>
             </div>
 
     <!-- Toast Notification -->
@@ -971,15 +1161,32 @@ const char* HTML_CONTENT = R"HTML(
     <div id="kill-all-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="kill-all-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
             <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ff5252;">Running Instances Detected</h2>
+                <h2 id="kill-all-title" style="margin: 0; font-size: 18px; font-weight: 600; color: #ff5252;">Running Instances Detected</h2>
                 <button class="btn-icon" onclick="document.getElementById('kill-all-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
             </div>
             <div style="padding: 20px;">
-                <p style="color: var(--text-muted); margin-bottom: 0; font-size: 14px;">To make multi-instance work properly, you must terminate all currently running Roblox instances before launching new ones. Do you want to terminate them now?</p>
+                <p id="kill-all-desc" style="color: var(--text-muted); margin-bottom: 0; font-size: 14px;">To make multi-instance work properly, you must terminate all currently running Roblox instances before launching new ones. Do you want to terminate them now?</p>
             </div>
             <div style="padding: 16px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
-                <button class="btn-secondary" onclick="document.getElementById('kill-all-modal').classList.remove('show');" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer;">Keep Running</button>
-                <button class="btn-primary danger" id="btn-confirm-kill-all" style="padding: 8px 16px; background: #ff5252; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Terminate All</button>
+                <button class="btn-secondary" onclick="document.getElementById('kill-all-modal').classList.remove('show');" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer;">No</button>
+                <button class="btn-primary danger" id="btn-confirm-kill-all" style="padding: 8px 16px; background: #ff5252; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Yes</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Update Prompt Modal -->
+    <div id="update-prompt-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+        <div id="update-prompt-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #4ade80;">Update Available</h2>
+                <button class="btn-icon" onclick="document.getElementById('update-prompt-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div style="padding: 20px;">
+                <p id="update-prompt-text" style="color: var(--text-muted); margin-bottom: 0; font-size: 14px;">A new version of RoPilot is available. Would you like to download and install it now?</p>
+            </div>
+            <div style="padding: 16px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn-secondary" onclick="document.getElementById('update-prompt-modal').classList.remove('show');" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 8px; color: white; cursor: pointer;">Skip</button>
+                <button class="btn-primary" id="btn-start-update" style="padding: 8px 16px; background: #4ade80; color: #000; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Install Now</button>
             </div>
         </div>
     </div>
@@ -998,6 +1205,7 @@ const char* HTML_CONTENT = R"HTML(
             let currentGroups = [];
             let collapsedGroups = new Set();
             let currentSearchTerm = '';
+            let currentAnalyticsSearchTerm = '';
             
             function escapeHtml(unsafe) {
                 if (!unsafe) return "";
@@ -1033,6 +1241,44 @@ const char* HTML_CONTENT = R"HTML(
                         return;
                     }
 
+                    let accountsStr = JSON.stringify(accounts.map(a => ({id: a.Id, uid: a.UserId, stat: a.Status, grp: a.Group, pid: a.ProcessId})));
+                    let canQuickUpdate = false;
+                    if (window.lastRenderedAccountsString === accountsStr && window.lastRenderedSearchTerm === currentSearchTerm && window.lastRenderedAnalyticsSearchTerm === currentAnalyticsSearchTerm) {
+                        canQuickUpdate = true;
+                    }
+                    window.lastRenderedAccountsString = accountsStr;
+                    window.lastRenderedSearchTerm = currentSearchTerm;
+                    window.lastRenderedAnalyticsSearchTerm = currentAnalyticsSearchTerm;
+
+                    if (canQuickUpdate) {
+                        accounts.forEach(acc => {
+                            let userId = acc.Id || acc.UserId || '0';
+                            let instanceVal = document.getElementById(`instance-val-${userId}`);
+                            if (instanceVal) {
+                                instanceVal.innerText = (acc.ProcessId && acc.Status !== 0) ? acc.ProcessId.toString() : 'None';
+                            }
+                            let cpuBar = document.getElementById(`analytics-cpu-bar-${userId}`);
+                            if (cpuBar) {
+                                cpuBar.style.width = Math.min(acc.CpuUsage, 100) + '%';
+                                cpuBar.style.background = acc.CpuUsage > 80 ? '#ff5252' : 'var(--accent-color)';
+                            }
+                            let cpuVal = document.getElementById(`analytics-cpu-val-${userId}`);
+                            if (cpuVal) cpuVal.innerText = acc.CpuUsage.toFixed(1) + '%';
+                            let ramBar = document.getElementById(`analytics-ram-bar-${userId}`);
+                            if (ramBar) ramBar.style.width = Math.min((acc.RamUsage / 2048) * 100, 100) + '%';
+                            let ramVal = document.getElementById(`analytics-ram-val-${userId}`);
+                            if (ramVal) ramVal.innerText = Math.round(acc.RamUsage) + ' MB';
+                            let uptimeVal = document.getElementById(`analytics-uptime-val-${userId}`);
+                            if (uptimeVal) {
+                                const hrs = Math.floor(acc.RuntimeSeconds / 3600).toString().padStart(2, '0');
+                                const mins = Math.floor((acc.RuntimeSeconds % 3600) / 60).toString().padStart(2, '0');
+                                const secs = (acc.RuntimeSeconds % 60).toString().padStart(2, '0');
+                                uptimeVal.innerText = `${hrs}:${mins}:${secs}`;
+                            }
+                        });
+                        return;
+                    }
+
                     let filtered = accounts.filter(acc => {
                         if (!currentSearchTerm) return true;
                         let usernameMatch = acc.Username && acc.Username.toLowerCase().includes(currentSearchTerm);
@@ -1043,16 +1289,16 @@ const char* HTML_CONTENT = R"HTML(
                         return usernameMatch || idMatch || userIdMatch || jobIdMatch || groupMatch;
                     });
 
+                    let html = '';
                     if (filtered.length === 0) {
-                        accountsGrid.innerHTML = `
+                        html = `
                             <div class="empty-state">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                                 <h3>No Results</h3>
                                 <p>No accounts match your current search.</p>
                             </div>
                         `;
-                        return;
-                    }
+                    } else {
                     
                     let groups = {};
                     currentGroups.forEach(g => { groups[g] = []; });
@@ -1064,7 +1310,7 @@ const char* HTML_CONTENT = R"HTML(
                     
                     let isSearching = currentSearchTerm !== '';
                     
-                    let html = '';
+                    html = '';
                     for (let groupName in groups) {
                         let groupAccounts = groups[groupName];
                         if (isSearching && groupAccounts.length === 0) continue;
@@ -1105,7 +1351,7 @@ const char* HTML_CONTENT = R"HTML(
                                 statusValueClass = 'green';
                             }
                                             
-                            let jobIdText = (acc.JobId && acc.Status !== 0) ? hashJobId(acc.JobId) : 'None';
+                            let instanceText = (acc.ProcessId && acc.Status !== 0) ? acc.ProcessId.toString() : 'None';
                             let avatarSrc = acc.ThumbnailUrl ? acc.ThumbnailUrl : "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-15E6D8A279B926E6C5779D6BA1D97ACD-Bc/150/150/AvatarHeadshot/Png/noFilter";
                             let username = escapeHtml(acc.Username);
                             let userId = escapeHtml(acc.Id || acc.UserId || '0');
@@ -1131,7 +1377,7 @@ const char* HTML_CONTENT = R"HTML(
                                     </div>
                                     <div class="stat-box">
                                         <span class="stat-label">Instance</span>
-                                        <span class="stat-value">${escapeHtml(jobIdText)}</span>
+                                        <span class="stat-value" id="instance-val-${userId}">${escapeHtml(instanceText)}</span>
                                     </div>
                                 </div>
                                 
@@ -1152,6 +1398,7 @@ const char* HTML_CONTENT = R"HTML(
                             </div>
                         </div>`;
                     }
+                    } // close else block
                     
                     accountsGrid.innerHTML = html;
                     
@@ -1171,13 +1418,102 @@ const char* HTML_CONTENT = R"HTML(
                             onEnd: function() { syncLayoutFromDOM(); }
                         });
                     });
+                    
+                    // Render Analytics Page
+                    let analyticsGrid = document.getElementById('analytics-grid');
+                    if (analyticsGrid) {
+                        let activeAccs = accounts.filter(a => a.Status === 1 || a.Status === 2);
+                        if (currentAnalyticsSearchTerm) {
+                            activeAccs = activeAccs.filter(acc => {
+                                let usernameMatch = acc.Username && acc.Username.toLowerCase().includes(currentAnalyticsSearchTerm);
+                                let idMatch = acc.Id && String(acc.Id).includes(currentAnalyticsSearchTerm);
+                                let userIdMatch = acc.UserId && String(acc.UserId).includes(currentAnalyticsSearchTerm);
+                                let jobIdMatch = acc.JobId && acc.JobId.toLowerCase().includes(currentAnalyticsSearchTerm);
+                                return usernameMatch || idMatch || userIdMatch || jobIdMatch;
+                            });
+                        }
+
+                        if (activeAccs.length === 0) {
+                            if (currentAnalyticsSearchTerm) {
+                                analyticsGrid.innerHTML = `
+                                <div class="empty-state">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 12px; width: 32px; height: 32px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                    <h3>No Results</h3>
+                                    <p>No active instances match your current search.</p>
+                                </div>`;
+                            } else {
+                                analyticsGrid.innerHTML = `
+                                <div class="empty-state">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 12px;"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+                                    <h3>No Active Instances</h3>
+                                    <p>Launch an account to see real-time analytics.</p>
+                                </div>`;
+                            }
+                        } else {
+                            let html = '';
+                            activeAccs.forEach(acc => {
+                                const hrs = Math.floor(acc.RuntimeSeconds / 3600).toString().padStart(2, '0');
+                                const mins = Math.floor((acc.RuntimeSeconds % 3600) / 60).toString().padStart(2, '0');
+                                const secs = (acc.RuntimeSeconds % 60).toString().padStart(2, '0');
+                                
+                                html += `
+                                <div class="card">
+                                    <div class="card-header" style="padding-bottom: 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px;">
+                                        <div class="avatar">
+                                            <img src="${acc.ThumbnailUrl}" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-15E6D8A279B926E6C5779D6BA1D97ACD-Bc/150/150/AvatarHeadshot/Png/noFilter'">
+                                            <div class="status-dot green"></div>
+                                        </div>
+                                        <div class="user-info">
+                                            <span class="username">${escapeHtml(acc.Username)}</span>
+                                            <span class="userid" style="color: var(--accent-color);">PID: ${acc.ProcessId || 'Loading...'}</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; width: 60px;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">CPU</span>
+                                            </div>
+                                            <div style="flex-grow: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;"><div id="analytics-cpu-bar-${acc.Id || acc.UserId}" style="width: ${Math.min(acc.CpuUsage, 100)}%; height: 100%; background: ${acc.CpuUsage > 80 ? '#ff5252' : 'var(--accent-color)'};"></div></div>
+                                            <span id="analytics-cpu-val-${acc.Id || acc.UserId}" style="font-size: 13px; font-weight: 700; width: 45px; text-align: right;">${acc.CpuUsage.toFixed(1)}%</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; width: 60px;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="9" x2="22" y2="9"></line><line x1="2" y1="15" x2="22" y2="15"></line><line x1="6" y1="3" x2="6" y2="21"></line><line x1="10" y1="3" x2="10" y2="21"></line><line x1="14" y1="3" x2="14" y2="21"></line><line x1="18" y1="3" x2="18" y2="21"></line></svg>
+                                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">RAM</span>
+                                            </div>
+                                            <div style="flex-grow: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;"><div id="analytics-ram-bar-${acc.Id || acc.UserId}" style="width: ${Math.min((acc.RamUsage / 2048) * 100, 100)}%; height: 100%; background: #a270ff;"></div></div>
+                                            <span id="analytics-ram-val-${acc.Id || acc.UserId}" style="font-size: 13px; font-weight: 700; width: 55px; text-align: right;">${Math.round(acc.RamUsage)} MB</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Uptime</span>
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 6px;">
+                                                <div style="width: 6px; height: 6px; border-radius: 50%; background: #4caf50; box-shadow: 0 0 6px #4caf50; animation: pulse 2s infinite;"></div>
+                                                <span id="analytics-uptime-val-${acc.Id || acc.UserId}" style="font-size: 13px; font-weight: 700; letter-spacing: 1px;">${hrs}:${mins}:${secs}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            });
+                            analyticsGrid.innerHTML = html;
+                        }
+                    }
+
                 } catch (e) {
                     console.error("Error rendering accounts: ", e);
+                    let errStr = escapeHtml(e.toString() + (e.stack ? '\\n' + e.stack : ''));
                     accountsGrid.innerHTML = `
                         <div class="empty-state">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                             <h3>Error</h3>
                             <p>Failed to render accounts.</p>
+                            <div style="position: relative; margin-top: 10px; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto;">
+                                <button onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy', 2000);" style="position: absolute; top: 8px; right: 8px; background: var(--border-color); color: var(--text-color); border: none; border-radius: 4px; padding: 4px 8px; font-size: 10px; cursor: pointer; font-weight: 600;">Copy</button>
+                                <pre style="text-align: left; background: rgba(0,0,0,0.5); padding: 28px 12px 12px 12px; border-radius: 8px; font-size: 10px; max-width: 100%; overflow-x: auto; margin: 0; color: #ff5252;">${errStr}</pre>
+                            </div>
                         </div>
                     `;
                 }
@@ -1327,6 +1663,11 @@ const char* HTML_CONTENT = R"HTML(
                 if (window.renderAccounts) window.renderAccounts(currentAccounts);
             });
             
+            document.getElementById('search-input-analytics').addEventListener('input', (e) => {
+                currentAnalyticsSearchTerm = e.target.value.toLowerCase();
+                if (window.renderAccounts) window.renderAccounts(currentAccounts);
+            });
+            
             // UI Button Listeners
             let btnAddAccount = document.getElementById('btn-add-account');
             let addMenu = document.getElementById('add-menu');
@@ -1363,6 +1704,44 @@ const char* HTML_CONTENT = R"HTML(
             if (btnHamburger) {
                 btnHamburger.addEventListener('click', () => {
                     document.getElementById('sidebar').classList.toggle('collapsed');
+                });
+            }
+
+            let navAccounts = document.getElementById('nav-accounts');
+            let navAnalytics = document.getElementById('nav-analytics');
+            let navSettings = document.getElementById('nav-settings');
+            let pageAccounts = document.getElementById('page-accounts');
+            let pageAnalytics = document.getElementById('page-analytics');
+            let pageSettings = document.getElementById('page-settings');
+            let pages = [pageAccounts, pageAnalytics, pageSettings];
+
+            function switchPage(activeNav, activePage) {
+                [navAccounts, navAnalytics, navSettings].forEach(nav => {
+                    if (nav) nav.classList.remove('active');
+                });
+                if (activeNav) activeNav.classList.add('active');
+
+                pages.forEach(p => {
+                    if (p) p.classList.remove('active');
+                });
+                if (activePage) {
+                    activePage.classList.add('active');
+                }
+            }
+
+            if (navAccounts) {
+                navAccounts.addEventListener('click', () => {
+                    switchPage(navAccounts, pageAccounts);
+                });
+            }
+            if (navAnalytics) {
+                navAnalytics.addEventListener('click', () => {
+                    switchPage(navAnalytics, pageAnalytics);
+                });
+            }
+            if (navSettings) {
+                navSettings.addEventListener('click', () => {
+                    switchPage(navSettings, pageSettings);
                 });
             }
 
@@ -1524,8 +1903,29 @@ const char* HTML_CONTENT = R"HTML(
                 }, 3000);
             };
 
-            window.showKillAllPrompt = function() {
+            window.showKillAllPrompt = function(isManual = false) {
+                if (isManual) {
+                    let hasRunning = currentAccounts.some(a => a.Status === 1 || a.Status === 2);
+                    if (!hasRunning) {
+                        if (window.showStatus) window.showStatus("No instance is running", true);
+                        return;
+                    }
+                }
+
                 let modal = document.getElementById('kill-all-modal');
+                let title = document.getElementById('kill-all-title');
+                let desc = document.getElementById('kill-all-desc');
+                
+                if (title && desc) {
+                    if (isManual) {
+                        title.textContent = 'Kill All Instances';
+                        desc.textContent = 'Are you sure you want to terminate all currently running Roblox instances? All active games will be closed immediately.';
+                    } else {
+                        title.textContent = 'Running Instances Detected';
+                        desc.textContent = 'To make multi-instance work properly, you must terminate all currently running Roblox instances before launching new ones. Do you want to terminate them now?';
+                    }
+                }
+                
                 if (modal) modal.classList.add('show');
             };
 

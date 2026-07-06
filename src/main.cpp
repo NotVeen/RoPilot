@@ -4,11 +4,15 @@
 #include <wrl.h>
 #include "AccountManager.h"
 #include "Launcher.h"
+#include <shellapi.h>
+#include <psapi.h>
 #include "RobloxAPI.h"
 #include "BrowserLogin.h"
 #include "HandleCloser.h"
 #include "ActiveClientLock.h"
 #include "UI_Frontend.h"
+#include "SettingsManager.h"
+#include "Updater.h"
 #include <json.hpp>
 #include <iostream>
 #include <string>
@@ -31,24 +35,7 @@ bool IsProcessRunning(DWORD pid) {
     return false;
 }
 
-bool IsAnyRobloxRunning() {
-    bool found = false;
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hSnapshot != INVALID_HANDLE_VALUE) {
-        PROCESSENTRY32W pe32;
-        pe32.dwSize = sizeof(PROCESSENTRY32W);
-        if (Process32FirstW(hSnapshot, &pe32)) {
-            do {
-                if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
-                    found = true;
-                    break;
-                }
-            } while (Process32NextW(hSnapshot, &pe32));
-        }
-        CloseHandle(hSnapshot);
-    }
-    return found;
-}
+// IsAnyRobloxRunning moved to Launcher.cpp
 
 using namespace Microsoft::WRL;
 using json = nlohmann::json;
@@ -60,6 +47,8 @@ std::atomic<bool> g_running{true};
 
 
 AccountManager g_accountManager;
+SettingsManager g_settingsManager;
+std::string g_pendingUpdateUrl = "";
 HWND g_hWnd = NULL;
 ComPtr<ICoreWebView2Controller> g_webviewController;
 ComPtr<ICoreWebView2> g_webview;
@@ -82,6 +71,16 @@ std::string ws2s(const std::wstring& w) {
     std::string strTo(size_needed, 0);
     WideCharToMultiByte(CP_UTF8, 0, &w[0], (int)w.size(), &strTo[0], size_needed, NULL, NULL);
     return strTo;
+}
+
+void SendStatusMessage(const std::string& msg, bool isError = false);
+void UpdateUI();
+
+uint64_t FileTimeToUInt64(const FILETIME& ft) {
+    ULARGE_INTEGER uli;
+    uli.LowPart = ft.dwLowDateTime;
+    uli.HighPart = ft.dwHighDateTime;
+    return uli.QuadPart;
 }
 
 void SendStatusMessage(const std::string& msg, bool isError) {
@@ -214,6 +213,61 @@ void ProcessWebMessage(const std::string& msg) {
             UpdateUI();
             SendStatusMessage("Account removed.", false);
         }
+        else if (action == "get_settings") {
+            Settings s = g_settingsManager.GetSettings();
+            json jOut;
+            jOut["action"] = "settings_data";
+            jOut["autoUpdate"] = s.AutoUpdate;
+            std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
+            g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
+        }
+        else if (action == "save_settings") {
+            Settings s = g_settingsManager.GetSettings();
+            s.AutoUpdate = j.value("autoUpdate", s.AutoUpdate);
+            g_settingsManager.SetSettings(s);
+            SendStatusMessage("Settings saved successfully.", false);
+        }
+        else if (action == "check_update") {
+            std::thread([]() {
+                std::string downloadUrl;
+                std::string newVersion = Updater::CheckForUpdate(downloadUrl);
+                if (!newVersion.empty() && !downloadUrl.empty()) {
+                    g_pendingUpdateUrl = downloadUrl;
+                    
+                    if (g_settingsManager.GetSettings().AutoUpdate) {
+                        // Auto-start
+                        PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string("window.postMessage({\"action\":\"start_update\"}, '*');"), 0);
+                    } else {
+                        // Prompt user
+                        json jOut;
+                        jOut["action"] = "update_available";
+                        jOut["version"] = newVersion;
+                        std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
+                        PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                    }
+                }
+            }).detach();
+        }
+        else if (action == "start_update") {
+            if (g_pendingUpdateUrl.empty()) return;
+            std::string url = g_pendingUpdateUrl;
+            g_pendingUpdateUrl = ""; // Prevent double-trigger
+            
+            std::thread([url]() {
+                std::string zipPath = "update.zip";
+                bool success = Updater::DownloadUpdate(url, zipPath, [](int percent) {
+                    json jOut;
+                    jOut["action"] = "update_progress";
+                    jOut["percentage"] = percent;
+                    std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                });
+                
+                if (success) {
+                    Updater::ApplyUpdate(zipPath);
+                }
+            }).detach();
+        }
         else if (action == "update_layout") {
             try {
                 auto newAccountsList = j.value("accounts", json::array());
@@ -295,7 +349,18 @@ void UpdateUI() {
         jAcc["Cookie"] = acc.Cookie;
         jAcc["Status"] = acc.Status;
         jAcc["JobId"] = acc.JobId;
+        jAcc["ProcessId"] = acc.ProcessId;
         jAcc["Group"] = acc.Group;
+        
+        jAcc["CpuUsage"] = acc.Analytics.cpuUsage;
+        jAcc["RamUsage"] = acc.Analytics.ramUsageMB;
+        if (acc.Analytics.hasLaunchTime) {
+            auto now = std::chrono::system_clock::now();
+            jAcc["RuntimeSeconds"] = std::chrono::duration_cast<std::chrono::seconds>(now - acc.Analytics.launchTime).count();
+        } else {
+            jAcc["RuntimeSeconds"] = 0;
+        }
+        
         jArray.push_back(jAcc);
     }
     jRoot["accounts"] = jArray;
@@ -339,45 +404,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         return 0;
     }
 
-    case WM_APP + 1: {
-        bool updated = false;
-        auto accounts = g_accountManager.GetAccounts();
-        for (auto& acc : accounts) {
-            if (acc.Status == 1 || acc.Status == 2) {
-                bool isProcessAlive = false;
-                if (acc.ProcessId != 0) {
-                    DWORD exitCode = 0;
-                    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, acc.ProcessId);
-                    if (hProcess) {
-                        if (GetExitCodeProcess(hProcess, &exitCode)) {
-                            if (exitCode == STILL_ACTIVE) isProcessAlive = true;
-                        }
-                        CloseHandle(hProcess);
-                    }
-                }
 
-                if (!isProcessAlive) {
-                    g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
-                    updated = true;
-                } else {
-                    std::string jobId;
-                    int presenceType;
-                    if (RobloxAPI::GetPresence(acc.Cookie, std::to_string(acc.Info.UserId), jobId, presenceType)) {
-                        if (presenceType == 2) { // 2 = InGame
-                            if (acc.Status != 1 || acc.JobId != jobId) {
-                                g_accountManager.UpdateAccountPresence(acc.Cookie, 1, jobId);
-                                updated = true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (updated) {
-            UpdateUI();
-        }
-        return 0;
-    }
     case WM_SIZE: {
         RECT bounds;
         GetClientRect(hWnd, &bounds);
@@ -413,9 +440,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         // Initialize Mutex
         Launcher::InitializeMultiInstance();
-
-        // Lock Active Roblox Client
-        ActiveClientLock::LockClient();
 
     // Load Accounts
     g_accountManager.Load();
@@ -466,10 +490,97 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     }
         
     std::thread([]() {
+        int presenceTimer = 0;
         while (g_running) {
-            Sleep(5000);
+            Sleep(1000);
             if (!g_running) break;
-            PostMessage(g_hWnd, WM_APP + 1, 0, 0);
+            
+            bool updated = false;
+            auto accounts = g_accountManager.GetAccounts();
+            
+            if (Launcher::IsAnyRobloxRunning()) {
+                ActiveClientLock::LockClient();
+            } else {
+                ActiveClientLock::UnlockClient();
+            }
+            
+            presenceTimer++;
+            bool checkPresence = (presenceTimer >= 5);
+            if (checkPresence) presenceTimer = 0;
+            
+            for (auto& acc : accounts) {
+                if (acc.Status == 1 || acc.Status == 2) {
+                    bool isProcessAlive = false;
+                    if (acc.ProcessId != 0) {
+                        DWORD exitCode = 0;
+                        HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, acc.ProcessId);
+                        if (hProcess) {
+                            if (GetExitCodeProcess(hProcess, &exitCode)) {
+                                if (exitCode == STILL_ACTIVE) {
+                                    isProcessAlive = true;
+                                    
+                                    // Calculate Analytics
+                                    AnalyticsState state = acc.Analytics;
+                                    
+                                    // RAM
+                                    PROCESS_MEMORY_COUNTERS pmc;
+                                    if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
+                                        state.ramUsageMB = (double)pmc.WorkingSetSize / (1024.0 * 1024.0);
+                                    }
+                                    
+                                    // CPU
+                                    FILETIME idleTime, kernelTime, userTime;
+                                    if (GetSystemTimes(&idleTime, &kernelTime, &userTime)) {
+                                        FILETIME creationTime, processExitTime, processKernelTime, processUserTime;
+                                        if (GetProcessTimes(hProcess, &creationTime, &processExitTime, &processKernelTime, &processUserTime)) {
+                                            uint64_t sysKernel = FileTimeToUInt64(kernelTime);
+                                            uint64_t sysUser = FileTimeToUInt64(userTime);
+                                            uint64_t procKernel = FileTimeToUInt64(processKernelTime);
+                                            uint64_t procUser = FileTimeToUInt64(processUserTime);
+                                            
+                                            uint64_t sysTotal = sysKernel + sysUser;
+                                            uint64_t procTotal = procKernel + procUser;
+                                            
+                                            if (state.lastSystemTime != 0 && sysTotal > state.lastSystemTime) {
+                                                uint64_t sysDelta = sysTotal - state.lastSystemTime;
+                                                uint64_t procDelta = procTotal - state.lastProcessTime;
+                                                state.cpuUsage = ((double)procDelta / (double)sysDelta) * 100.0;
+                                            }
+                                            state.lastSystemTime = sysTotal;
+                                            state.lastProcessTime = procTotal;
+                                        }
+                                    }
+                                    g_accountManager.UpdateAccountAnalytics(acc.Cookie, state);
+                                    updated = true;
+                                }
+                            }
+                            CloseHandle(hProcess);
+                        }
+                    }
+
+                    if (!isProcessAlive) {
+                        g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
+                        updated = true;
+                    } else {
+                        if (checkPresence) {
+                            std::string jobId;
+                            int presenceType;
+                            if (RobloxAPI::GetPresence(acc.Cookie, std::to_string(acc.Info.UserId), jobId, presenceType)) {
+                                if (presenceType == 2) { // 2 = InGame
+                                    if (acc.Status != 1 || acc.JobId != jobId) {
+                                        g_accountManager.UpdateAccountPresence(acc.Cookie, 1, jobId);
+                                        updated = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (updated) {
+                PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+            }
         }
     }).detach();
 
@@ -558,7 +669,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                 [](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
                                     UpdateUI();
                                     
-                                    if (IsAnyRobloxRunning()) {
+                                    if (Launcher::IsAnyRobloxRunning()) {
                                         g_webview->ExecuteScript(L"if(window.showKillAllPrompt) window.showKillAllPrompt();", nullptr);
                                     }
                                     
@@ -572,8 +683,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         MSG msg;
         while (GetMessage(&msg, nullptr, 0, 0)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (msg.message == WM_APP + 3) {
+                std::string* js = (std::string*)msg.wParam;
+                if (g_webview) {
+                    g_webview->ExecuteScript(s2ws(*js).c_str(), nullptr);
+                }
+                delete js;
+            } else {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
         }
 
         ActiveClientLock::UnlockClient();
