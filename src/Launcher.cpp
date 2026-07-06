@@ -5,8 +5,14 @@
 #include <windows.h>
 #include <shlobj.h>
 #include <filesystem>
-#include <iostream>
 #include <vector>
+#include <thread>
+#include <tlhelp32.h>
+#include <iostream>
+#include "ActiveClientLock.h"
+#include "AccountManager.h"
+
+extern AccountManager g_accountManager;
 
 namespace fs = std::filesystem;
 
@@ -48,6 +54,25 @@ namespace Launcher {
         return "";
     }
 
+    bool IsAnyRobloxRunning() {
+        bool running = false;
+        HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (hSnapshot != INVALID_HANDLE_VALUE) {
+            PROCESSENTRY32W pe32;
+            pe32.dwSize = sizeof(PROCESSENTRY32W);
+            if (Process32FirstW(hSnapshot, &pe32)) {
+                do {
+                    if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
+                        running = true;
+                        break;
+                    }
+                } while (Process32NextW(hSnapshot, &pe32));
+            }
+            CloseHandle(hSnapshot);
+        }
+        return running;
+    }
+
     bool LaunchAccount(const std::string& cookie, const std::string& placeId, std::string& outError, DWORD& outPID) {
         std::string robloxPath = FindRobloxExecutable();
         if (robloxPath.empty()) {
@@ -67,13 +92,53 @@ namespace Launcher {
             return false;
         }
 
+        std::string uri = "roblox-player:1+launchmode:play+gameinfo:" + ticket;
+        if (!placeId.empty()) {
+            uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGame%26placeId%3D" + placeId + "%26isPlayTogetherGame%3Dfalse";
+        }
 
-        // Construct arguments
+        if (!IsAnyRobloxRunning()) {
+            // No instances running, so it is safe to use the bootstrapper and allow updates.
+            // Unlock client just in case the timer hasn't caught it yet
+            ActiveClientLock::UnlockClient();
+            
+            // Launch via shell execute (bootstrapper)
+            ShellExecuteA(NULL, "open", uri.c_str(), NULL, NULL, SW_SHOWNORMAL);
+            outPID = 0; // Temporarily 0
+            
+            // Spawn background thread to find the newly launched process ID and update AccountManager
+            std::thread([cookie]() {
+                for (int i = 0; i < 30; i++) {
+                    Sleep(1000); // Check every second for up to 30 seconds
+                    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+                    if (hSnapshot != INVALID_HANDLE_VALUE) {
+                        PROCESSENTRY32W pe32;
+                        pe32.dwSize = sizeof(PROCESSENTRY32W);
+                        if (Process32FirstW(hSnapshot, &pe32)) {
+                            do {
+                                if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
+                                    // Found a running instance, assume it's the one we just launched
+                                    // because we only do this when NO instances were running!
+                                    g_accountManager.UpdateAccountProcess(cookie, 2, pe32.th32ProcessID);
+                                    CloseHandle(hSnapshot);
+                                    return; // Exit thread
+                                }
+                            } while (Process32NextW(hSnapshot, &pe32));
+                        }
+                        CloseHandle(hSnapshot);
+                    }
+                }
+            }).detach();
+            
+            return true;
+        }
+
+        // Instances are already running, launch directly to bypass bootstrapper and prevent updates
         std::string args;
         if (placeId.empty()) {
-            args = "\"roblox-player:1+launchmode:play+gameinfo:" + ticket + "\"";
+            args = "\"" + uri + "\"";
         } else {
-            args = "\"roblox-player:1+launchmode:play+gameinfo:" + ticket + "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGame%26placeId%3D" + placeId + "%26isPlayTogetherGame%3Dfalse\"";
+            args = "\"" + uri + "\"";
         }
         std::string cmdLine = "\"" + robloxPath + "\" " + args;
 
