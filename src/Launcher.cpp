@@ -21,6 +21,28 @@ namespace Launcher {
     HANDLE g_hMutex = NULL;
     HANDLE g_hEvent = NULL;
 
+    struct EnumData {
+        DWORD dwProcessId;
+        HWND hWnd;
+    };
+
+    BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam) {
+        EnumData* data = (EnumData*)lParam;
+        DWORD processId = 0;
+        GetWindowThreadProcessId(hwnd, &processId);
+        if (data->dwProcessId == processId && IsWindowVisible(hwnd)) {
+            data->hWnd = hwnd;
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+    bool HasWindow(DWORD processId) {
+        EnumData data = { processId, NULL };
+        EnumWindows(EnumWindowsProc, (LPARAM)&data);
+        return data.hWnd != NULL;
+    }
+
     std::string FindRobloxExecutable() {
         char localPath[MAX_PATH];
         char progPath[MAX_PATH];
@@ -168,9 +190,18 @@ namespace Launcher {
 
         outPID = pi.dwProcessId;
 
-        // Wait up to 15 seconds for the new process to initialize and create its singleton mutex.
-        // Once it creates the mutex, we immediately close it, freeing the way for the NEXT instance to launch safely!
+        // Wait up to 15 seconds for the new process to initialize its Window.
+        // Once the window is visible, the singleton mutex is guaranteed to be created.
+        // Polling EnumWindows is completely free (0% CPU) compared to NtQuerySystemInformation!
         for (int i = 0; i < 150; i++) {
+            if (HasWindow(outPID)) {
+                break;
+            }
+            Sleep(100);
+        }
+
+        // Now close the Mutex. We try a few times just in case.
+        for (int i = 0; i < 10; i++) {
             if (HandleCloser::CloseProcessRobloxHandle(outPID)) {
                 break;
             }
