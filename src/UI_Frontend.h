@@ -1004,22 +1004,29 @@ const char* HTML_CONTENT = R"HTML(
 
             <!-- Settings Page -->
             <div id="page-settings" class="page-container">
-                <div class="page-header">
+                <div class="page-header" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
                         <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;">Settings</h1>
                         <div class="page-subtitle">Configure RoPilot preferences.</div>
                     </div>
+                    <div class="search-box">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input-settings" placeholder="Search settings..." autocomplete="off" spellcheck="false" />
+                    </div>
                 </div>
                 
-                <div style="margin-bottom: 24px;">
-                    <div style="padding: 16px 0px; border-bottom: 1px solid var(--border-color);">
+                <div id="settings-container" style="margin-bottom: 24px;">
+                    <div class="setting-group" style="padding: 16px 0px 8px 0px; border-bottom: 1px solid var(--border-color);">
                         <h3 style="margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">General</h3>
                     </div>
                     
-                    <div style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Run on Startup</div>
-                            <div style="font-size: 13px; color: var(--text-muted);">Automatically launch RoPilot minimized in the system tray when Windows starts.</div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Run on Startup</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);">Automatically launch RoPilot minimized in the system tray when Windows starts.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="setting-run-startup">
@@ -1027,10 +1034,10 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
 
-                    <div style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Automatic Updates</div>
-                            <div style="font-size: 13px; color: var(--text-muted);">Automatically download and install new versions when you launch RoPilot.</div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Automatic Updates</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);">Automatically download and install new versions when you launch RoPilot.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="setting-auto-update">
@@ -1717,6 +1724,28 @@ const char* HTML_CONTENT = R"HTML(
                 currentAnalyticsSearchTerm = e.target.value.toLowerCase();
                 if (window.renderAccounts) window.renderAccounts(currentAccounts);
             });
+            
+            document.getElementById('search-input-settings').addEventListener('input', (e) => {
+                let term = e.target.value.toLowerCase();
+                let items = document.querySelectorAll('.setting-item');
+                let hasVisible = false;
+                items.forEach(item => {
+                    let text = item.querySelector('.setting-title').innerText.toLowerCase();
+                    let desc = item.querySelector('.setting-desc').innerText.toLowerCase();
+                    if (text.includes(term) || desc.includes(term)) {
+                        item.style.display = 'flex';
+                        hasVisible = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                let groups = document.querySelectorAll('.setting-group');
+                groups.forEach(g => {
+                    g.style.display = term && !hasVisible ? 'none' : 'block';
+                });
+            });
+            
             
             // UI Button Listeners
             let btnAddAccount = document.getElementById('btn-add-account');
