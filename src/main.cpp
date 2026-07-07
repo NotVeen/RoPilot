@@ -474,8 +474,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         if (!g_hasShownTrayNotification) {
             g_hasShownTrayNotification = true;
             g_nid.uFlags = NIF_INFO;
-            wcscpy_s(g_nid.szInfo, L"RoPilot is still running in the background. Right-click this icon to exit.");
-            wcscpy_s(g_nid.szInfoTitle, L"RoPilot Minimized");
+            wcscpy_s(g_nid.szInfo, L"To fully close the app, right-click the RoPilot icon in your system tray and select Exit.");
+            wcscpy_s(g_nid.szInfoTitle, L"RoPilot is still running");
             g_nid.dwInfoFlags = NIIF_INFO;
             Shell_NotifyIconW(NIM_MODIFY, &g_nid);
             g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
