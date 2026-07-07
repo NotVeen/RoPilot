@@ -1121,6 +1121,17 @@ const char* HTML_CONTENT = R"HTML(
                             <span class="slider"></span>
                         </label>
                     </div>
+                    
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
+                        <div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Resource Optimizer</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);">Prioritize focused window and limit CPU/RAM usage of background instances.</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-resource-opt">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
             </div>
             
@@ -2101,6 +2112,7 @@ const char* HTML_CONTENT = R"HTML(
             let alwaysOnTopToggle = document.getElementById('setting-always-on-top');
             let autoKillExitToggle = document.getElementById('setting-auto-kill-exit');
             let hardwareAccelToggle = document.getElementById('setting-hardware-accel');
+            let resourceOptToggle = document.getElementById('setting-resource-opt');
 
             if (autoUpdateToggle) {
                 autoUpdateToggle.addEventListener('change', (e) => {
@@ -2111,7 +2123,8 @@ const char* HTML_CONTENT = R"HTML(
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
-                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
                     }));
                 });
             }
@@ -2124,7 +2137,8 @@ const char* HTML_CONTENT = R"HTML(
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
-                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
                     }));
                 });
             }
@@ -2137,7 +2151,8 @@ const char* HTML_CONTENT = R"HTML(
                         minimizeToTrayOnClose: e.target.checked,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
-                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
                     }));
                 });
             }
@@ -2150,7 +2165,8 @@ const char* HTML_CONTENT = R"HTML(
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: e.target.checked,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
-                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
                     }));
                 });
             }
@@ -2163,7 +2179,22 @@ const char* HTML_CONTENT = R"HTML(
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: e.target.checked,
-                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
+                    }));
+                });
+            }
+                        if (resourceOptToggle) {
+                resourceOptToggle.addEventListener('change', (e) => {
+                    window.chrome.webview.postMessage(JSON.stringify({ 
+                        action: 'save_settings',
+                        autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
+                        runOnStartup: startupToggle ? startupToggle.checked : false,
+                        minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
+                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
+                        resourceOptimizer: e.target.checked
                     }));
                 });
             }
@@ -2176,7 +2207,8 @@ const char* HTML_CONTENT = R"HTML(
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
-                        hardwareAcceleration: e.target.checked
+                        hardwareAcceleration: e.target.checked,
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
                     }));
                 });
             }
@@ -2200,6 +2232,7 @@ const char* HTML_CONTENT = R"HTML(
                             if (alwaysOnTopToggle) alwaysOnTopToggle.checked = msg.alwaysOnTop;
                             if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                             if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
+                            if (resourceOptToggle) resourceOptToggle.checked = msg.resourceOptimizer;
                         }
                         else if (msg.action === 'update_available') {
                             let verText = document.getElementById('update-version-text');

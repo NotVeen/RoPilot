@@ -10,6 +10,7 @@
 #include "BrowserLogin.h"
 #include "HandleCloser.h"
 #include "ActiveClientLock.h"
+#include "Optimizer.h"
 #include "UI_Frontend.h"
 #include "SettingsManager.h"
 #include "Updater.h"
@@ -834,6 +835,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             }).Get());
 
         MSG msg;
+        Optimizer::Start();
         while (GetMessage(&msg, nullptr, 0, 0)) {
             if (msg.message == WM_APP + 3) {
                 std::string* js = (std::string*)msg.wParam;
@@ -847,6 +849,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             }
         }
 
+        Optimizer::Stop();
         ActiveClientLock::UnlockClient();
         CoUninitialize();
         return (int)msg.wParam;

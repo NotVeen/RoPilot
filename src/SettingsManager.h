@@ -9,6 +9,7 @@ struct Settings {
     bool AlwaysOnTop = false;
     bool AutoKillOnExit = false;
     bool HardwareAcceleration = true;
+    bool ResourceOptimizer = false;
 };
 
 class SettingsManager {

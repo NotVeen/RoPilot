@@ -22,6 +22,7 @@ void SettingsManager::Load() {
         m_Settings.AlwaysOnTop = j.value("alwaysOnTop", false);
         m_Settings.AutoKillOnExit = j.value("autoKillOnExit", false);
         m_Settings.HardwareAcceleration = j.value("hardwareAcceleration", true);
+        m_Settings.ResourceOptimizer = j.value("resourceOptimizer", false);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -37,6 +38,7 @@ void SettingsManager::Save() {
         j["alwaysOnTop"] = m_Settings.AlwaysOnTop;
         j["autoKillOnExit"] = m_Settings.AutoKillOnExit;
         j["hardwareAcceleration"] = m_Settings.HardwareAcceleration;
+        j["resourceOptimizer"] = m_Settings.ResourceOptimizer;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {
