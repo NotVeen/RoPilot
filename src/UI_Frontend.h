@@ -2014,7 +2014,7 @@ const char* HTML_CONTENT = R"HTML(
                                 
                                 htmlContent = htmlContent.replace(/(?:<li>.*?<\/li>\s*)+/g, match => {
                                     let items = match.replace(/<\/li>\s*<li>/g, '</li><li>').trim();
-                                    return '<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">' + items + '</ul>';
+                                    return '<ul style="margin: 12px 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">' + items + '</ul>';
                                 });
                                 
                                 htmlContent = htmlContent.replace(/\n/g, '<br>');
