@@ -211,3 +211,29 @@ void Updater::ApplyUpdate(const std::string& zipPath) {
         ExitProcess(0);
     }
 }
+
+std::string Updater::GetLatestRobloxVersion() {
+    static std::string cachedVersion = "";
+    static DWORD lastFetchTime = 0;
+    DWORD now = GetTickCount();
+
+    // Cache for 30 minutes
+    if (!cachedVersion.empty() && (now - lastFetchTime < 30 * 60 * 1000)) {
+        return cachedVersion;
+    }
+
+    std::string resp = GetHttpRaw(L"clientsettingscdn.roblox.com", L"/v2/client-version/WindowsPlayer", L"application/json");
+    if (resp.empty()) return cachedVersion;
+
+    try {
+        json j = json::parse(resp);
+        std::string v = j.value("clientVersionUpload", "");
+        if (!v.empty()) {
+            cachedVersion = v;
+            lastFetchTime = now;
+        }
+    } catch (...) {}
+    
+    return cachedVersion;
+}
+

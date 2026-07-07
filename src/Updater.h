@@ -8,6 +8,9 @@ public:
     // Checks github for new version. Returns empty string if no update or error.
     static std::string CheckForUpdate(std::string& outDownloadUrl);
     
+    // Check Roblox API for the latest version string
+    static std::string GetLatestRobloxVersion();
+    
     // Downloads update. callback takes (progress_percentage). Returns true if success.
     static bool DownloadUpdate(const std::string& url, const std::string& destPath, void (*progressCallback)(int));
     
