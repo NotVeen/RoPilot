@@ -160,8 +160,6 @@ namespace Launcher {
 
         std::vector<char> cmdLineMutable(cmdLine.begin(), cmdLine.end());
         cmdLineMutable.push_back('\0');
-        
-        HandleCloser::CloseRobloxHandles();
 
         if (!CreateProcessA(NULL, cmdLineMutable.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
             std::cerr << "CreateProcess failed (" << GetLastError() << ").\n";
@@ -169,6 +167,15 @@ namespace Launcher {
         }
 
         outPID = pi.dwProcessId;
+
+        // Wait up to 15 seconds for the new process to initialize and create its singleton mutex.
+        // Once it creates the mutex, we immediately close it, freeing the way for the NEXT instance to launch safely!
+        for (int i = 0; i < 150; i++) {
+            if (HandleCloser::CloseProcessRobloxHandle(outPID)) {
+                break;
+            }
+            Sleep(100);
+        }
 
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);

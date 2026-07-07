@@ -135,3 +135,64 @@ void HandleCloser::CloseRobloxHandles() {
     
     free(handleInfo);
 }
+
+bool HandleCloser::CloseProcessRobloxHandle(DWORD targetPid) {
+    HMODULE hNtDll = GetModuleHandleA("ntdll.dll");
+    if (!hNtDll) return false;
+    
+    NtQuerySystemInformation_t NtQuerySystemInformation = (NtQuerySystemInformation_t)GetProcAddress(hNtDll, "NtQuerySystemInformation");
+    NtQueryObject_t NtQueryObject = (NtQueryObject_t)GetProcAddress(hNtDll, "NtQueryObject");
+    
+    if (!NtQuerySystemInformation || !NtQueryObject) return false;
+
+    ULONG handleInfoSize = 0x10000;
+    PVOID handleInfo = malloc(handleInfoSize);
+    
+    NTSTATUS status;
+    while ((status = NtQuerySystemInformation(SystemHandleInformation, handleInfo, handleInfoSize, NULL)) == 0xC0000004) {
+        handleInfoSize *= 2;
+        handleInfo = realloc(handleInfo, handleInfoSize);
+    }
+    
+    if (!NT_SUCCESS(status)) {
+        free(handleInfo);
+        return false;
+    }
+    
+    PSYSTEM_HANDLE_INFORMATION pSysHandleInfo = (PSYSTEM_HANDLE_INFORMATION)handleInfo;
+    bool foundAndClosed = false;
+    
+    for (ULONG i = 0; i < pSysHandleInfo->NumberOfHandles; i++) {
+        SYSTEM_HANDLE_TABLE_ENTRY_INFO handle = pSysHandleInfo->Handles[i];
+        
+        if (handle.UniqueProcessId != targetPid) continue;
+        
+        HANDLE hProcess = OpenProcess(PROCESS_DUP_HANDLE, FALSE, handle.UniqueProcessId);
+        if (!hProcess) continue;
+        
+        HANDLE dupHandle = NULL;
+        if (DuplicateHandle(hProcess, (HANDLE)handle.HandleValue, GetCurrentProcess(), &dupHandle, 0, FALSE, DUPLICATE_SAME_ACCESS)) {
+            ULONG nameInfoSize = 0x1000;
+            PVOID nameInfo = malloc(nameInfoSize);
+            
+            if (NT_SUCCESS(NtQueryObject(dupHandle, ObjectNameInformation, nameInfo, nameInfoSize, NULL))) {
+                PPUBLIC_OBJECT_NAME_INFORMATION pNameInfo = (PPUBLIC_OBJECT_NAME_INFORMATION)nameInfo;
+                if (pNameInfo->Name.Buffer && pNameInfo->Name.Length > 0) {
+                    std::wstring name(pNameInfo->Name.Buffer, pNameInfo->Name.Length / sizeof(WCHAR));
+                    if (name.find(L"ROBLOX_singletonEvent") != std::wstring::npos) {
+                        HANDLE nullHandle = NULL;
+                        DuplicateHandle(hProcess, (HANDLE)handle.HandleValue, NULL, &nullHandle, 0, FALSE, DUPLICATE_CLOSE_SOURCE);
+                        foundAndClosed = true;
+                    }
+                }
+            }
+            free(nameInfo);
+            CloseHandle(dupHandle);
+        }
+        CloseHandle(hProcess);
+        if (foundAndClosed) break;
+    }
+    
+    free(handleInfo);
+    return foundAndClosed;
+}

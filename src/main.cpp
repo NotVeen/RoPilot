@@ -44,6 +44,8 @@ using json = nlohmann::json;
 
 std::atomic<bool> g_running{true};
 bool g_showChangelog = false;
+std::vector<std::pair<std::string, bool>> g_toastQueue;
+std::mutex g_toastMutex;
 bool g_hasShownTrayNotification = false;
 
 #define LOG(x)
@@ -220,17 +222,24 @@ void ProcessWebMessage(const std::string& msg) {
                 return;
             }
 
-            std::string errorMsg;
-            DWORD outPID = 0;
-            if (Launcher::LaunchAccount(cookie, placeId, errorMsg, outPID)) {
-                g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
-                UpdateUI();
-                SendStatusMessage(username + " launched successfully!", false);
-            } else {
-                UpdateUI();
-                SendStatusMessage(errorMsg, true);
-                ERROR_LOG("Launch Error for " << cookie << ": " << errorMsg);
-            }
+            std::thread([cookie, placeId, username]() {
+                static std::mutex launchMutex;
+                std::lock_guard<std::mutex> lock(launchMutex);
+                
+                std::string errorMsg;
+                DWORD outPID = 0;
+                if (Launcher::LaunchAccount(cookie, placeId, errorMsg, outPID)) {
+                    g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
+                    
+                    std::lock_guard<std::mutex> toastLock(g_toastMutex);
+                    g_toastQueue.push_back({username + " launched successfully!", false});
+                } else {
+                    std::lock_guard<std::mutex> toastLock(g_toastMutex);
+                    g_toastQueue.push_back({errorMsg, true});
+                    ERROR_LOG("Launch Error for " << cookie << ": " << errorMsg);
+                }
+                PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+            }).detach();
         }
         else if (action == "close") {
             PostMessage(g_hWnd, WM_CLOSE, 0, 0);
@@ -481,6 +490,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     }
     case WM_APP + 2: {
         UpdateUI();
+        {
+            std::lock_guard<std::mutex> lock(g_toastMutex);
+            for(auto& toast : g_toastQueue) {
+                SendStatusMessage(toast.first, toast.second);
+            }
+            g_toastQueue.clear();
+        }
         return 0;
     }
 
