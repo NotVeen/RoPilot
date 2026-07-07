@@ -2202,6 +2202,7 @@ const char* HTML_CONTENT = R"HTML(
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
                         resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                         backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
@@ -2217,6 +2218,7 @@ const char* HTML_CONTENT = R"HTML(
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
                         resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                         backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
@@ -2232,6 +2234,7 @@ const char* HTML_CONTENT = R"HTML(
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
                         resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                         backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
@@ -2247,6 +2250,7 @@ const char* HTML_CONTENT = R"HTML(
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
                         resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                         backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
@@ -2262,6 +2266,7 @@ const char* HTML_CONTENT = R"HTML(
                         autoKillOnExit: e.target.checked,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
                         resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                         backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
@@ -2303,10 +2308,6 @@ const char* HTML_CONTENT = R"HTML(
             if (resourceOptToggle) {
                 
                 resourceOptToggle.addEventListener('change', (e) => {
-                    if (cpuLimiterToggle) cpuLimiterToggle.checked = msg.cpuLimiter;
-                                if (cpuLimitContainer) {
-                        cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
-                    }
 
                     window.chrome.webview.postMessage(JSON.stringify({ 
                         action: 'save_settings',
@@ -2317,6 +2318,7 @@ const char* HTML_CONTENT = R"HTML(
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
                         resourceOptimizer: e.target.checked,
+                        cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                         backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
@@ -2332,6 +2334,7 @@ const char* HTML_CONTENT = R"HTML(
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: e.target.checked,
                         resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                         backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
@@ -2358,16 +2361,7 @@ const char* HTML_CONTENT = R"HTML(
                             if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
                             
                             
-            if (cpuLimiterToggle) {
-                cpuLimiterToggle.addEventListener('change', (e) => {
-                    if (cpuLimitContainer) {
-                        cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
-                    }
-                    if (resourceOptToggle) {
-                        resourceOptToggle.dispatchEvent(new Event('change'));
-                    }
-                });
-            }
+
             if (resourceOptToggle) {
                                 resourceOptToggle.checked = msg.resourceOptimizer;
                                 if (cpuLimiterToggle) cpuLimiterToggle.checked = msg.cpuLimiter;
