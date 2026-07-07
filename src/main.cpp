@@ -270,6 +270,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["alwaysOnTop"] = s.AlwaysOnTop;
             jOut["autoKillOnExit"] = s.AutoKillOnExit;
             jOut["hardwareAcceleration"] = s.HardwareAcceleration;
+            jOut["resourceOptimizer"] = s.ResourceOptimizer;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -282,6 +283,7 @@ void ProcessWebMessage(const std::string& msg) {
             s.AutoKillOnExit = j.value("autoKillOnExit", s.AutoKillOnExit);
             bool oldHardwareAccel = s.HardwareAcceleration;
             s.HardwareAcceleration = j.value("hardwareAcceleration", s.HardwareAcceleration);
+            s.ResourceOptimizer = j.value("resourceOptimizer", s.ResourceOptimizer);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             
