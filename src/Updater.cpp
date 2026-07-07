@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 #include <shellapi.h>
+#include <vector>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -47,6 +49,30 @@ std::string GetHttpRaw(const std::wstring& domain, const std::wstring& path, con
     return result;
 }
 
+std::vector<int> ParseVersion(std::string v) {
+    if (!v.empty() && v[0] == 'v') v = v.substr(1);
+    std::vector<int> parts;
+    std::stringstream ss(v);
+    std::string item;
+    while (std::getline(ss, item, '.')) {
+        try { parts.push_back(std::stoi(item)); } catch(...) { parts.push_back(0); }
+    }
+    return parts;
+}
+
+bool IsVersionNewer(const std::string& remote, const std::string& local) {
+    auto r = ParseVersion(remote);
+    auto l = ParseVersion(local);
+    size_t len = r.size() > l.size() ? r.size() : l.size();
+    for (size_t i = 0; i < len; ++i) {
+        int r_val = (i < r.size()) ? r[i] : 0;
+        int l_val = (i < l.size()) ? l[i] : 0;
+        if (r_val > l_val) return true;
+        if (r_val < l_val) return false;
+    }
+    return false;
+}
+
 std::string Updater::CheckForUpdate(std::string& outDownloadUrl) {
     outDownloadUrl = "";
     std::string resp = GetHttpRaw(L"api.github.com", L"/repos/NotVeen/RoPilot/releases/latest", L"application/vnd.github.v3+json");
@@ -55,8 +81,8 @@ std::string Updater::CheckForUpdate(std::string& outDownloadUrl) {
     try {
         json j = json::parse(resp);
         std::string tag = j.value("tag_name", "");
-        if (tag.empty() || tag == CURRENT_VERSION) {
-            return ""; // No update or same version
+        if (tag.empty() || !IsVersionNewer(tag, CURRENT_VERSION)) {
+            return ""; // No update or same/older version
         }
         
         if (j.contains("assets") && j["assets"].is_array()) {
