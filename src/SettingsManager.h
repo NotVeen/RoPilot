@@ -4,6 +4,7 @@
 
 struct Settings {
     bool AutoUpdate = false;
+    bool RunOnStartup = false;
 };
 
 class SettingsManager {

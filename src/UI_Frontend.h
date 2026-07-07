@@ -1015,6 +1015,18 @@ const char* HTML_CONTENT = R"HTML(
                     <div style="padding: 16px 0px; border-bottom: 1px solid var(--border-color);">
                         <h3 style="margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">General</h3>
                     </div>
+                    
+                    <div style="padding: 20px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Run on Startup</div>
+                            <div style="font-size: 13px; color: var(--text-muted);">Automatically launch RoPilot minimized in the system tray when Windows starts.</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-run-startup">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
                     <div style="padding: 20px 0px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Automatic Updates</div>
@@ -1978,11 +1990,23 @@ const char* HTML_CONTENT = R"HTML(
             }
 
             let autoUpdateToggle = document.getElementById('setting-auto-update');
+            let startupToggle = document.getElementById('setting-run-startup');
+
             if (autoUpdateToggle) {
                 autoUpdateToggle.addEventListener('change', (e) => {
                     window.chrome.webview.postMessage(JSON.stringify({ 
                         action: 'save_settings',
-                        autoUpdate: e.target.checked
+                        autoUpdate: e.target.checked,
+                        runOnStartup: startupToggle ? startupToggle.checked : false
+                    }));
+                });
+            }
+            if (startupToggle) {
+                startupToggle.addEventListener('change', (e) => {
+                    window.chrome.webview.postMessage(JSON.stringify({ 
+                        action: 'save_settings',
+                        autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
+                        runOnStartup: e.target.checked
                     }));
                 });
             }
@@ -2001,6 +2025,8 @@ const char* HTML_CONTENT = R"HTML(
                         let msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
                         if (msg.action === 'settings_data') {
                             if (autoUpdateToggle) autoUpdateToggle.checked = msg.autoUpdate;
+                            let startupToggle = document.getElementById('setting-run-startup');
+                            if (startupToggle) startupToggle.checked = msg.runOnStartup;
                         }
                         else if (msg.action === 'update_available') {
                             let verText = document.getElementById('update-version-text');

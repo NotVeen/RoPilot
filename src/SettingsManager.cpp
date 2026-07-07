@@ -17,6 +17,7 @@ void SettingsManager::Load() {
         json j;
         file >> j;
         m_Settings.AutoUpdate = j.value("autoUpdate", false);
+        m_Settings.RunOnStartup = j.value("runOnStartup", false);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -27,6 +28,7 @@ void SettingsManager::Save() {
     try {
         json j;
         j["autoUpdate"] = m_Settings.AutoUpdate;
+        j["runOnStartup"] = m_Settings.RunOnStartup;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

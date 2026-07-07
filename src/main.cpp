@@ -59,6 +59,45 @@ ComPtr<ICoreWebView2Environment> g_webviewEnv;
 // Forward declaration
 void UpdateUI();
 
+#define WM_TRAYICON (WM_USER + 1)
+NOTIFYICONDATAW g_nid = { 0 };
+
+void SetStartupRegistry(bool enable) {
+    HKEY hKey;
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS) {
+        if (enable) {
+            char path[MAX_PATH];
+            GetModuleFileNameA(NULL, path, MAX_PATH);
+            std::string pathStr = std::string("\"") + path + "\"";
+            RegSetValueExA(hKey, "RoPilot", 0, REG_SZ, (const BYTE*)pathStr.c_str(), pathStr.length() + 1);
+        } else {
+            RegDeleteValueA(hKey, "RoPilot");
+        }
+        RegCloseKey(hKey);
+    }
+}
+
+void AddTrayIcon(HWND hWnd) {
+    g_nid.cbSize = sizeof(NOTIFYICONDATAW);
+    g_nid.hWnd = hWnd;
+    g_nid.uID = 1;
+    g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+    g_nid.uCallbackMessage = WM_TRAYICON;
+    g_nid.hIcon = (HICON)LoadImageW(NULL, L"res\\icon.ico", IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+    if (!g_nid.hIcon) {
+        g_nid.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(1));
+        if (!g_nid.hIcon) g_nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    }
+    wcscpy_s(g_nid.szTip, L"RoPilot");
+    Shell_NotifyIconW(NIM_ADD, &g_nid);
+}
+
+void RemoveTrayIcon() {
+    Shell_NotifyIconW(NIM_DELETE, &g_nid);
+    if (g_nid.hIcon) DestroyIcon(g_nid.hIcon);
+}
+
+
 std::wstring s2ws(const std::string& s) {
     if (s.empty()) return std::wstring();
     int size_needed = MultiByteToWideChar(CP_UTF8, 0, &s[0], (int)s.size(), NULL, 0);
@@ -220,13 +259,16 @@ void ProcessWebMessage(const std::string& msg) {
             json jOut;
             jOut["action"] = "settings_data";
             jOut["autoUpdate"] = s.AutoUpdate;
+            jOut["runOnStartup"] = s.RunOnStartup;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
         else if (action == "save_settings") {
             Settings s = g_settingsManager.GetSettings();
             s.AutoUpdate = j.value("autoUpdate", s.AutoUpdate);
+            s.RunOnStartup = j.value("runOnStartup", s.RunOnStartup);
             g_settingsManager.SetSettings(s);
+            SetStartupRegistry(s.RunOnStartup);
             SendStatusMessage("Settings saved successfully.", false);
         }
         else if (action == "check_update") {
@@ -426,7 +468,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         }
         break;
     }
+    case WM_CLOSE:
+        ShowWindow(hWnd, SW_HIDE);
+        return 0;
+    case WM_TRAYICON:
+        if (lParam == WM_LBUTTONUP) {
+            ShowWindow(hWnd, SW_RESTORE);
+            SetForegroundWindow(hWnd);
+        } else if (lParam == WM_RBUTTONUP) {
+            POINT pt;
+            GetCursorPos(&pt);
+            HMENU hMenu = CreatePopupMenu();
+            InsertMenuW(hMenu, -1, MF_BYPOSITION | MF_STRING, 1001, L"Open");
+            InsertMenuW(hMenu, -1, MF_BYPOSITION | MF_STRING, 1002, L"Exit");
+            SetForegroundWindow(hWnd);
+            int cmd = TrackPopupMenu(hMenu, TPM_RETURNCMD | TPM_NONOTIFY, pt.x, pt.y, 0, hWnd, NULL);
+            DestroyMenu(hMenu);
+            if (cmd == 1001) {
+                ShowWindow(hWnd, SW_RESTORE);
+                SetForegroundWindow(hWnd);
+            } else if (cmd == 1002) {
+                DestroyWindow(hWnd);
+            }
+        }
+        return 0;
     case WM_DESTROY:
+        RemoveTrayIcon();
         g_running = false;
         PostQuitMessage(0);
         break;
@@ -471,6 +538,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     g_hWnd = CreateWindowW(L"MultiRobloxClass", L"RoPilot", 
         WS_POPUP | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_THICKFRAME, xPos, yPos, winW, winH, 
         nullptr, nullptr, hInstance, nullptr);
+
+    AddTrayIcon(g_hWnd);
+    SetStartupRegistry(g_settingsManager.GetSettings().RunOnStartup);
 
     // Apply dark mode to the window border
     BOOL useDarkMode = TRUE;
