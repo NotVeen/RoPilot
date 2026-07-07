@@ -1563,11 +1563,11 @@ const char* HTML_CONTENT = R"HTML(
                             let statusText = 'Offline';
                             let statusValueClass = '';
                             
-                            if (acc.Status === 1 || acc.Status === 2) {
+                            if (acc.Status === 2) {
                                 statusColorClass = 'online';
                                 statusText = 'Online';
                                 statusValueClass = 'green';
-                            } else if (acc.Status === 3) {
+                            } else if (acc.Status === 1) {
                                 statusColorClass = 'online';
                                 statusText = 'Launching...';
                                 statusValueClass = 'green';
@@ -1604,7 +1604,7 @@ const char* HTML_CONTENT = R"HTML(
                                 </div>
                                 
                                 <div class="card-actions">
-                                    ${acc.Status === 3 ? 
+                                    ${acc.Status === 1 ? 
                                         `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)">
                                             <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
                                         </button>` : 

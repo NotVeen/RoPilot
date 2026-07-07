@@ -18,7 +18,7 @@ struct AnalyticsState {
 struct Account {
     std::string Cookie;
     RobloxAPI::UserInfo Info;
-    int Status = 0; // 0 = Offline, 1 = In Game, 2 = Loading
+    int Status = 0; // 0 = Offline, 1 = Launching, 2 = Online
     std::string JobId = "";
     DWORD ProcessId = 0;
     std::string Group = "Ungrouped";
@@ -39,7 +39,7 @@ public:
     std::vector<Account> GetAccounts();
     std::vector<std::string> GetGroups();
     void SetGroups(const std::vector<std::string>& groups);
-    void UpdateAccountPresence(const std::string& cookie, int status, const std::string& jobId);
+
     void UpdateAccountProcess(const std::string& cookie, int status, DWORD processId);
     void UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics);
     void UpdateAccountInfo(const std::string& cookie, const RobloxAPI::UserInfo& info);

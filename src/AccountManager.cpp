@@ -171,16 +171,6 @@ std::vector<Account> AccountManager::GetAccounts() {
     return m_Accounts;
 }
 
-void AccountManager::UpdateAccountPresence(const std::string& cookie, int status, const std::string& jobId) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    for (auto& acc : m_Accounts) {
-        if (acc.Cookie == cookie) {
-            acc.Status = status;
-            acc.JobId = jobId;
-            break;
-        }
-    }
-}
 
 void AccountManager::UpdateAccountProcess(const std::string& cookie, int status, DWORD processId) {
     std::lock_guard<std::mutex> lock(m_mutex);

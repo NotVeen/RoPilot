@@ -222,7 +222,7 @@ void ProcessWebMessage(const std::string& msg) {
                 return;
             }
 
-            g_accountManager.UpdateAccountProcess(cookie, 3, 0);
+            g_accountManager.UpdateAccountProcess(cookie, 1, 0);
             PostMessage(g_hWnd, WM_APP + 2, 0, 0);
 
             std::thread([cookie, placeId, username]() {
@@ -667,11 +667,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             }
             
             presenceTimer++;
-            bool checkPresence = (presenceTimer >= 5);
-            if (checkPresence) presenceTimer = 0;
-            
             for (auto& acc : accounts) {
-                if (acc.Status == 1 || acc.Status == 2) {
+                if (acc.Status == 2) {
                     bool isProcessAlive = false;
                     if (acc.ProcessId != 0) {
                         DWORD exitCode = 0;
@@ -723,19 +720,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                     if (!isProcessAlive) {
                         g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
                         updated = true;
-                    } else {
-                        if (checkPresence) {
-                            std::string jobId;
-                            int presenceType;
-                            if (RobloxAPI::GetPresence(acc.Cookie, std::to_string(acc.Info.UserId), jobId, presenceType)) {
-                                if (presenceType == 2) { // 2 = InGame
-                                    if (acc.Status != 1 || acc.JobId != jobId) {
-                                        g_accountManager.UpdateAccountPresence(acc.Cookie, 1, jobId);
-                                        updated = true;
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
