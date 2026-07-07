@@ -222,7 +222,7 @@ void ProcessWebMessage(const std::string& msg) {
                 return;
             }
 
-            g_accountManager.UpdateAccountProcess(cookie, 1, 0);
+            g_accountManager.UpdateAccountProcess(cookie, 3, 0);
             PostMessage(g_hWnd, WM_APP + 2, 0, 0);
 
             std::thread([cookie, placeId, username]() {
