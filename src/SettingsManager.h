@@ -7,6 +7,7 @@ struct Settings {
     bool RunOnStartup = false;
     bool MinimizeToTrayOnClose = true;
     bool AlwaysOnTop = false;
+    bool AutoKillOnExit = false;
 };
 
 class SettingsManager {

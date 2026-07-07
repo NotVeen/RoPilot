@@ -1060,13 +1060,24 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
 
-                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Always on Top</div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);">Keep the RoPilot window pinned on top of all other windows.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="setting-always-on-top">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Auto-kill Instances on Exit</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);">Automatically terminate all Roblox instances when RoPilot is fully closed.</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-auto-kill-exit">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -2048,6 +2059,7 @@ const char* HTML_CONTENT = R"HTML(
             let startupToggle = document.getElementById('setting-run-startup');
             let minimizeTrayToggle = document.getElementById('setting-minimize-tray');
             let alwaysOnTopToggle = document.getElementById('setting-always-on-top');
+            let autoKillExitToggle = document.getElementById('setting-auto-kill-exit');
 
             if (autoUpdateToggle) {
                 autoUpdateToggle.addEventListener('change', (e) => {
@@ -2056,7 +2068,8 @@ const char* HTML_CONTENT = R"HTML(
                         autoUpdate: e.target.checked,
                         runOnStartup: startupToggle ? startupToggle.checked : false,
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
-                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false
+                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
                     }));
                 });
             }
@@ -2067,7 +2080,8 @@ const char* HTML_CONTENT = R"HTML(
                         autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
                         runOnStartup: e.target.checked,
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
-                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false
+                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
                     }));
                 });
             }
@@ -2078,7 +2092,8 @@ const char* HTML_CONTENT = R"HTML(
                         autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
                         runOnStartup: startupToggle ? startupToggle.checked : false,
                         minimizeToTrayOnClose: e.target.checked,
-                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false
+                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
                     }));
                 });
             }
@@ -2089,7 +2104,20 @@ const char* HTML_CONTENT = R"HTML(
                         autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
                         runOnStartup: startupToggle ? startupToggle.checked : false,
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
-                        alwaysOnTop: e.target.checked
+                        alwaysOnTop: e.target.checked,
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
+                    }));
+                });
+            }
+            if (autoKillExitToggle) {
+                autoKillExitToggle.addEventListener('change', (e) => {
+                    window.chrome.webview.postMessage(JSON.stringify({ 
+                        action: 'save_settings',
+                        autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
+                        runOnStartup: startupToggle ? startupToggle.checked : false,
+                        minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
+                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
+                        autoKillOnExit: e.target.checked
                     }));
                 });
             }
@@ -2111,6 +2139,7 @@ const char* HTML_CONTENT = R"HTML(
                             if (startupToggle) startupToggle.checked = msg.runOnStartup;
                             if (minimizeTrayToggle) minimizeTrayToggle.checked = msg.minimizeToTrayOnClose;
                             if (alwaysOnTopToggle) alwaysOnTopToggle.checked = msg.alwaysOnTop;
+                            if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                         }
                         else if (msg.action === 'update_available') {
                             let verText = document.getElementById('update-version-text');

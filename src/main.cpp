@@ -63,6 +63,26 @@ void UpdateUI();
 #define WM_TRAYICON (WM_USER + 1)
 NOTIFYICONDATAW g_nid = { 0 };
 
+void KillAllRobloxInstances() {
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot != INVALID_HANDLE_VALUE) {
+        PROCESSENTRY32W pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32W);
+        if (Process32FirstW(hSnapshot, &pe32)) {
+            do {
+                if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
+                    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, pe32.th32ProcessID);
+                    if (hProcess) {
+                        TerminateProcess(hProcess, 0);
+                        CloseHandle(hProcess);
+                    }
+                }
+            } while (Process32NextW(hSnapshot, &pe32));
+        }
+        CloseHandle(hSnapshot);
+    }
+}
+
 void SetStartupRegistry(bool enable) {
     HKEY hKey;
     if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_ALL_ACCESS, &hKey) == ERROR_SUCCESS) {
@@ -215,23 +235,7 @@ void ProcessWebMessage(const std::string& msg) {
             ShowWindow(g_hWnd, SW_MINIMIZE);
         }
         else if (action == "kill_all") {
-            HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-            if (hSnapshot != INVALID_HANDLE_VALUE) {
-                PROCESSENTRY32W pe32;
-                pe32.dwSize = sizeof(PROCESSENTRY32W);
-                if (Process32FirstW(hSnapshot, &pe32)) {
-                    do {
-                        if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
-                            HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, pe32.th32ProcessID);
-                            if (hProcess) {
-                                TerminateProcess(hProcess, 0);
-                                CloseHandle(hProcess);
-                            }
-                        }
-                    } while (Process32NextW(hSnapshot, &pe32));
-                }
-                CloseHandle(hSnapshot);
-            }
+            KillAllRobloxInstances();
             SendStatusMessage("All Roblox instances terminated.", false);
             UpdateUI();
         }
@@ -263,6 +267,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["runOnStartup"] = s.RunOnStartup;
             jOut["minimizeToTrayOnClose"] = s.MinimizeToTrayOnClose;
             jOut["alwaysOnTop"] = s.AlwaysOnTop;
+            jOut["autoKillOnExit"] = s.AutoKillOnExit;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -272,6 +277,7 @@ void ProcessWebMessage(const std::string& msg) {
             s.RunOnStartup = j.value("runOnStartup", s.RunOnStartup);
             s.MinimizeToTrayOnClose = j.value("minimizeToTrayOnClose", s.MinimizeToTrayOnClose);
             s.AlwaysOnTop = j.value("alwaysOnTop", s.AlwaysOnTop);
+            s.AutoKillOnExit = j.value("autoKillOnExit", s.AutoKillOnExit);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             
@@ -515,6 +521,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         }
         return 0;
     case WM_DESTROY:
+        if (g_settingsManager.GetSettings().AutoKillOnExit) {
+            KillAllRobloxInstances();
+        }
         RemoveTrayIcon();
         g_running = false;
         PostQuitMessage(0);
