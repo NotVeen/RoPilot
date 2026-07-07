@@ -81,6 +81,12 @@ namespace Optimizer {
 
         SetPriorityClass(hProcess, IDLE_PRIORITY_CLASS);
         SetEfficiencyMode(hProcess, true);
+
+        PROCESS_POWER_THROTTLING_STATE pt = {0};
+        pt.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+        pt.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+        pt.StateMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+        SetProcessInformation(hProcess, ProcessPowerThrottling, &pt, sizeof(pt));
     }
 
     void SetHighestPriority(HANDLE hProcess) {
@@ -96,6 +102,12 @@ namespace Optimizer {
 
         SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS);
         SetEfficiencyMode(hProcess, false);
+
+        PROCESS_POWER_THROTTLING_STATE pt = {0};
+        pt.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+        pt.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+        pt.StateMask = 0;
+        SetProcessInformation(hProcess, ProcessPowerThrottling, &pt, sizeof(pt));
     }
 
     void TrimWorkingSet(HANDLE hProcess, DWORD pid) {
