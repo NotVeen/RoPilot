@@ -9,7 +9,11 @@ const char* HTML_CONTENT = R"HTML(
     <title>RoPilot</title>
     <style>
         /* CSS Reset & Variables */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { 
+            box-sizing: border-box; margin: 0; padding: 0; 
+            scrollbar-color: rgba(255, 255, 255, 0.05) transparent;
+            scrollbar-width: thin;
+        }
         :root {
             --bg-deep: #0a0a0a;
             --bg-sidebar: #111111;
@@ -40,18 +44,18 @@ const char* HTML_CONTENT = R"HTML(
         }
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar {
+        *::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
-        ::-webkit-scrollbar-track {
+        *::-webkit-scrollbar-track {
             background: transparent;
         }
-        ::-webkit-scrollbar-thumb {
+        *::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
+        *::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
