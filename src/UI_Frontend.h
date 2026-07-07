@@ -1016,7 +1016,7 @@ const char* HTML_CONTENT = R"HTML(
                         <h3 style="margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">General</h3>
                     </div>
                     
-                    <div style="padding: 20px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Run on Startup</div>
                             <div style="font-size: 13px; color: var(--text-muted);">Automatically launch RoPilot minimized in the system tray when Windows starts.</div>
@@ -1027,7 +1027,7 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
 
-                    <div style="padding: 20px 0px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Automatic Updates</div>
                             <div style="font-size: 13px; color: var(--text-muted);">Automatically download and install new versions when you launch RoPilot.</div>

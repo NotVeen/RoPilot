@@ -43,6 +43,7 @@ using json = nlohmann::json;
 
 std::atomic<bool> g_running{true};
 bool g_showChangelog = false;
+bool g_hasShownTrayNotification = false;
 
 #define LOG(x)
 #define ERROR_LOG(x)
@@ -470,6 +471,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     }
     case WM_CLOSE:
         ShowWindow(hWnd, SW_HIDE);
+        if (!g_hasShownTrayNotification) {
+            g_hasShownTrayNotification = true;
+            g_nid.uFlags = NIF_INFO;
+            wcscpy_s(g_nid.szInfo, L"RoPilot is still running in the background. Right-click this icon to exit.");
+            wcscpy_s(g_nid.szInfoTitle, L"RoPilot Minimized");
+            g_nid.dwInfoFlags = NIIF_INFO;
+            Shell_NotifyIconW(NIM_MODIFY, &g_nid);
+            g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+        }
         return 0;
     case WM_TRAYICON:
         if (lParam == WM_LBUTTONUP) {
