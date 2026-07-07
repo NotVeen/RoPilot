@@ -25,6 +25,7 @@ void SettingsManager::Load() {
         m_Settings.ResourceOptimizer = j.value("resourceOptimizer", false);
         m_Settings.CpuLimiter = j.value("cpuLimiter", false);
         m_Settings.BackgroundCpuLimit = j.value("backgroundCpuLimit", 2);
+        m_Settings.LightMode = j.value("lightMode", false);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -43,6 +44,7 @@ void SettingsManager::Save() {
         j["resourceOptimizer"] = m_Settings.ResourceOptimizer;
         j["cpuLimiter"] = m_Settings.CpuLimiter;
         j["backgroundCpuLimit"] = m_Settings.BackgroundCpuLimit;
+        j["lightMode"] = m_Settings.LightMode;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

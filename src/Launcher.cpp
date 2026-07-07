@@ -142,8 +142,8 @@ namespace Launcher {
             
             // Spawn background thread to find the newly launched process ID and update AccountManager
             std::thread([cookie]() {
-                for (int i = 0; i < 30; i++) {
-                    Sleep(1000); // Check every second for up to 30 seconds
+                for (int i = 0; i < 120; i++) {
+                    Sleep(1000); // Check every second for up to 120 seconds
                     HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
                     if (hSnapshot != INVALID_HANDLE_VALUE) {
                         PROCESSENTRY32W pe32;

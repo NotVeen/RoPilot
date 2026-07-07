@@ -293,6 +293,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["resourceOptimizer"] = s.ResourceOptimizer;
             jOut["cpuLimiter"] = s.CpuLimiter;
             jOut["backgroundCpuLimit"] = s.BackgroundCpuLimit;
+            jOut["lightMode"] = s.LightMode;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -308,6 +309,7 @@ void ProcessWebMessage(const std::string& msg) {
             s.ResourceOptimizer = j.value("resourceOptimizer", s.ResourceOptimizer);
             s.CpuLimiter = j.value("cpuLimiter", s.CpuLimiter);
             s.BackgroundCpuLimit = j.value("backgroundCpuLimit", s.BackgroundCpuLimit);
+            s.LightMode = j.value("lightMode", s.LightMode);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             
@@ -813,7 +815,19 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                             g_webviewController->put_Bounds(bounds);
 
                             // Load UI
-                            g_webview->NavigateToString(s2ws(HTML_CONTENT).c_str());
+std::string html = HTML_CONTENT;
+if (g_settingsManager.GetSettings().LightMode) {
+    size_t pos = html.find("<html lang=\"en\">");
+    if (pos != std::string::npos) {
+        html.replace(pos, 16, "<html lang=\"en\" data-theme=\"light\">");
+    } else {
+        pos = html.find("<html>");
+        if (pos != std::string::npos) {
+            html.replace(pos, 6, "<html data-theme=\"light\">");
+        }
+    }
+}
+g_webview->NavigateToString(s2ws(html).c_str());
 
                             // Populate Accounts after initial load
                             g_webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(

@@ -12,6 +12,7 @@ struct Settings {
     bool ResourceOptimizer = false;
     bool CpuLimiter = false;
     int BackgroundCpuLimit = 2;
+    bool LightMode = false;
 };
 
 class SettingsManager {
