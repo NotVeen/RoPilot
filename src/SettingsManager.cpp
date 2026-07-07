@@ -18,6 +18,7 @@ void SettingsManager::Load() {
         file >> j;
         m_Settings.AutoUpdate = j.value("autoUpdate", false);
         m_Settings.RunOnStartup = j.value("runOnStartup", false);
+        m_Settings.MinimizeToTrayOnClose = j.value("minimizeToTrayOnClose", true);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -29,6 +30,7 @@ void SettingsManager::Save() {
         json j;
         j["autoUpdate"] = m_Settings.AutoUpdate;
         j["runOnStartup"] = m_Settings.RunOnStartup;
+        j["minimizeToTrayOnClose"] = m_Settings.MinimizeToTrayOnClose;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

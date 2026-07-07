@@ -5,6 +5,7 @@
 struct Settings {
     bool AutoUpdate = false;
     bool RunOnStartup = false;
+    bool MinimizeToTrayOnClose = true;
 };
 
 class SettingsManager {

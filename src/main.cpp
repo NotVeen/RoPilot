@@ -261,6 +261,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["action"] = "settings_data";
             jOut["autoUpdate"] = s.AutoUpdate;
             jOut["runOnStartup"] = s.RunOnStartup;
+            jOut["minimizeToTrayOnClose"] = s.MinimizeToTrayOnClose;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -268,6 +269,7 @@ void ProcessWebMessage(const std::string& msg) {
             Settings s = g_settingsManager.GetSettings();
             s.AutoUpdate = j.value("autoUpdate", s.AutoUpdate);
             s.RunOnStartup = j.value("runOnStartup", s.RunOnStartup);
+            s.MinimizeToTrayOnClose = j.value("minimizeToTrayOnClose", s.MinimizeToTrayOnClose);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             SendStatusMessage("Settings saved successfully.", false);
@@ -470,15 +472,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         break;
     }
     case WM_CLOSE:
-        ShowWindow(hWnd, SW_HIDE);
-        if (!g_hasShownTrayNotification) {
-            g_hasShownTrayNotification = true;
-            g_nid.uFlags = NIF_INFO;
-            wcscpy_s(g_nid.szInfo, L"To fully close the app, right-click the RoPilot icon in your system tray and select Exit.");
-            wcscpy_s(g_nid.szInfoTitle, L"RoPilot is still running");
-            g_nid.dwInfoFlags = NIIF_INFO;
-            Shell_NotifyIconW(NIM_MODIFY, &g_nid);
-            g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+        if (g_settingsManager.GetSettings().MinimizeToTrayOnClose) {
+            ShowWindow(hWnd, SW_HIDE);
+            if (!g_hasShownTrayNotification) {
+                g_hasShownTrayNotification = true;
+                g_nid.uFlags = NIF_INFO;
+                wcscpy_s(g_nid.szInfo, L"To fully close the app, right-click the RoPilot icon in your system tray and select Exit.");
+                wcscpy_s(g_nid.szInfoTitle, L"RoPilot is still running");
+                g_nid.dwInfoFlags = NIIF_INFO;
+                Shell_NotifyIconW(NIM_MODIFY, &g_nid);
+                g_nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
+            }
+        } else {
+            DestroyWindow(hWnd);
         }
         return 0;
     case WM_TRAYICON:
