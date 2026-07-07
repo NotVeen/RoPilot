@@ -222,7 +222,6 @@ void ProcessWebMessage(const std::string& msg) {
                 return;
             }
 
-            SendStatusMessage("Launching " + username + "...");
             g_accountManager.UpdateAccountProcess(cookie, 1, 0);
             PostMessage(g_hWnd, WM_APP + 2, 0, 0);
 
