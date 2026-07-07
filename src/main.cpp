@@ -64,7 +64,8 @@ void UpdateUI();
 #define WM_TRAYICON (WM_USER + 1)
 NOTIFYICONDATAW g_nid = { 0 };
 
-void KillAllRobloxInstances() {
+int KillAllRobloxInstances() {
+    int count = 0;
     HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (hSnapshot != INVALID_HANDLE_VALUE) {
         PROCESSENTRY32W pe32;
@@ -76,12 +77,14 @@ void KillAllRobloxInstances() {
                     if (hProcess) {
                         TerminateProcess(hProcess, 0);
                         CloseHandle(hProcess);
+                        count++;
                     }
                 }
             } while (Process32NextW(hSnapshot, &pe32));
         }
         CloseHandle(hSnapshot);
     }
+    return count;
 }
 
 void SetStartupRegistry(bool enable) {
@@ -236,8 +239,12 @@ void ProcessWebMessage(const std::string& msg) {
             ShowWindow(g_hWnd, SW_MINIMIZE);
         }
         else if (action == "kill_all") {
-            KillAllRobloxInstances();
-            SendStatusMessage("All Roblox instances terminated.", false);
+            int killed = KillAllRobloxInstances();
+            if (killed > 0) {
+                SendStatusMessage("All Roblox instances terminated.", false);
+            } else {
+                SendStatusMessage("No instance is running.", true);
+            }
             UpdateUI();
         }
         else if (action == "maximize") {

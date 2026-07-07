@@ -2144,14 +2144,6 @@ const char* HTML_CONTENT = R"HTML(
             };
 
             window.showKillAllPrompt = function(isManual = false) {
-                if (isManual) {
-                    let hasRunning = currentAccounts.some(a => a.Status === 1 || a.Status === 2);
-                    if (!hasRunning) {
-                        if (window.showStatus) window.showStatus("No instance is running", true);
-                        return;
-                    }
-                }
-
                 let modal = document.getElementById('kill-all-modal');
                 let title = document.getElementById('kill-all-title');
                 let desc = document.getElementById('kill-all-desc');
