@@ -748,6 +748,7 @@ const char* HTML_CONTENT = R"HTML(
             pointer-events: none;
             transition: opacity 0.2s ease;
             display: flex;
+            backdrop-filter: blur(4px);
         }
         #cookie-modal.show, #group-modal.show, #update-prompt-modal.show, #changelog-modal.show {
             opacity: 1;
