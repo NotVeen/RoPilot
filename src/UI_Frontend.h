@@ -863,6 +863,32 @@ const char* HTML_CONTENT = R"HTML(
             display: block;
             animation: fadeSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
+    
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #4ade80;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
     </style>
 </head>
 <body>
@@ -1132,6 +1158,17 @@ const char* HTML_CONTENT = R"HTML(
                             <span class="slider"></span>
                         </label>
                     </div>
+                    
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
+                        <div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Background CPU Limiter</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);">Throttles background instances to save CPU cycles.</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-cpu-limiter-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                     <div class="setting-item" id="cpu-limit-container" style="display: none; border-bottom: none; padding-top: 5px;">
                         <div style="width: 100%;">
                             <div class="setting-title" style="font-size: 14px; font-weight: 500; margin-bottom: 8px; color: white; display: flex; justify-content: space-between;">
@@ -1341,7 +1378,33 @@ const char* HTML_CONTENT = R"HTML(
 <style>
     #rename-group-modal.show, #delete-group-modal.show, #kill-modal.show, #remove-modal.show, #kill-all-modal.show { opacity: 1 !important; pointer-events: auto !important; }
     #rename-group-modal.show #rename-group-modal-content, #delete-group-modal.show #delete-group-modal-content, #kill-modal.show #kill-modal-content, #remove-modal.show #remove-modal-content, #kill-all-modal.show #kill-all-modal-content { transform: scale(1) !important; }
-</style>
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #4ade80;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+    </style>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
 <script>
             let accountsGrid = document.getElementById('accounts-grid');
@@ -2123,6 +2186,7 @@ const char* HTML_CONTENT = R"HTML(
             let autoKillExitToggle = document.getElementById('setting-auto-kill-exit');
             let hardwareAccelToggle = document.getElementById('setting-hardware-accel');
                         let resourceOptToggle = document.getElementById('setting-resource-opt');
+            let cpuLimiterToggle = document.getElementById('setting-cpu-limiter-toggle');
             let cpuLimitContainer = document.getElementById('cpu-limit-container');
             let cpuLimitSlider = document.getElementById('setting-cpu-limit');
             let cpuLimitValue = document.getElementById('cpu-limit-value');
@@ -2208,16 +2272,39 @@ const char* HTML_CONTENT = R"HTML(
                     if (cpuLimitValue) cpuLimitValue.textContent = e.target.value + "%";
                 });
                 cpuLimitSlider.addEventListener('change', (e) => {
+                    
+            if (cpuLimiterToggle) {
+                cpuLimiterToggle.addEventListener('change', (e) => {
+                    if (cpuLimitContainer) {
+                        cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
+                    }
                     if (resourceOptToggle) {
                         resourceOptToggle.dispatchEvent(new Event('change'));
                     }
                 });
             }
+            if (resourceOptToggle) {
+                        cpuLimiterToggle.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
 
+            
+            if (cpuLimiterToggle) {
+                cpuLimiterToggle.addEventListener('change', (e) => {
+                    if (cpuLimitContainer) {
+                        cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
+                    }
+                    if (resourceOptToggle) {
+                        resourceOptToggle.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
             if (resourceOptToggle) {
                 
                 resourceOptToggle.addEventListener('change', (e) => {
-                    if (cpuLimitContainer) {
+                    if (cpuLimiterToggle) cpuLimiterToggle.checked = msg.cpuLimiter;
+                                if (cpuLimitContainer) {
                         cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
                     }
 
@@ -2270,9 +2357,21 @@ const char* HTML_CONTENT = R"HTML(
                             if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                             if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
                             
-                            if (resourceOptToggle) {
+                            
+            if (cpuLimiterToggle) {
+                cpuLimiterToggle.addEventListener('change', (e) => {
+                    if (cpuLimitContainer) {
+                        cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
+                    }
+                    if (resourceOptToggle) {
+                        resourceOptToggle.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+            if (resourceOptToggle) {
                                 resourceOptToggle.checked = msg.resourceOptimizer;
-                                if (cpuLimitContainer) cpuLimitContainer.style.display = msg.resourceOptimizer ? 'flex' : 'none';
+                                if (cpuLimiterToggle) cpuLimiterToggle.checked = msg.cpuLimiter;
+                                if (cpuLimitContainer) cpuLimitContainer.style.display = msg.cpuLimiter ? 'flex' : 'none';
                             }
                             if (cpuLimitSlider) {
                                 cpuLimitSlider.value = msg.backgroundCpuLimit || 2;
