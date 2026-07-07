@@ -222,6 +222,10 @@ void ProcessWebMessage(const std::string& msg) {
                 return;
             }
 
+            SendStatusMessage("Launching " + username + "...");
+            g_accountManager.UpdateAccountProcess(cookie, 1, 0);
+            PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+
             std::thread([cookie, placeId, username]() {
                 static std::mutex launchMutex;
                 std::lock_guard<std::mutex> lock(launchMutex);
@@ -234,6 +238,7 @@ void ProcessWebMessage(const std::string& msg) {
                     std::lock_guard<std::mutex> toastLock(g_toastMutex);
                     g_toastQueue.push_back({username + " launched successfully!", false});
                 } else {
+                    g_accountManager.UpdateAccountProcess(cookie, 0, 0);
                     std::lock_guard<std::mutex> toastLock(g_toastMutex);
                     g_toastQueue.push_back({errorMsg, true});
                     ERROR_LOG("Launch Error for " << cookie << ": " << errorMsg);
