@@ -1038,7 +1038,7 @@ const char* HTML_CONTENT = R"HTML(
                     </div>
                 </div>
                 
-                <div id="settings-container" style="margin-bottom: 24px;">
+                <div id="settings-container" class="settings-category" style="margin-bottom: 12px;">
                     <div class="setting-group" style="padding: 16px 0px 8px 0px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
                             <circle cx="12" cy="12" r="3"></circle>
@@ -1103,7 +1103,7 @@ const char* HTML_CONTENT = R"HTML(
                     </div>
                 </div>
 
-                <div id="settings-performance-container" style="margin-bottom: 24px;">
+                <div id="settings-performance-container" class="settings-category" style="margin-bottom: 12px;">
                     <div class="setting-group" style="padding: 16px 0px 8px 0px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
                             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
@@ -1804,22 +1804,22 @@ const char* HTML_CONTENT = R"HTML(
             
             document.getElementById('search-input-settings').addEventListener('input', (e) => {
                 let term = e.target.value.toLowerCase();
-                let items = document.querySelectorAll('.setting-item');
-                let hasVisible = false;
-                items.forEach(item => {
-                    let text = item.querySelector('.setting-title').innerText.toLowerCase();
-                    let desc = item.querySelector('.setting-desc').innerText.toLowerCase();
-                    if (text.includes(term) || desc.includes(term)) {
-                        item.style.display = 'flex';
-                        hasVisible = true;
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
+                let categories = document.querySelectorAll('.settings-category');
                 
-                let groups = document.querySelectorAll('.setting-group');
-                groups.forEach(g => {
-                    g.style.display = term && !hasVisible ? 'none' : 'block';
+                categories.forEach(category => {
+                    let items = category.querySelectorAll('.setting-item');
+                    let hasVisible = false;
+                    items.forEach(item => {
+                        let text = item.querySelector('.setting-title').innerText.toLowerCase();
+                        let desc = item.querySelector('.setting-desc').innerText.toLowerCase();
+                        if (text.includes(term) || desc.includes(term)) {
+                            item.style.display = 'flex';
+                            hasVisible = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    category.style.display = hasVisible ? 'block' : 'none';
                 });
             });
             
