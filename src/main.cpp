@@ -523,6 +523,17 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     try {
         CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
+        HANDLE hMutex = CreateMutexW(NULL, TRUE, L"RoPilot_SingleInstance_Mutex");
+        if (GetLastError() == ERROR_ALREADY_EXISTS) {
+            HWND existingWnd = FindWindowW(L"MultiRobloxClass", L"RoPilot");
+            if (existingWnd) {
+                ShowWindow(existingWnd, SW_RESTORE);
+                SetForegroundWindow(existingWnd);
+            }
+            CloseHandle(hMutex);
+            return 0;
+        }
+
         if (lpCmdLine && wcsstr(lpCmdLine, L"--updated") != nullptr) {
             g_showChangelog = true;
         }
