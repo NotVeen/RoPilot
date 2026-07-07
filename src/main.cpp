@@ -189,6 +189,34 @@ void ProcessWebMessage(const std::string& msg) {
                 }
             });
         } 
+                else if (action == "add_cookie_bulk") {
+            auto cookies = j.value("cookies", json::array());
+            int addedCount = 0;
+            int failedCount = 0;
+            for (const auto& cItem : cookies) {
+                std::string cookie = cItem.get<std::string>();
+                // Trim string just in case
+                cookie.erase(0, cookie.find_first_not_of(" \t\r\n"));
+                cookie.erase(cookie.find_last_not_of(" \t\r\n") + 1);
+                
+                if (cookie.empty()) continue;
+                if (g_accountManager.AddAccount(cookie)) {
+                    addedCount++;
+                } else {
+                    failedCount++;
+                }
+            }
+            if (addedCount > 0) {
+                std::string msg = std::to_string(addedCount) + " account(s) added successfully!";
+                if (failedCount > 0) {
+                    msg += " (" + std::to_string(failedCount) + " failed)";
+                }
+                SendStatusMessage(msg, false);
+                UpdateUI();
+            } else {
+                SendStatusMessage("Failed to add accounts. Invalid or expired cookies?", true);
+            }
+        }
         else if (action == "add_cookie") {
             std::string cookie = j.value("cookie", "");
             if (g_accountManager.AddAccount(cookie)) {
@@ -276,6 +304,8 @@ void ProcessWebMessage(const std::string& msg) {
         }
         else if (action == "remove") {
             std::string cookie = j.value("cookie", "");
+            cookie.erase(0, cookie.find_first_not_of(" \t\r\n"));
+            cookie.erase(cookie.find_last_not_of(" \t\r\n") + 1);
             g_accountManager.RemoveAccount(cookie);
             UpdateUI();
             SendStatusMessage("Account removed.", false);
