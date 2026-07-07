@@ -1325,8 +1325,9 @@ const char* HTML_CONTENT = R"HTML(
                         return usernameMatch || idMatch || userIdMatch || jobIdMatch || groupMatch;
                     });
 
+                    let isSearching = currentSearchTerm !== '';
                     let html = '';
-                    if (filtered.length === 0) {
+                    if (isSearching && filtered.length === 0) {
                         html = `
                             <div class="empty-state">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -1344,7 +1345,7 @@ const char* HTML_CONTENT = R"HTML(
                         groups[groupName].push(acc);
                     });
                     
-                    let isSearching = currentSearchTerm !== '';
+
                     
                     html = '';
                     for (let groupName in groups) {
@@ -1587,7 +1588,7 @@ const char* HTML_CONTENT = R"HTML(
                 let modal = document.getElementById('group-modal');
                 if (modal) {
                     modal.classList.add('show');
-                    let input = document.getElementById('group-input');
+                    let input = document.getElementById('group-name-input');
                     if (input) {
                         input.value = '';
                         setTimeout(() => input.focus(), 50);
