@@ -1082,6 +1082,26 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
                 </div>
+
+                <div id="settings-performance-container" style="margin-bottom: 24px;">
+                    <div class="setting-group" style="padding: 16px 0px 8px 0px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        <h3 style="margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Performance</h3>
+                    </div>
+                    
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;">Hardware Acceleration (UI)</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);">Use GPU to render the UI smoothly. Disable this to save GPU memory for Roblox. <span style="color: #ff9800; font-weight: 500;">(Requires App Restart)</span></div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-hardware-accel">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
             
             <!-- Update Overlay -->
@@ -2060,6 +2080,7 @@ const char* HTML_CONTENT = R"HTML(
             let minimizeTrayToggle = document.getElementById('setting-minimize-tray');
             let alwaysOnTopToggle = document.getElementById('setting-always-on-top');
             let autoKillExitToggle = document.getElementById('setting-auto-kill-exit');
+            let hardwareAccelToggle = document.getElementById('setting-hardware-accel');
 
             if (autoUpdateToggle) {
                 autoUpdateToggle.addEventListener('change', (e) => {
@@ -2069,7 +2090,8 @@ const char* HTML_CONTENT = R"HTML(
                         runOnStartup: startupToggle ? startupToggle.checked : false,
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
-                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
                     }));
                 });
             }
@@ -2081,7 +2103,8 @@ const char* HTML_CONTENT = R"HTML(
                         runOnStartup: e.target.checked,
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
-                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
                     }));
                 });
             }
@@ -2093,7 +2116,8 @@ const char* HTML_CONTENT = R"HTML(
                         runOnStartup: startupToggle ? startupToggle.checked : false,
                         minimizeToTrayOnClose: e.target.checked,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
-                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
                     }));
                 });
             }
@@ -2105,7 +2129,8 @@ const char* HTML_CONTENT = R"HTML(
                         runOnStartup: startupToggle ? startupToggle.checked : false,
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: e.target.checked,
-                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
                     }));
                 });
             }
@@ -2117,7 +2142,21 @@ const char* HTML_CONTENT = R"HTML(
                         runOnStartup: startupToggle ? startupToggle.checked : false,
                         minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
-                        autoKillOnExit: e.target.checked
+                        autoKillOnExit: e.target.checked,
+                        hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true
+                    }));
+                });
+            }
+            if (hardwareAccelToggle) {
+                hardwareAccelToggle.addEventListener('change', (e) => {
+                    window.chrome.webview.postMessage(JSON.stringify({ 
+                        action: 'save_settings',
+                        autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
+                        runOnStartup: startupToggle ? startupToggle.checked : false,
+                        minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
+                        alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
+                        autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
+                        hardwareAcceleration: e.target.checked
                     }));
                 });
             }
@@ -2140,6 +2179,7 @@ const char* HTML_CONTENT = R"HTML(
                             if (minimizeTrayToggle) minimizeTrayToggle.checked = msg.minimizeToTrayOnClose;
                             if (alwaysOnTopToggle) alwaysOnTopToggle.checked = msg.alwaysOnTop;
                             if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
+                            if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
                         }
                         else if (msg.action === 'update_available') {
                             let verText = document.getElementById('update-version-text');

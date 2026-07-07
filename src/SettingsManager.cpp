@@ -21,6 +21,7 @@ void SettingsManager::Load() {
         m_Settings.MinimizeToTrayOnClose = j.value("minimizeToTrayOnClose", true);
         m_Settings.AlwaysOnTop = j.value("alwaysOnTop", false);
         m_Settings.AutoKillOnExit = j.value("autoKillOnExit", false);
+        m_Settings.HardwareAcceleration = j.value("hardwareAcceleration", true);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -35,6 +36,7 @@ void SettingsManager::Save() {
         j["minimizeToTrayOnClose"] = m_Settings.MinimizeToTrayOnClose;
         j["alwaysOnTop"] = m_Settings.AlwaysOnTop;
         j["autoKillOnExit"] = m_Settings.AutoKillOnExit;
+        j["hardwareAcceleration"] = m_Settings.HardwareAcceleration;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

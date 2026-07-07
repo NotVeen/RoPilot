@@ -268,6 +268,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["minimizeToTrayOnClose"] = s.MinimizeToTrayOnClose;
             jOut["alwaysOnTop"] = s.AlwaysOnTop;
             jOut["autoKillOnExit"] = s.AutoKillOnExit;
+            jOut["hardwareAcceleration"] = s.HardwareAcceleration;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -278,13 +279,19 @@ void ProcessWebMessage(const std::string& msg) {
             s.MinimizeToTrayOnClose = j.value("minimizeToTrayOnClose", s.MinimizeToTrayOnClose);
             s.AlwaysOnTop = j.value("alwaysOnTop", s.AlwaysOnTop);
             s.AutoKillOnExit = j.value("autoKillOnExit", s.AutoKillOnExit);
+            bool oldHardwareAccel = s.HardwareAcceleration;
+            s.HardwareAcceleration = j.value("hardwareAcceleration", s.HardwareAcceleration);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             
             HWND insertAfter = s.AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
             SetWindowPos(g_hWnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             
-            SendStatusMessage("Settings saved successfully.", false);
+            if (oldHardwareAccel != s.HardwareAcceleration) {
+                SendStatusMessage("Hardware Acceleration changed. Restart RoPilot to apply.", false);
+            } else {
+                SendStatusMessage("Settings saved successfully.", false);
+            }
         }
         else if (action == "check_update") {
             std::thread([]() {
@@ -740,7 +747,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     UpdateWindow(g_hWnd);
     LOG("Window shown, creating WebView2");
 
-    CreateCoreWebView2EnvironmentWithOptions(nullptr, L"main_data", nullptr,
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    if (!g_settingsManager.GetSettings().HardwareAcceleration) {
+        options->put_AdditionalBrowserArguments(L"--disable-gpu");
+    }
+
+    CreateCoreWebView2EnvironmentWithOptions(nullptr, L"main_data", options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 g_webviewEnv = env;

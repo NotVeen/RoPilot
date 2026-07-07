@@ -8,6 +8,7 @@ struct Settings {
     bool MinimizeToTrayOnClose = true;
     bool AlwaysOnTop = false;
     bool AutoKillOnExit = false;
+    bool HardwareAcceleration = true;
 };
 
 class SettingsManager {
