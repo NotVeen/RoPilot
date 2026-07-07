@@ -1256,7 +1256,7 @@ const char* HTML_CONTENT = R"HTML(
             
             window.renderAccounts = function(accounts) {
                 try {
-                    if (accounts.length === 0) {
+                    if (accounts.length === 0 && currentGroups.length === 0) {
                         accountsGrid.innerHTML = `
                             <div class="empty-state">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -1268,11 +1268,21 @@ const char* HTML_CONTENT = R"HTML(
                     }
 
                     let accountsStr = JSON.stringify(accounts.map(a => ({id: a.Id, uid: a.UserId, stat: a.Status, grp: a.Group, pid: a.ProcessId})));
+                    let groupsStr = JSON.stringify(currentGroups);
+                    let collapsedStr = JSON.stringify(Array.from(collapsedGroups));
+                    
                     let canQuickUpdate = false;
-                    if (window.lastRenderedAccountsString === accountsStr && window.lastRenderedSearchTerm === currentSearchTerm && window.lastRenderedAnalyticsSearchTerm === currentAnalyticsSearchTerm) {
+                    if (window.lastRenderedAccountsString === accountsStr && 
+                        window.lastRenderedGroupsString === groupsStr &&
+                        window.lastRenderedCollapsedString === collapsedStr &&
+                        window.lastRenderedSearchTerm === currentSearchTerm && 
+                        window.lastRenderedAnalyticsSearchTerm === currentAnalyticsSearchTerm) {
                         canQuickUpdate = true;
                     }
+                    
                     window.lastRenderedAccountsString = accountsStr;
+                    window.lastRenderedGroupsString = groupsStr;
+                    window.lastRenderedCollapsedString = collapsedStr;
                     window.lastRenderedSearchTerm = currentSearchTerm;
                     window.lastRenderedAnalyticsSearchTerm = currentAnalyticsSearchTerm;
 
