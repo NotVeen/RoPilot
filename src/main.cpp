@@ -262,6 +262,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["autoUpdate"] = s.AutoUpdate;
             jOut["runOnStartup"] = s.RunOnStartup;
             jOut["minimizeToTrayOnClose"] = s.MinimizeToTrayOnClose;
+            jOut["alwaysOnTop"] = s.AlwaysOnTop;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -270,8 +271,13 @@ void ProcessWebMessage(const std::string& msg) {
             s.AutoUpdate = j.value("autoUpdate", s.AutoUpdate);
             s.RunOnStartup = j.value("runOnStartup", s.RunOnStartup);
             s.MinimizeToTrayOnClose = j.value("minimizeToTrayOnClose", s.MinimizeToTrayOnClose);
+            s.AlwaysOnTop = j.value("alwaysOnTop", s.AlwaysOnTop);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
+            
+            HWND insertAfter = s.AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
+            SetWindowPos(g_hWnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+            
             SendStatusMessage("Settings saved successfully.", false);
         }
         else if (action == "check_update") {
@@ -565,6 +571,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     g_hWnd = CreateWindowW(L"MultiRobloxClass", L"RoPilot", 
         WS_POPUP | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_THICKFRAME, xPos, yPos, winW, winH, 
         nullptr, nullptr, hInstance, nullptr);
+
+    HWND insertAfter = g_settingsManager.GetSettings().AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
+    SetWindowPos(g_hWnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
     AddTrayIcon(g_hWnd);
     SetStartupRegistry(g_settingsManager.GetSettings().RunOnStartup);
