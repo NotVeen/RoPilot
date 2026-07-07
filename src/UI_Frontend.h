@@ -1132,6 +1132,16 @@ const char* HTML_CONTENT = R"HTML(
                             <span class="slider"></span>
                         </label>
                     </div>
+                    <div class="setting-item" id="cpu-limit-container" style="display: none; border-bottom: none; padding-top: 5px;">
+                        <div style="width: 100%;">
+                            <div class="setting-title" style="font-size: 14px; font-weight: 500; margin-bottom: 8px; color: white; display: flex; justify-content: space-between;">
+                                <span>Background CPU Limit</span>
+                                <span id="cpu-limit-value" style="color: var(--accent);">2%</span>
+                            </div>
+                            <input type="range" id="setting-cpu-limit" min="1" max="100" value="2" style="width: 100%; cursor: pointer;">
+                        </div>
+                    </div>
+
                 </div>
             </div>
             
@@ -2112,7 +2122,10 @@ const char* HTML_CONTENT = R"HTML(
             let alwaysOnTopToggle = document.getElementById('setting-always-on-top');
             let autoKillExitToggle = document.getElementById('setting-auto-kill-exit');
             let hardwareAccelToggle = document.getElementById('setting-hardware-accel');
-            let resourceOptToggle = document.getElementById('setting-resource-opt');
+                        let resourceOptToggle = document.getElementById('setting-resource-opt');
+            let cpuLimitContainer = document.getElementById('cpu-limit-container');
+            let cpuLimitSlider = document.getElementById('setting-cpu-limit');
+            let cpuLimitValue = document.getElementById('cpu-limit-value');
 
             if (autoUpdateToggle) {
                 autoUpdateToggle.addEventListener('change', (e) => {
@@ -2124,7 +2137,8 @@ const char* HTML_CONTENT = R"HTML(
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
-                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
             }
@@ -2138,7 +2152,8 @@ const char* HTML_CONTENT = R"HTML(
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
-                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
             }
@@ -2152,7 +2167,8 @@ const char* HTML_CONTENT = R"HTML(
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
-                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
             }
@@ -2166,7 +2182,8 @@ const char* HTML_CONTENT = R"HTML(
                         alwaysOnTop: e.target.checked,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
-                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
             }
@@ -2180,12 +2197,30 @@ const char* HTML_CONTENT = R"HTML(
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: e.target.checked,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
-                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
             }
-                        if (resourceOptToggle) {
+                        
+            if (cpuLimitSlider) {
+                cpuLimitSlider.addEventListener('input', (e) => {
+                    if (cpuLimitValue) cpuLimitValue.textContent = e.target.value + "%";
+                });
+                cpuLimitSlider.addEventListener('change', (e) => {
+                    if (resourceOptToggle) {
+                        resourceOptToggle.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+
+            if (resourceOptToggle) {
+                
                 resourceOptToggle.addEventListener('change', (e) => {
+                    if (cpuLimitContainer) {
+                        cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
+                    }
+
                     window.chrome.webview.postMessage(JSON.stringify({ 
                         action: 'save_settings',
                         autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
@@ -2194,7 +2229,8 @@ const char* HTML_CONTENT = R"HTML(
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
-                        resourceOptimizer: e.target.checked
+                        resourceOptimizer: e.target.checked,
+                        backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
             }
@@ -2208,7 +2244,8 @@ const char* HTML_CONTENT = R"HTML(
                         alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                         autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                         hardwareAcceleration: e.target.checked,
-                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false
+                        resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
+                        backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2
                     }));
                 });
             }
@@ -2232,7 +2269,16 @@ const char* HTML_CONTENT = R"HTML(
                             if (alwaysOnTopToggle) alwaysOnTopToggle.checked = msg.alwaysOnTop;
                             if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                             if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
-                            if (resourceOptToggle) resourceOptToggle.checked = msg.resourceOptimizer;
+                            
+                            if (resourceOptToggle) {
+                                resourceOptToggle.checked = msg.resourceOptimizer;
+                                if (cpuLimitContainer) cpuLimitContainer.style.display = msg.resourceOptimizer ? 'flex' : 'none';
+                            }
+                            if (cpuLimitSlider) {
+                                cpuLimitSlider.value = msg.backgroundCpuLimit || 2;
+                                if (cpuLimitValue) cpuLimitValue.textContent = (msg.backgroundCpuLimit || 2) + "%";
+                            }
+
                         }
                         else if (msg.action === 'update_available') {
                             let verText = document.getElementById('update-version-text');

@@ -7,6 +7,7 @@
 #include <atomic>
 #include <mutex>
 #include <unordered_set>
+#include <unordered_map>
 #include <tlhelp32.h>
 #include <psapi.h>
 #include <intrin.h>
@@ -20,6 +21,8 @@ namespace Optimizer {
     DWORD g_LastFocusedPid = 0;
     std::unordered_set<DWORD> g_TrimmedPids;
     std::mutex g_TrimMutex;
+    std::unordered_map<DWORD, HANDLE> g_JobObjects;
+    std::mutex g_JobMutex;
 
     static DWORD LogicalCores() {
         DWORD len = 0;
@@ -119,6 +122,55 @@ namespace Optimizer {
         }
     }
 
+    void SetProcessCpuLimit(HANDLE hProcess, DWORD pid, int limitPercent) {
+        std::lock_guard<std::mutex> lock(g_JobMutex);
+        HANDLE hJob = NULL;
+        auto it = g_JobObjects.find(pid);
+        if (it == g_JobObjects.end()) {
+            hJob = CreateJobObjectW(NULL, NULL);
+            if (hJob) {
+                if (AssignProcessToJobObject(hJob, hProcess)) {
+                    g_JobObjects[pid] = hJob;
+                } else {
+                    CloseHandle(hJob);
+                    hJob = NULL;
+                }
+            }
+        } else {
+            hJob = it->second;
+        }
+
+        if (hJob) {
+            JOBOBJECT_CPU_RATE_CONTROL_INFORMATION jcrc{};
+            jcrc.ControlFlags = JOB_OBJECT_CPU_RATE_CONTROL_ENABLE | JOB_OBJECT_CPU_RATE_CONTROL_HARD_CAP;
+            jcrc.CpuRate = limitPercent * 100; // 10000 is 100%
+            if (jcrc.CpuRate > 10000) jcrc.CpuRate = 10000;
+            if (jcrc.CpuRate < 100) jcrc.CpuRate = 100;
+            
+            SetInformationJobObject(hJob, JobObjectCpuRateControlInformation, &jcrc, sizeof(jcrc));
+        }
+    }
+
+    void CleanupJobs() {
+        std::lock_guard<std::mutex> lock(g_JobMutex);
+        for (auto it = g_JobObjects.begin(); it != g_JobObjects.end(); ) {
+            DWORD exitCode;
+            HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, it->first);
+            if (hProc) {
+                if (GetExitCodeProcess(hProc, &exitCode) && exitCode != STILL_ACTIVE) {
+                    CloseHandle(it->second);
+                    it = g_JobObjects.erase(it);
+                } else {
+                    ++it;
+                }
+                CloseHandle(hProc);
+            } else {
+                CloseHandle(it->second);
+                it = g_JobObjects.erase(it);
+            }
+        }
+    }
+
     static void MonitorLoop() {
         while (g_Running) {
             if (g_settingsManager.GetSettings().ResourceOptimizer) {
@@ -140,12 +192,14 @@ namespace Optimizer {
                                     if (pe.th32ProcessID == activePid) {
                                         if (g_LastFocusedPid != activePid) {
                                             SetHighestPriority(hProc);
+                                            SetProcessCpuLimit(hProc, pe.th32ProcessID, 100);
                                             std::lock_guard<std::mutex> lock(g_TrimMutex);
                                             g_TrimmedPids.erase(pe.th32ProcessID);
                                         }
                                     } else {
                                         // It is in the background
                                         SetLowestPriority(hProc);
+                                        SetProcessCpuLimit(hProc, pe.th32ProcessID, g_settingsManager.GetSettings().BackgroundCpuLimit);
                                         TrimWorkingSet(hProc, pe.th32ProcessID);
                                     }
                                     CloseHandle(hProc);
@@ -160,6 +214,7 @@ namespace Optimizer {
                     g_LastFocusedPid = activePid;
                 }
             }
+            CleanupJobs();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(2000));
         }

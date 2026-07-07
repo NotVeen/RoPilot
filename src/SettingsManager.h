@@ -10,6 +10,7 @@ struct Settings {
     bool AutoKillOnExit = false;
     bool HardwareAcceleration = true;
     bool ResourceOptimizer = false;
+    int BackgroundCpuLimit = 2;
 };
 
 class SettingsManager {

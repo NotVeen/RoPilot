@@ -271,6 +271,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["autoKillOnExit"] = s.AutoKillOnExit;
             jOut["hardwareAcceleration"] = s.HardwareAcceleration;
             jOut["resourceOptimizer"] = s.ResourceOptimizer;
+            jOut["backgroundCpuLimit"] = s.BackgroundCpuLimit;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -284,6 +285,7 @@ void ProcessWebMessage(const std::string& msg) {
             bool oldHardwareAccel = s.HardwareAcceleration;
             s.HardwareAcceleration = j.value("hardwareAcceleration", s.HardwareAcceleration);
             s.ResourceOptimizer = j.value("resourceOptimizer", s.ResourceOptimizer);
+            s.BackgroundCpuLimit = j.value("backgroundCpuLimit", s.BackgroundCpuLimit);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             

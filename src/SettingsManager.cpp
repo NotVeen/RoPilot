@@ -23,6 +23,7 @@ void SettingsManager::Load() {
         m_Settings.AutoKillOnExit = j.value("autoKillOnExit", false);
         m_Settings.HardwareAcceleration = j.value("hardwareAcceleration", true);
         m_Settings.ResourceOptimizer = j.value("resourceOptimizer", false);
+        m_Settings.BackgroundCpuLimit = j.value("backgroundCpuLimit", 2);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -39,6 +40,7 @@ void SettingsManager::Save() {
         j["autoKillOnExit"] = m_Settings.AutoKillOnExit;
         j["hardwareAcceleration"] = m_Settings.HardwareAcceleration;
         j["resourceOptimizer"] = m_Settings.ResourceOptimizer;
+        j["backgroundCpuLimit"] = m_Settings.BackgroundCpuLimit;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {
