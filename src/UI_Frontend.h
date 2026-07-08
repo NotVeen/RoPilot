@@ -50,10 +50,10 @@ const char* HTML_CONTENT = R"HTML(
         [data-theme="light"] .setting-title { color: var(--text-main) !important; }
         [data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3 { color: var(--text-main) !important; }
         [data-theme="light"] .hamburger-btn:hover { color: var(--text-main) !important; }
-        [data-theme="light"] .nav-item.active { background-color: #e5e7eb !important; color: var(--text-main) !important; }
+        [data-theme="light"] .nav-item.active { background-color: #e5e7eb !important; color: var(--accent-color, var(--text-main)) !important; }
         [data-theme="light"] .nav-item::before { background-color: var(--accent-color, var(--text-main)) !important; }
-        [data-theme="light"] .nav-text { color: var(--text-main) !important; }
-        [data-theme="light"] .btn-icon:hover { color: var(--text-main) !important; background-color: var(--btn-hover) !important; }
+        [data-theme="light"] .nav-text { color: inherit !important; }
+        [data-theme="light"] .btn-icon:hover { color: var(--accent-color, var(--text-main)) !important; background-color: var(--btn-hover) !important; }
         [data-theme="light"] .dropdown-menu { background: var(--bg-card) !important; color: var(--text-main) !important; }
         [data-theme="light"] .group-header { background: var(--bg-card) !important; }
 
@@ -400,7 +400,7 @@ const char* HTML_CONTENT = R"HTML(
         }
 
         .btn-add-account:hover {
-            background-color: #dddddd;
+            filter: brightness(0.85);
         }
 
         .add-menu-item {
