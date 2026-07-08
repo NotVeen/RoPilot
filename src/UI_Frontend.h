@@ -1426,7 +1426,7 @@ const char* HTML_CONTENT = R"HTML(
                     <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_hide_identity">Hide Username & User ID</div>
-                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_hide_identity">Blur username and user ID in manage accounts and performance analytic.</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_hide_identity">Blur your account's username and user ID.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="setting-hide-identity">
@@ -1963,8 +1963,8 @@ const char* HTML_CONTENT = R"HTML(
                                         <div class="status-dot ${statusColorClass}"></div>
                                     </div>
                                     <div class="user-info">
-                                        <span class="username">${username}</span>
-                                        <span class="userid">${userId}</span>
+                                        <span class="username" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>${username}</span>
+                                        <span class="userid" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>${userId}</span>
                                     </div>
                                 </div>
                                 
@@ -2071,8 +2071,8 @@ const char* HTML_CONTENT = R"HTML(
                                             <div class="status-dot green"></div>
                                         </div>
                                         <div class="user-info">
-                                            <span class="username">${escapeHtml(acc.Username)}</span>
-                                            <span class="userid">PID: ${acc.ProcessId || 'Loading...'}</span>
+                                            <span class="username" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>${escapeHtml(acc.Username)}</span>
+                                            <span class="userid" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>PID: ${acc.ProcessId || 'Loading...'}</span>
                                         </div>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -2475,6 +2475,8 @@ const char* HTML_CONTENT = R"HTML(
                     "desc_background": "Biarkan RoPilot berjalan di latar belakang saat jendela ditutup",
                     "lbl_auto_updates": "Pembaruan Otomatis",
                     "desc_auto_updates": "Unduh dan instal versi baru secara otomatis saat meluncurkan RoPilot",
+                    "lbl_hide_identity": "Sembunyikan Username & ID",
+                    "desc_hide_identity": "Buramkan username dan user ID akun Anda",
                     "lbl_appearance": "Tampilan",
                     "lbl_light_mode": "Mode Terang",
                     "lbl_accent_color": "Warna Aksen",
@@ -2954,6 +2956,7 @@ const char* HTML_CONTENT = R"HTML(
                     autoUpdate: autoUpdateToggle ? autoUpdateToggle.checked : false,
                     runOnStartup: startupToggle ? startupToggle.checked : false,
                     minimizeToTrayOnClose: minimizeTrayToggle ? minimizeTrayToggle.checked : true,
+                    hideIdentity: hideIdentityToggle ? hideIdentityToggle.checked : false,
                     alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
                     autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
                     hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
@@ -2974,6 +2977,7 @@ const char* HTML_CONTENT = R"HTML(
 let autoUpdateToggle = document.getElementById('setting-auto-update');
             let startupToggle = document.getElementById('setting-run-startup');
             let minimizeTrayToggle = document.getElementById('setting-minimize-tray');
+            let hideIdentityToggle = document.getElementById('setting-hide-identity');
             let alwaysOnTopToggle = document.getElementById('setting-always-on-top');
             let autoKillExitToggle = document.getElementById('setting-auto-kill-exit');
             let hardwareAccelToggle = document.getElementById('setting-hardware-accel');
@@ -2996,6 +3000,12 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             if (minimizeTrayToggle) {
                 minimizeTrayToggle.addEventListener('change', (e) => {
                     saveSettings();
+                });
+            }
+            if (hideIdentityToggle) {
+                hideIdentityToggle.addEventListener('change', (e) => {
+                    saveSettings();
+                    if (window.renderAccounts) window.renderAccounts(currentAccounts);
                 });
             }
             if (alwaysOnTopToggle) {
@@ -3097,6 +3107,7 @@ let btnStartUpdate = document.getElementById('btn-start-update');
                             if (autoUpdateToggle) autoUpdateToggle.checked = msg.autoUpdate;
                             if (startupToggle) startupToggle.checked = msg.runOnStartup;
                             if (minimizeTrayToggle) minimizeTrayToggle.checked = msg.minimizeToTrayOnClose;
+                            if (hideIdentityToggle) hideIdentityToggle.checked = msg.hideIdentity;
                             if (alwaysOnTopToggle) alwaysOnTopToggle.checked = msg.alwaysOnTop;
                             if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                             if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
