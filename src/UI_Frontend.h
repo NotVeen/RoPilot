@@ -3821,15 +3821,15 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 }
                 if (j.headshotUrl) {
                     document.getElementById('manage-avatar').src = j.headshotUrl;
-                    if (window.currentAccounts) {
-                        for (let i = 0; i < window.currentAccounts.length; i++) {
-                            if (window.currentAccounts[i].UserId == currentManageUserId || window.currentAccounts[i].Id == currentManageUserId) {
-                                window.currentAccounts[i].ThumbnailUrl = j.headshotUrl;
+                    if (typeof currentAccounts !== 'undefined' && currentAccounts) {
+                        for (let i = 0; i < currentAccounts.length; i++) {
+                            if (currentAccounts[i].UserId == currentManageUserId || currentAccounts[i].Id == currentManageUserId) {
+                                currentAccounts[i].ThumbnailUrl = j.headshotUrl;
                                 break;
                             }
                         }
                         window.lastRenderedAccountsString = "";
-                        if (window.renderAccounts) window.renderAccounts(window.currentAccounts);
+                        if (window.renderAccounts) window.renderAccounts(currentAccounts);
                     }
                 }
                 
@@ -3841,8 +3841,8 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         
                         let isHighlighted = (window.wornOutfitIds && window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
                         let borderStyle = isHighlighted ? 'var(--primary-color)' : 'var(--border-color)';
-                        let shadowStyle = isHighlighted ? '0 0 0 2px var(--primary-color)' : 'none';
-                        let bgStyle = isHighlighted ? 'var(--bg-hover)' : 'transparent';
+                        let shadowStyle = isHighlighted ? '0 0 0 2px var(--primary-color), 0 0 15px var(--primary-color)' : 'none';
+                        let bgStyle = isHighlighted ? 'rgba(59, 130, 246, 0.15)' : 'transparent';
                         
                         div.style.cssText = `background: ${bgStyle}; border: 1px solid ${borderStyle}; box-shadow: ${shadowStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
                         
