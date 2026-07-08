@@ -1955,6 +1955,26 @@ const char* HTML_CONTENT = R"HTML(
     </div>
 
     
+    
+    <!-- Wear Outfit Modal -->
+    <div id="wear-outfit-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+        <div id="wear-outfit-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 350px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
+            <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a8.59 8.59 0 0 0-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg><span data-i18n="lbl_wear_outfit">Wear Outfit</span></h2>
+                <button class="btn-icon" onclick="document.getElementById('wear-outfit-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+                <img id="wear-outfit-image" src="" style="width: 150px; height: 150px; border-radius: 12px; background: var(--bg-main); border: 1px solid var(--border-color); margin-bottom: 16px; object-fit: cover;" />
+                <h3 id="wear-outfit-name" style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: var(--text-main);">Outfit Name</h3>
+                <p style="color: var(--text-muted); margin: 0; font-size: 14px;" data-i18n="desc_wear_outfit">Do you want to wear this outfit?</p>
+            </div>
+            <div class="modal-footer" style="padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn-secondary" onclick="document.getElementById('wear-outfit-modal').classList.remove('show');" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;" data-i18n="btn_cancel">Cancel</button>
+                <button class="btn-primary" id="btn-confirm-wear" style="padding: 8px 16px; background: white; color: black; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;" onclick="submitWearOutfit()">Wear</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Display Name Modal -->
     <div id="display-name-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="display-name-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
@@ -2069,8 +2089,8 @@ const char* HTML_CONTENT = R"HTML(
     <div id="toast-container" class="toast-container"></div>
 
 <style>
-    #display-name-modal.show, #rename-group-modal.show, #delete-group-modal.show, #kill-modal.show, #remove-modal.show, #kill-all-modal.show { opacity: 1 !important; pointer-events: auto !important; }
-    #display-name-modal.show #display-name-modal-content, #rename-group-modal.show #rename-group-modal-content, #delete-group-modal.show #delete-group-modal-content, #kill-modal.show #kill-modal-content, #remove-modal.show #remove-modal-content, #kill-all-modal.show #kill-all-modal-content { transform: scale(1) !important; }
+    #wear-outfit-modal.show, #display-name-modal.show, #rename-group-modal.show, #delete-group-modal.show, #kill-modal.show, #remove-modal.show, #kill-all-modal.show { opacity: 1 !important; pointer-events: auto !important; }
+    #wear-outfit-modal.show #wear-outfit-modal-content, #display-name-modal.show #display-name-modal-content, #rename-group-modal.show #rename-group-modal-content, #delete-group-modal.show #delete-group-modal-content, #kill-modal.show #kill-modal-content, #remove-modal.show #remove-modal-content, #kill-all-modal.show #kill-all-modal-content { transform: scale(1) !important; }
 
         input[type=range] {
             -webkit-appearance: none;
@@ -2685,7 +2705,10 @@ const char* HTML_CONTENT = R"HTML(
                                         "lbl_account_age": "Account Age",
                     "lbl_change_display_name": "Change Display Name",
                     "desc_change_display_name": "Must be 3-20 characters long (letters, numbers, or underscores only).",
-                    "desc_display_name_warning": "Your Display Name can only be changed once every 7 days.",
+                                        "desc_display_name_warning": "Your Display Name can only be changed once every 7 days.",
+                    "lbl_outfits": "Outfits",
+                    "lbl_wear_outfit": "Wear Outfit",
+                    "desc_wear_outfit": "Do you want to wear this outfit?",
                     "lbl_hide_identity": "Hide Username & User ID",
                     "desc_hide_identity": "Censor your account's username and user ID",
                     "nav_settings": "Settings",
@@ -2822,7 +2845,10 @@ const char* HTML_CONTENT = R"HTML(
                                         "lbl_account_age": "Umur Akun",
                     "lbl_change_display_name": "Ubah Nama Tampilan",
                     "desc_change_display_name": "Nama harus terdiri dari 3-20 karakter (hanya huruf, angka, atau garis bawah).",
-                    "desc_display_name_warning": "Display Name hanya dapat diubah satu kali setiap 7 hari.",
+                                        "desc_display_name_warning": "Display Name hanya dapat diubah satu kali setiap 7 hari.",
+                    "lbl_outfits": "Pakaian (Outfits)",
+                    "lbl_wear_outfit": "Pakai Outfit",
+                    "desc_wear_outfit": "Apakah Anda ingin memakai outfit ini?",
                     "lbl_hide_identity": "Sembunyikan Username & ID",
                     "desc_hide_identity": "Sensor username dan user ID akun Anda",
                     "lbl_appearance": "Tampilan",
@@ -3726,6 +3752,105 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 msg = isId ? "Nama Tampilan tidak lolos filter moderasi Roblox." : "Display Name did not pass Roblox moderation filters.";
             }
             window.showStatus((isId ? "Gagal! " : "Failed! ") + msg, true);
+        };
+
+        
+        let currentTargetOutfitId = 0;
+        
+        window.fetchOutfits = function() {
+            document.getElementById('outfits-loading').style.display = 'block';
+            document.getElementById('outfits-grid').innerHTML = '';
+            
+            // Set current avatar
+            document.getElementById('outfit-current-avatar').src = document.getElementById('manage-avatar').src;
+            document.getElementById('outfit-current-name').innerText = document.getElementById('manage-title-username').innerText;
+            
+            window.chrome.webview.postMessage(JSON.stringify({
+                action: 'get_outfits',
+                cookie: currentManageCookie,
+                userId: currentManageUserId
+            }));
+        };
+        
+        window.onReceiveOutfits = function(jsonStr) {
+            document.getElementById('outfits-loading').style.display = 'none';
+            try {
+                let j = JSON.parse(jsonStr);
+                let grid = document.getElementById('outfits-grid');
+                grid.innerHTML = '';
+                
+                if (j.data && j.data.length > 0) {
+                    j.data.forEach(outfit => {
+                        let div = document.createElement('div');
+                        div.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px;';
+                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; div.style.borderColor = 'rgba(255,255,255,0.2)'; };
+                        div.onmouseout = () => { div.style.transform = 'translateY(0)'; div.style.borderColor = 'var(--border-color)'; };
+                        div.onclick = () => { window.promptWearOutfit(outfit.id, outfit.name, outfit.imageUrl); };
+                        
+                        let img = document.createElement('img');
+                        img.src = outfit.imageUrl || '';
+                        img.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: var(--bg-main); margin-bottom: 8px;';
+                        
+                        let name = document.createElement('span');
+                        name.innerText = outfit.name;
+                        name.style.cssText = 'font-size: 12px; font-weight: 500; color: var(--text-main); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;';
+                        
+                        div.appendChild(img);
+                        div.appendChild(name);
+                        grid.appendChild(div);
+                    });
+                } else {
+                    grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 20px;">No outfits found.</div>';
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        };
+        
+        window.onReceiveOutfitsError = function() {
+            document.getElementById('outfits-loading').style.display = 'none';
+            document.getElementById('outfits-grid').innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #ef4444; padding: 20px;">Failed to load outfits.</div>';
+        };
+        
+        window.promptWearOutfit = function(id, name, imageUrl) {
+            currentTargetOutfitId = id;
+            document.getElementById('wear-outfit-name').innerText = name;
+            document.getElementById('wear-outfit-image').src = imageUrl;
+            document.getElementById('wear-outfit-modal').classList.add('show');
+        };
+        
+        window.submitWearOutfit = function() {
+            document.getElementById('wear-outfit-modal').classList.remove('show');
+            let btn = document.getElementById('btn-confirm-wear');
+            btn.innerText = 'Wearing...';
+            btn.disabled = true;
+            
+            window.chrome.webview.postMessage({
+                action: 'wear_outfit',
+                cookie: currentManageCookie,
+                outfitId: currentTargetOutfitId.toString()
+            });
+        };
+        
+        window.onWearOutfitSuccess = function() {
+            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
+            window.showStatus(isId ? "Outfit berhasil dipakai!" : "Outfit worn successfully!", false);
+            let btn = document.getElementById('btn-confirm-wear');
+            btn.innerText = 'Wear';
+            btn.disabled = false;
+            
+            // Refresh modal avatar immediately by triggering manage_account reload
+            if(window.refreshManageAccount) window.refreshManageAccount();
+            // Also refetch outfits to update the top image
+            window.fetchOutfits();
+        };
+        
+        window.onWearOutfitError = function(errorMsg) {
+            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
+            window.showStatus((isId ? "Gagal memakai outfit: " : "Failed to wear outfit: ") + errorMsg, true);
+            let btn = document.getElementById('btn-confirm-wear');
+            btn.innerText = 'Wear';
+            btn.disabled = false;
         };
 
         window.refreshManageAccount = function() {
