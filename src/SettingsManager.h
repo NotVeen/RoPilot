@@ -18,6 +18,8 @@ struct Settings {
     std::string Language = "en";
     double UiScale = 1.0;
     bool SidebarCollapsed = false;
+    float WindowOpacity = 1.0f;
+    bool EnableWindowBlur = false;
 };
 
 class SettingsManager {

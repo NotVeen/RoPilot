@@ -41,6 +41,43 @@ bool IsProcessRunning(DWORD pid) {
 using namespace Microsoft::WRL;
 using json = nlohmann::json;
 
+
+enum WINDOWCOMPOSITIONATTRIB { WCA_ACCENT_POLICY = 19 };
+enum ACCENT_STATE { ACCENT_DISABLED = 0, ACCENT_ENABLE_GRADIENT = 1, ACCENT_ENABLE_TRANSPARENTGRADIENT = 2, ACCENT_ENABLE_BLURBEHIND = 3, ACCENT_ENABLE_ACRYLICBLURBEHIND = 4, ACCENT_INVALID_STATE = 5 };
+struct ACCENT_POLICY { ACCENT_STATE AccentState; DWORD AccentFlags; DWORD GradientColor; DWORD AnimationId; };
+struct WINDOWCOMPOSITIONATTRIBDATA { WINDOWCOMPOSITIONATTRIB Attrib; PVOID pvData; SIZE_T cbData; };
+typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONATTRIBDATA*);
+
+void ApplyTransparencyMode(HWND hwnd, bool blur, float opacity) {
+    // ALWAYS keep WS_EX_LAYERED to prevent DWM frame recalculation bugs (titlebar bug)
+    SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+    
+    // Set LWA_ALPHA to 255 (fully opaque) so child elements like modals remain solid!
+    // The actual background transparency will be handled by DWM composition and WebView2.
+    SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
+    
+    HMODULE hUser = GetModuleHandle(TEXT("user32.dll"));
+    if (hUser) {
+        pSetWindowCompositionAttribute setWndComp = (pSetWindowCompositionAttribute)GetProcAddress(hUser, "SetWindowCompositionAttribute");
+        if (setWndComp) {
+            ACCENT_POLICY policy;
+            if (blur) {
+                // Windows 10/11 standard blur that works perfectly with WS_EX_LAYERED
+                policy = { ACCENT_ENABLE_BLURBEHIND, 0, 0, 0 };
+            } else {
+                // Transparent gradient for opacity without blur. 
+                // We set gradient to 0 (fully transparent) because HTML body CSS will handle the actual opacity color!
+                policy = { ACCENT_ENABLE_TRANSPARENTGRADIENT, 2, 0, 0 };
+            }
+            WINDOWCOMPOSITIONATTRIBDATA data = { WCA_ACCENT_POLICY, &policy, sizeof(ACCENT_POLICY) };
+            setWndComp(hwnd, &data);
+        }
+    }
+    
+    // We MUST force the window to redraw to apply the composition changes smoothly
+    RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME);
+}
+
 std::atomic<bool> g_running{true};
 bool g_showChangelog = false;
 std::vector<std::pair<std::string, bool>> g_toastQueue;
@@ -324,6 +361,8 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["language"] = s.Language;
             jOut["uiScale"] = s.UiScale;
             jOut["sidebarCollapsed"] = s.SidebarCollapsed;
+            jOut["windowOpacity"] = s.WindowOpacity;
+            jOut["enableWindowBlur"] = s.EnableWindowBlur;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -345,8 +384,13 @@ void ProcessWebMessage(const std::string& msg) {
             s.Language = j.value("language", s.Language);
             s.UiScale = j.value("uiScale", s.UiScale);
             s.SidebarCollapsed = j.value("sidebarCollapsed", s.SidebarCollapsed);
+            bool oldBlur = s.EnableWindowBlur;
+            s.WindowOpacity = j.value("windowOpacity", s.WindowOpacity);
+            s.EnableWindowBlur = j.value("enableWindowBlur", s.EnableWindowBlur);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
+            
+            ApplyTransparencyMode(g_hWnd, s.EnableWindowBlur, s.WindowOpacity);
             
             HWND insertAfter = s.AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
             SetWindowPos(g_hWnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -357,6 +401,10 @@ void ProcessWebMessage(const std::string& msg) {
             } else if (!silent) {
                 SendStatusMessage("Settings saved successfully.", false);
             }
+        }
+        else if (action == "preview_opacity") {
+            // We no longer use LWA_ALPHA for previewing opacity because it makes the whole window (including modals) transparent.
+            // HTML body CSS variable var(--bg-opacity) handles the realtime preview perfectly without any Win32 API calls!
         }
         else if (action == "check_update") {
             std::thread([]() {
@@ -513,6 +561,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         }
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
+    case WM_NCACTIVATE: {
+        // Prevent Windows from automatically repainting the classic titlebar when the window loses/gains focus
+        // By passing -1 as lParam, DefWindowProc will process the activation state but SKIP the non-client repaint!
+        return DefWindowProc(hWnd, message, wParam, -1);
+    }
+    case WM_NCPAINT: {
+        // Completely suppress any accidental non-client area painting
+        return 0;
+    }
     case WM_GETMINMAXINFO: {
         MINMAXINFO* mmi = (MINMAXINFO*)lParam;
         HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
@@ -638,7 +695,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     wcex.lpfnWndProc = WndProc;
     wcex.hInstance = hInstance;
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wcex.lpszClassName = L"MultiRobloxClass";
     wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(1));
     wcex.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(1));
@@ -651,7 +708,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     int xPos = (screenW - winW) / 2;
     int yPos = (screenH - winH) / 2;
 
-    g_hWnd = CreateWindowW(L"MultiRobloxClass", L"RoPilot", 
+    g_hWnd = CreateWindowExW(WS_EX_LAYERED, L"MultiRobloxClass", L"RoPilot", 
         WS_POPUP | WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU | WS_THICKFRAME, xPos, yPos, winW, winH, 
         nullptr, nullptr, hInstance, nullptr);
 
@@ -659,6 +716,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     SetWindowPos(g_hWnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
     AddTrayIcon(g_hWnd);
+    ApplyTransparencyMode(g_hWnd, g_settingsManager.GetSettings().EnableWindowBlur, g_settingsManager.GetSettings().WindowOpacity);
     SetStartupRegistry(g_settingsManager.GetSettings().RunOnStartup);
 
     BOOL useDarkMode = TRUE;
@@ -677,6 +735,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             pDwmSetWindowAttribute(g_hWnd, DWMWA_BORDER_COLOR, &darkColor, sizeof(darkColor));
             DWORD cornerPref = 2; // DWMWCP_ROUND
             pDwmSetWindowAttribute(g_hWnd, 33, &cornerPref, sizeof(cornerPref));
+            
+            typedef struct _MARGINS { int cxLeftWidth; int cxRightWidth; int cyTopHeight; int cyBottomHeight; } MARGINS;
+            typedef HRESULT(WINAPI* DwmExtendFrameIntoClientAreaPtr)(HWND, const MARGINS*);
+            DwmExtendFrameIntoClientAreaPtr extendFrame = (DwmExtendFrameIntoClientAreaPtr)GetProcAddress(hDwm, "DwmExtendFrameIntoClientArea");
+            if (extendFrame) {
+                MARGINS margins = {-1, -1, -1, -1};
+                extendFrame(g_hWnd, &margins);
+            }
         }
         FreeLibrary(hDwm);
     }
@@ -806,6 +872,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                 g_webviewController = controller;
                                 g_webviewController->get_CoreWebView2(&g_webview);
                             }
+                            ICoreWebView2Controller2* controller2 = nullptr;
+                            if (SUCCEEDED(g_webviewController->QueryInterface(IID_PPV_ARGS(&controller2))) && controller2) {
+                                COREWEBVIEW2_COLOR color = {0, 0, 0, 0};
+                                controller2->put_DefaultBackgroundColor(color);
+                                controller2->Release();
+                            }
+
 
                             ICoreWebView2Settings* settings;
                             if (SUCCEEDED(g_webviewController->get_CoreWebView2(&g_webview)) && g_webview) {

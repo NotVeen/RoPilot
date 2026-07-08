@@ -91,6 +91,7 @@ const char* HTML_CONTENT = R"HTML(
             --bg-card: #1a1a1a;
             --bg-hover: #222222;
             --border-color: #2a2a2a;
+            --separator-color: rgba(255, 255, 255, 0.04);
             --text-main: #ffffff;
             --text-muted: #888888;
             --text-green: #4ade80;
@@ -105,6 +106,40 @@ const char* HTML_CONTENT = R"HTML(
             --scrollbar-thumb-hover: #333333;
             --ui-scale: 1.0;
         }
+        html {
+            --bg-opacity: 1.0;
+        }
+        html {
+            background-color: transparent !important;
+        }
+        body {
+            --bg-deep: rgba(10, 10, 10, var(--bg-opacity));
+            --bg-sidebar: rgba(17, 17, 17, var(--bg-opacity));
+            background-color: var(--bg-deep) !important;
+        }
+        body .card, body .btn-add-account, body #add-menu, body .group-header {
+            background-color: rgba(26, 26, 26, var(--bg-opacity)) !important;
+        }
+        body .nav-item.active {
+            background-color: rgba(34, 34, 34, var(--bg-opacity)) !important;
+        }
+        body .nav-item:hover, body .add-menu-item:hover {
+            background-color: rgba(45, 45, 45, var(--bg-opacity)) !important;
+        }
+        [data-theme="light"] body {
+            --bg-deep: rgba(243, 244, 246, var(--bg-opacity));
+            --bg-sidebar: rgba(255, 255, 255, var(--bg-opacity));
+        }
+        [data-theme="light"] body .card, [data-theme="light"] body .btn-add-account, [data-theme="light"] body #add-menu, [data-theme="light"] body .group-header {
+            background-color: rgba(255, 255, 255, var(--bg-opacity)) !important;
+        }
+        [data-theme="light"] body .nav-item.active {
+            background-color: rgba(229, 231, 235, var(--bg-opacity)) !important;
+        }
+        [data-theme="light"] body .nav-item:hover, [data-theme="light"] body .add-menu-item:hover {
+            background-color: rgba(209, 213, 219, var(--bg-opacity)) !important;
+        }
+
 
         [data-theme="light"] {
             --bg-deep: #f3f4f6;
@@ -112,6 +147,7 @@ const char* HTML_CONTENT = R"HTML(
             --bg-card: #ffffff;
             --bg-hover: #e5e7eb;
             --border-color: #d1d5db;
+            --separator-color: rgba(0, 0, 0, 0.05);
             --text-main: #111827;
             --text-muted: #6b7280;
             --btn-bg: #f3f4f6;
@@ -384,7 +420,7 @@ const char* HTML_CONTENT = R"HTML(
             font-size: 11px;
             color: var(--text-muted);
             font-family: 'Consolas', 'Courier New', monospace;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--separator-color);
         }
         
         .analytics-stat {
@@ -1255,17 +1291,17 @@ const char* HTML_CONTENT = R"HTML(
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_accent_color">Accent Color</div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_accent_color">Customize the primary highlight color of the UI.</div>
                         </div>
                         <input type="color" id="setting-accent-color" style="cursor: pointer; background: var(--bg-card); border: 1px solid var(--border-color); width: 36px; height: 36px; padding: 2px; border-radius: 8px;">
                     </div>
-                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_font">Font</div>
-                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_font">Change the global application font.</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_font">Change the global application font</div>
                         </div>
                         <div class="custom-dropdown" id="font-dropdown-container">
                             <input type="hidden" id="setting-font-family" value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
@@ -1287,10 +1323,10 @@ const char* HTML_CONTENT = R"HTML(
                             </div>
                         </div>
                     </div>
-                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_language">Language</div>
-                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_language">Change the display language.</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_language">Change the display language</div>
                         </div>
                         <div class="custom-dropdown" id="lang-dropdown-container">
                             <input type="hidden" id="setting-language" value="en">
@@ -1305,16 +1341,37 @@ const char* HTML_CONTENT = R"HTML(
                         </div>
                     </div>
                 
-                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_ui_scale">UI Scale</div>
-                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_ui_scale">Adjust the overall size of the user interface.</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_ui_scale">Adjust the overall size of the user interface</div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 12px; width: 180px;">
                             <input type="range" id="setting-ui-scale" min="0.8" max="1.2" step="0.2" value="1.0" style="flex-grow: 1; accent-color: var(--accent-color);">
                             <span id="ui-scale-val" style="font-size: 13px; font-weight: 600; width: 45px; text-align: right; color: var(--text-main);">100%</span>
                         </div>
                     </div>
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
+                        <div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_window_opacity">Window Opacity</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_window_opacity">Adjust the transparency of the entire application window</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; width: 180px;">
+                            <input type="range" id="setting-window-opacity" min="0.2" max="1.0" step="0.05" value="1.0" style="flex-grow: 1; accent-color: var(--accent-color);">
+                            <span id="window-opacity-val" style="font-size: 13px; font-weight: 600; width: 45px; text-align: right; color: var(--text-main);">100%</span>
+                        </div>
+                    </div>
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
+                        <div>
+                            <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_window_blur">Background Blur</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_window_blur">Apply Acrylic blur effect to the background (Windows 10/11)</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-window-blur">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
                 </div>
 
                 <div id="settings-container" class="settings-category" style="margin-bottom: 12px;">
@@ -1326,7 +1383,7 @@ const char* HTML_CONTENT = R"HTML(
                         <h3 style="margin: 0; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);" data-i18n="lbl_general">General</h3>
                     </div>
                     
-                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_run_on_startup">Run on Startup</div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_startup">Automatically launch RoPilot minimized in the system tray when Windows starts.</div>
@@ -1337,7 +1394,7 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
 
-                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;"><span data-i18n="lbl_minimize_tray">Minimize to Tray on Close</span></div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_background">Keep RoPilot running in the background when you close the window.</div>
@@ -1348,7 +1405,7 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
 
-                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_auto_updates">Automatic Updates</div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_auto_updates">Automatically download and install new versions when you launch RoPilot.</div>
@@ -1359,7 +1416,7 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
 
-                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                    <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_always_on_top">Always on Top</div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_always_on_top">Keep the RoPilot window pinned on top of all other windows.</div>
@@ -1401,7 +1458,7 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
                     
-                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color); margin-top: 4px;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;"><span data-i18n="lbl_resource_opt">Resource Optimizer</span></div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_resource_opt">Prioritize focused window and limit CPU/RAM usage of background instances.</div>
@@ -1412,7 +1469,7 @@ const char* HTML_CONTENT = R"HTML(
                         </label>
                     </div>
                     
-                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 4px;">
+                    <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color); margin-top: 4px;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;"><span data-i18n="lbl_cpu_limiter">Background CPU Limiter</span></div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_cpu_limiter_desc">Throttles background instances to save CPU cycles.</div>
@@ -2296,7 +2353,11 @@ const char* HTML_CONTENT = R"HTML(
                     "btn_add_browser": "Add via Browser",
                     "btn_create_group": "Create",
                     "lbl_ui_scale": "UI Scale",
-                    "desc_ui_scale": "Adjust the overall size of the user interface.",
+                    "desc_ui_scale": "Adjust the overall size of the user interface",
+                    "lbl_window_opacity": "Window Opacity",
+                    "desc_window_opacity": "Adjust the transparency of the entire application window",
+                    "lbl_window_blur": "Background Blur",
+                    "desc_window_blur": "Apply Acrylic blur effect to the background (Windows 10/11)",
                     "opt_scale_small": "Small",
                     "opt_scale_medium": "Medium",
                     "opt_scale_large": "Large",
@@ -2406,7 +2467,11 @@ const char* HTML_CONTENT = R"HTML(
                     "btn_add_browser": "Tambahkan via Browser",
                     "btn_create_group": "Buat",
                     "lbl_ui_scale": "Ukuran UI",
-                    "desc_ui_scale": "Sesuaikan ukuran keseluruhan antarmuka pengguna.",
+                    "desc_ui_scale": "Sesuaikan ukuran keseluruhan antarmuka pengguna",
+                    "lbl_window_opacity": "Transparansi Jendela",
+                    "desc_window_opacity": "Atur transparansi keseluruhan jendela aplikasi",
+                    "lbl_window_blur": "Latar Belakang Blur",
+                    "desc_window_blur": "Terapkan efek blur pada latar belakang (Windows 10/11)",
                     "opt_scale_small": "Kecil",
                     "opt_scale_medium": "Sedang",
                     "opt_scale_large": "Besar",
@@ -2752,6 +2817,8 @@ const char* HTML_CONTENT = R"HTML(
                     document.documentElement.style.setProperty('--accent-color', e.target.value);
                     document.documentElement.style.setProperty('--accent-tint-hover', e.target.value + '26');
                     document.documentElement.style.setProperty('--accent-tint-active', e.target.value + '40');
+                });
+                accentColorInput.addEventListener('change', (e) => {
                     saveSettings();
                 });
             }
@@ -2831,7 +2898,9 @@ const char* HTML_CONTENT = R"HTML(
                     fontFamily: fontFamilyInput ? fontFamilyInput.value : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                     language: document.getElementById('setting-language') ? document.getElementById('setting-language').value : "en",
                     uiScale: document.getElementById('setting-ui-scale') ? parseFloat(document.getElementById('setting-ui-scale').value) : 1.0,
-                    sidebarCollapsed: document.getElementById('sidebar') ? document.getElementById('sidebar').classList.contains('collapsed') : false
+                    sidebarCollapsed: document.getElementById('sidebar') ? document.getElementById('sidebar').classList.contains('collapsed') : false,
+                    windowOpacity: document.getElementById('setting-window-opacity') ? parseFloat(document.getElementById('setting-window-opacity').value) : 1.0,
+                    enableWindowBlur: document.getElementById('setting-window-blur') ? document.getElementById('setting-window-blur').checked : false
                 }));
             }
 
@@ -2878,20 +2947,35 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                     if (cpuLimitValue) cpuLimitValue.textContent = e.target.value + "%";
                 });
                 cpuLimitSlider.addEventListener('change', (e) => {
-                    
-            if (cpuLimiterToggle) {
-                cpuLimiterToggle.addEventListener('change', (e) => {
-                    if (cpuLimitContainer) {
-                        cpuLimitContainer.style.display = e.target.checked ? 'flex' : 'none';
-                    }
-                    if (resourceOptToggle) {
-                        resourceOptToggle.dispatchEvent(new Event('change'));
-                    }
+                    saveSettings();
                 });
             }
-            if (resourceOptToggle) {
-                        cpuLimiterToggle.dispatchEvent(new Event('change'));
+
+            let opacitySlider = document.getElementById('setting-window-opacity');
+            if (opacitySlider) {
+                opacitySlider.addEventListener('input', (e) => {
+                    let opacityVal = document.getElementById('window-opacity-val');
+                    let val = parseFloat(e.target.value);
+                    if (opacityVal) opacityVal.textContent = Math.round(val * 100) + '%';
+                    
+                    document.documentElement.style.setProperty('--bg-opacity', val);
+                    
+                    let blurInput = document.getElementById('setting-window-blur');
+                    if (!blurInput || !blurInput.checked) {
+                        window.chrome.webview.postMessage(JSON.stringify({ action: 'preview_opacity', value: val }));
                     }
+                });
+                opacitySlider.addEventListener('change', (e) => {
+                    saveSettings(true);
+                });
+            }
+            
+            let blurToggle = document.getElementById('setting-window-blur');
+            if (blurToggle) {
+                blurToggle.addEventListener('change', (e) => {
+                    if (e.target.checked) document.body.classList.add('blur-enabled');
+                    else document.body.classList.remove('blur-enabled');
+                    saveSettings(true);
                 });
             }
 
@@ -3020,6 +3104,27 @@ let btnStartUpdate = document.getElementById('btn-start-update');
                                 uiScaleInput.value = msg.uiScale;
                                 if (uiScaleVal) uiScaleVal.textContent = Math.round(msg.uiScale * 100) + '%';
                                 document.documentElement.style.setProperty('--ui-scale', msg.uiScale);
+                            }
+                            
+                            let opacityInput = document.getElementById('setting-window-opacity');
+                            let opacityVal = document.getElementById('window-opacity-val');
+                            if (opacityInput && typeof msg.windowOpacity !== 'undefined') {
+                                let roundedOpacity = Math.round(msg.windowOpacity * 100) / 100;
+                                opacityInput.value = roundedOpacity;
+                                if (opacityVal) opacityVal.textContent = Math.round(roundedOpacity * 100) + '%';
+                                document.documentElement.style.setProperty('--bg-opacity', roundedOpacity);
+                            }
+                            
+                            let blurInput = document.getElementById('setting-window-blur');
+                            if (blurInput && typeof msg.enableWindowBlur !== 'undefined') {
+                                blurInput.checked = msg.enableWindowBlur;
+                                if (msg.enableWindowBlur) {
+                                    document.body.classList.add('blur-enabled');
+                                    document.documentElement.classList.add('blur-enabled');
+                                } else {
+                                    document.body.classList.remove('blur-enabled');
+                                    document.documentElement.classList.remove('blur-enabled');
+                                }
                             }
 
                         }

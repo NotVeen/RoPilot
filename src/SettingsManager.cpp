@@ -31,6 +31,8 @@ void SettingsManager::Load() {
         m_Settings.Language = j.value("language", "en");
         m_Settings.UiScale = j.value("uiScale", 1.0);
         m_Settings.SidebarCollapsed = j.value("sidebarCollapsed", false);
+        m_Settings.WindowOpacity = j.value("windowOpacity", 1.0f);
+        m_Settings.EnableWindowBlur = j.value("enableWindowBlur", false);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -55,6 +57,8 @@ void SettingsManager::Save() {
         j["language"] = m_Settings.Language;
         j["uiScale"] = m_Settings.UiScale;
         j["sidebarCollapsed"] = m_Settings.SidebarCollapsed;
+        j["windowOpacity"] = m_Settings.WindowOpacity;
+        j["enableWindowBlur"] = m_Settings.EnableWindowBlur;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {
