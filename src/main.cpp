@@ -291,32 +291,33 @@ void ProcessWebMessage(const std::string& msg) {
             std::string userId = j.value("userId", "");
             std::string newName = j.value("newName", "");
             
-            std::string errorMsg;
-            if (RobloxAPI::ChangeDisplayName(cookie, userId, newName, errorMsg)) {
-                std::string js = "if(window.onChangeDisplayNameSuccess) window.onChangeDisplayNameSuccess('" + newName + "');";
-                g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
-            } else {
-                std::string errorId = "";
-                std::string lowerError = errorMsg;
-                for(auto& c : lowerError) c = tolower(c);
-                
-                if (lowerError.find("throttled") != std::string::npos || lowerError.find("too many") != std::string::npos) {
-                    errorId = "throttled";
-                } else if (lowerError.find("filter") != std::string::npos || lowerError.find("inappropriate") != std::string::npos || lowerError.find("moderated") != std::string::npos) {
-                    errorId = "moderated";
+            std::thread([cookie, userId, newName]() {
+                std::string errorMsg;
+                if (RobloxAPI::ChangeDisplayName(cookie, userId, newName, errorMsg)) {
+                    std::string js = "if(window.onChangeDisplayNameSuccess) window.onChangeDisplayNameSuccess('" + newName + "');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                } else {
+                    std::string errorId = "";
+                    std::string lowerError = errorMsg;
+                    for(auto& c : lowerError) c = tolower(c);
+                    
+                    if (lowerError.find("throttled") != std::string::npos || lowerError.find("too many") != std::string::npos) {
+                        errorId = "throttled";
+                    } else if (lowerError.find("filter") != std::string::npos || lowerError.find("inappropriate") != std::string::npos || lowerError.find("moderated") != std::string::npos) {
+                        errorId = "moderated";
+                    }
+                    
+                    std::string safeErrorMsg = errorMsg;
+                    size_t pos = 0;
+                    while((pos = safeErrorMsg.find("'", pos)) != std::string::npos) {
+                        safeErrorMsg.replace(pos, 1, "\\'");
+                        pos += 2;
+                    }
+                    
+                    std::string js = "if(window.onChangeDisplayNameError) window.onChangeDisplayNameError('" + errorId + "', '" + safeErrorMsg + "');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
                 }
-                
-                // Escape quotes for JS
-                std::string safeErrorMsg = errorMsg;
-                size_t pos = 0;
-                while((pos = safeErrorMsg.find("'", pos)) != std::string::npos) {
-                    safeErrorMsg.replace(pos, 1, "\'");
-                    pos += 2;
-                }
-                
-                std::string js = "if(window.onChangeDisplayNameError) window.onChangeDisplayNameError('" + errorId + "', '" + safeErrorMsg + "');";
-                g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
-            }
+            }).detach();
         }
         else if (action == "add_cookie") {
             std::string cookie = j.value("cookie", "");
