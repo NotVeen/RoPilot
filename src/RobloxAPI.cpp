@@ -223,36 +223,72 @@ namespace RobloxAPI {
         return false;
     }
 
-    bool WearOutfit(const std::string& cookie, const std::string& outfitId, std::string& outError) {
+        bool WearOutfit(const std::string& cookie, const std::string& outfitId, std::string& outError) {
         std::string csrf = GetCSRFToken(cookie);
-        if (csrf.empty()) { outError = "Failed to obtain CSRF token."; LogWear("No CSRF"); return false; }
-        std::string headers = "x-csrf-token: " + csrf + "\r\nContent-Type: application/json\r\n";
-        std::wstring path = L"/v1/outfits/" + std::wstring(outfitId.begin(), outfitId.end()) + L"/wear";
-        std::string response = HttpRequest(L"POST", L"avatar.roblox.com", path, cookie, headers, "", nullptr);
-        LogWear("Response for outfit " + outfitId + ": " + response);
+        if (csrf.empty()) { outError = "Failed to obtain CSRF token."; return false; }
+        
+        std::wstring detailsPath = L"/v1/outfits/" + std::wstring(outfitId.begin(), outfitId.end()) + L"/details";
+        std::string detailsRes = HttpRequest(L"GET", L"avatar.roblox.com", detailsPath, cookie, "", "", nullptr);
+        if (detailsRes.empty()) { outError = "Failed to get outfit details."; return false; }
+        
         try {
-            if (!response.empty()) {
-                auto j = json::parse(response);
-                if (j.contains("errors")) {
-                    if (j["errors"].size() > 0 && j["errors"][0].contains("message") && j["errors"][0]["message"].is_string()) {
-                        outError = j["errors"][0]["message"].get<std::string>();
-                    } else {
-                        outError = response; // Dump full response if message is not a string
-                    }
-                    LogWear("Error found: " + outError);
-                    return false;
-                } else if (j.contains("success") && j["success"].get<bool>() == false) {
-                    outError = "Success is false: " + response;
-                    LogWear("Success false: " + outError);
-                    return false;
-                }
-            } else {
-                LogWear("Response was empty! Returning true anyway?");
+            auto details = json::parse(detailsRes);
+            if (details.contains("errors")) {
+                if (details["errors"].size() > 0 && details["errors"][0].contains("message") && details["errors"][0]["message"].is_string())
+                    outError = details["errors"][0]["message"].get<std::string>();
+                else outError = "Failed to get outfit details (error response).";
+                return false;
             }
+            
+            std::string headers = "x-csrf-token: " + csrf + "\r\nContent-Type: application/json\r\n";
+            
+            // 1. Avatar Type
+            if (details.contains("playerAvatarType")) {
+                std::string typeBody = "{\"playerAvatarType\":\"" + details["playerAvatarType"].get<std::string>() + "\"}";
+                HttpRequest(L"POST", L"avatar.roblox.com", L"/v1/avatar/set-player-avatar-type", cookie, headers, typeBody, nullptr);
+            }
+            
+            // 2. Scales
+            if (details.contains("scale") || details.contains("scales")) {
+                auto scaleObj = details.contains("scales") ? details["scales"] : details["scale"];
+                std::string scaleBody = scaleObj.dump();
+                HttpRequest(L"POST", L"avatar.roblox.com", L"/v1/avatar/set-scales", cookie, headers, scaleBody, nullptr);
+            }
+            
+            // 3. Body Colors
+            if (details.contains("bodyColors")) {
+                std::string colorBody = details["bodyColors"].dump();
+                HttpRequest(L"POST", L"avatar.roblox.com", L"/v1/avatar/set-body-colors", cookie, headers, colorBody, nullptr);
+            }
+            
+            // 4. Wearing Assets
+            if (details.contains("assets")) {
+                std::string assetsBody = "{\"assets\":" + details["assets"].dump() + "}";
+                std::string wearRes = HttpRequest(L"POST", L"avatar.roblox.com", L"/v2/avatar/set-wearing-assets", cookie, headers, assetsBody, nullptr);
+                
+                try {
+                    auto j = json::parse(wearRes);
+                    if (j.contains("errors")) {
+                        if (j["errors"].size() > 0 && j["errors"][0].contains("message") && j["errors"][0]["message"].is_string())
+                            outError = j["errors"][0]["message"].get<std::string>();
+                        else outError = wearRes;
+                        return false;
+                    }
+                    if (j.contains("success") && !j["success"].get<bool>()) {
+                        outError = "Failed to set wearing assets (success=false).";
+                        return false;
+                    }
+                } catch (...) {
+                    // Ignore JSON parse errors for wear response if it didn't return an error JSON
+                }
+            }
+            
+            return true;
+            
         } catch (const std::exception& e) {
-            LogWear(std::string("Exception: ") + e.what());
+            outError = std::string("JSON Exception: ") + e.what();
+            return false;
         }
-        return true;
     }
 
 
