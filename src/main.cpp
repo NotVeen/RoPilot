@@ -319,6 +319,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["cpuLimiter"] = s.CpuLimiter;
             jOut["backgroundCpuLimit"] = s.BackgroundCpuLimit;
             jOut["lightMode"] = s.LightMode;
+            jOut["accentColor"] = s.AccentColor;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -335,6 +336,7 @@ void ProcessWebMessage(const std::string& msg) {
             s.CpuLimiter = j.value("cpuLimiter", s.CpuLimiter);
             s.BackgroundCpuLimit = j.value("backgroundCpuLimit", s.BackgroundCpuLimit);
             s.LightMode = j.value("lightMode", s.LightMode);
+            s.AccentColor = j.value("accentColor", s.AccentColor);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             

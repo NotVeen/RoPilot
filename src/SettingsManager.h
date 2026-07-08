@@ -13,6 +13,7 @@ struct Settings {
     bool CpuLimiter = false;
     int BackgroundCpuLimit = 2;
     bool LightMode = false;
+    std::string AccentColor = "";
 };
 
 class SettingsManager {
