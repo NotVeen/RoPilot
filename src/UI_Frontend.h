@@ -1393,7 +1393,7 @@ const char* HTML_CONTENT = R"HTML(
             <div id="page-accounts" class="page-container active">
                 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
-                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;" data-i18n="lbl_utility">Utility</h1>
+                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;" data-i18n="lbl_manage_accounts">Manage Accounts</h1>
                         <div class="page-subtitle" data-i18n="desc_accounts_page">Manage and monitor your connected Roblox accounts.</div>
                     </div>
                     <div style="display: flex; gap: 16px; align-items: center;">
