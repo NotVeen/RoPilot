@@ -1954,6 +1954,27 @@ const char* HTML_CONTENT = R"HTML(
         </div>
     </div>
 
+    
+    <!-- Display Name Modal -->
+    <div id="display-name-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+        <div id="display-name-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
+            <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg><span data-i18n="lbl_change_display_name">Change Display Name</span></h2>
+                <button class="btn-icon" onclick="document.getElementById('display-name-modal').classList.remove('show');" style="margin: -8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div style="padding: 20px;">
+                <p style="color: var(--text-muted); margin-bottom: 8px; font-size: 14px;" data-i18n="desc_change_display_name">Enter a new Display Name (3-20 characters, alphanumeric or _).</p>
+                <p style="color: #ef4444; margin-bottom: 16px; font-size: 12px; font-weight: 500;" data-i18n="desc_display_name_warning">Note: You can only change your Display Name once every 7 days.</p>
+                <input type="text" id="display-name-input" placeholder="New Display Name" style="width: 100%; padding: 10px 14px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-main); outline: none; transition: border-color 0.2s;" />
+                <p id="display-name-error" style="color: #ef4444; margin-top: 8px; font-size: 12px; display: none;"></p>
+            </div>
+            <div class="modal-footer" style="padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn-secondary" onclick="document.getElementById('display-name-modal').classList.remove('show');" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;" data-i18n="btn_cancel">Cancel</button>
+                <button class="btn-primary" id="btn-confirm-display-name" style="padding: 8px 16px; background: white; color: black; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;" onclick="submitChangeDisplayName()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Rename Group Modal -->
     <div id="rename-group-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
         <div id="rename-group-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
@@ -2048,8 +2069,8 @@ const char* HTML_CONTENT = R"HTML(
     <div id="toast-container" class="toast-container"></div>
 
 <style>
-    #rename-group-modal.show, #delete-group-modal.show, #kill-modal.show, #remove-modal.show, #kill-all-modal.show { opacity: 1 !important; pointer-events: auto !important; }
-    #rename-group-modal.show #rename-group-modal-content, #delete-group-modal.show #delete-group-modal-content, #kill-modal.show #kill-modal-content, #remove-modal.show #remove-modal-content, #kill-all-modal.show #kill-all-modal-content { transform: scale(1) !important; }
+    #display-name-modal.show, #rename-group-modal.show, #delete-group-modal.show, #kill-modal.show, #remove-modal.show, #kill-all-modal.show { opacity: 1 !important; pointer-events: auto !important; }
+    #display-name-modal.show #display-name-modal-content, #rename-group-modal.show #rename-group-modal-content, #delete-group-modal.show #delete-group-modal-content, #kill-modal.show #kill-modal-content, #remove-modal.show #remove-modal-content, #kill-all-modal.show #kill-all-modal-content { transform: scale(1) !important; }
 
         input[type=range] {
             -webkit-appearance: none;
@@ -2481,7 +2502,9 @@ const char* HTML_CONTENT = R"HTML(
                 div.innerHTML = oldName;
                 oldName = div.textContent || div.innerText || '';
 
-                let modal = document.getElementById('rename-group-modal');
+                let modal0 = document.getElementById('display-name-modal');
+            if (event.target == modal0) modal0.classList.remove('show');
+            let modal = document.getElementById('rename-group-modal');
                 if (modal) {
                     modal.classList.add('show');
                     document.getElementById('rename-group-old-name').value = oldName;
@@ -3671,7 +3694,8 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             }
         }
         
-        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {\n            currentManageUserId = userId;
+        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {
+            currentManageUserId = userId;
             currentManageCookie = cookie;
             
             // Set initial state
@@ -3714,7 +3738,8 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
         
         // initialize indicator on modal open
         const origOpenManageAccountModal = window.openManageAccountModal;
-        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {\n            currentManageUserId = userId;
+        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {
+            currentManageUserId = userId;
             origOpenManageAccountModal(cookie, userId, avatarSrc, username);
             currentManageTabIndex = 0;
             setTimeout(() => { updateTabIndicator(0, manageTabs[0]); }, 50);
