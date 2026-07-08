@@ -1846,15 +1846,15 @@ const char* HTML_CONTENT = R"HTML(
                         <div class="overview-item" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px; border-bottom: 1px solid var(--border-color);">
                             <div style="display: flex; align-items: center;">
                                 <div class="overview-icon" style="color: var(--text-muted); margin-right: 16px; width: 24px; display: flex; justify-content: center;">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><circle cx="9" cy="11" r="3"></circle><line x1="15" y1="11" x2="19" y2="11"></line><line x1="15" y1="15" x2="19" y2="15"></line></svg>
                                 </div>
                                 <span class="overview-label" data-i18n="lbl_display_name" style="font-size: 14px; color: var(--text-muted); font-weight: 500;">Display Name</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span class="overview-value" id="mo-displayname" style="font-size: 16px; color: var(--text-main); font-weight: 500;">-</span>
-                                <button class="btn-icon" id="btn-edit-displayname" style="width: 24px; height: 24px; padding: 4px;" title="Change Display Name" onclick="promptChangeDisplayName()">
+                                <button class="btn-icon" id="btn-edit-displayname" style="width: 24px; height: 24px; padding: 4px; background: transparent; border: none; box-shadow: none;" title="Change Display Name" onclick="promptChangeDisplayName()">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                 </button>
+                                <span class="overview-value" id="mo-displayname" style="font-size: 16px; color: var(--text-main); font-weight: 500;">-</span>
                             </div>
                         </div>
                         <div class="overview-item" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px; border-bottom: 1px solid var(--border-color);">
@@ -3669,6 +3669,41 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
 
         // Manage Account Modal Logic
         let currentManageCookie = '';
+        let currentManageUserId = "";
+        
+        window.promptChangeDisplayName = function() {
+            let currentName = document.getElementById('mo-displayname').innerText;
+            document.getElementById('display-name-input').value = currentName;
+            document.getElementById('display-name-error').style.display = 'none';
+            document.getElementById('display-name-modal').classList.add('show');
+        };
+        
+        window.submitChangeDisplayName = function() {
+            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
+            let newName = document.getElementById('display-name-input').value.trim();
+            let errEl = document.getElementById('display-name-error');
+            
+            if (!/^[a-zA-Z0-9_]{3,20}$/.test(newName)) {
+                errEl.innerText = isId ? "Format tidak valid! 3-20 karakter, hanya huruf, angka, atau underscore (_)." : "Invalid format! 3-20 characters, alphanumeric or underscore (_).";
+                errEl.style.display = 'block';
+                return;
+            }
+            
+            errEl.style.display = 'none';
+            document.getElementById('display-name-modal').classList.remove('show');
+            
+            window.chrome.webview.postMessage({
+                action: 'change_display_name',
+                cookie: currentManageCookie,
+                userId: currentManageUserId,
+                newName: newName
+            });
+        };
+        
+        window.refreshManageAccount = function() {
+            window.chrome.webview.postMessage({ action: 'manage_account', cookie: currentManageCookie });
+        };
+
         let manageAccountModal = document.getElementById('manage-account-modal');
         let manageTabs = document.querySelectorAll('.manage-tab');
         
