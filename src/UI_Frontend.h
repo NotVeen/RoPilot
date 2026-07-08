@@ -371,9 +371,9 @@ const char* HTML_CONTENT = R"HTML(
             flex-grow: 1;
         }
 
-        .btn-add-account { background-color: #ffffff;
+        .btn-add-account { background-color: #1f1f1f;
             background-image: linear-gradient(var(--accent-tint-active, transparent), var(--accent-tint-active, transparent));
-            color: #000000;
+            color: #ffffff;
             border: none;
             padding: 12px;
             border-radius: 12px;
