@@ -179,7 +179,10 @@ namespace Launcher {
         std::vector<char> cmdLineMutable(cmdLine.begin(), cmdLine.end());
         cmdLineMutable.push_back('\0');
 
-        if (!CreateProcessA(NULL, cmdLineMutable.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        fs::path rp(robloxPath);
+        std::string workDir = rp.parent_path().string();
+
+        if (!CreateProcessA(NULL, cmdLineMutable.data(), NULL, NULL, FALSE, 0, NULL, workDir.c_str(), &si, &pi)) {
             std::cerr << "CreateProcess failed (" << GetLastError() << ").\n";
             return false;
         }
