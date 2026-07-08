@@ -204,7 +204,8 @@ namespace RobloxAPI {
                         } catch (...) {}
                     }
                     
-                    std::wstring fullBodyPath = L"/v1/users/avatar?userIds=" + std::wstring(userId.begin(), userId.end()) + L"&size=352x352&format=Png&isCircular=false";
+                    std::wstring cacheBuster = L"&v=" + std::to_wstring(std::time(nullptr));
+                    std::wstring fullBodyPath = L"/v1/users/avatar?userIds=" + std::wstring(userId.begin(), userId.end()) + L"&size=352x352&format=Png&isCircular=false" + cacheBuster;
                     std::string fullBodyRes = HttpRequest(L"GET", L"thumbnails.roblox.com", fullBodyPath, cookie, "", "", nullptr);
                     try {
                         auto fb = json::parse(fullBodyRes);
@@ -214,6 +215,17 @@ namespace RobloxAPI {
                             j["fullBodyUrl"] = "";
                         }
                     } catch (...) { j["fullBodyUrl"] = ""; }
+                    
+                    std::wstring headshotPath = L"/v1/users/avatar-headshot?userIds=" + std::wstring(userId.begin(), userId.end()) + L"&size=150x150&format=Png&isCircular=false" + cacheBuster;
+                    std::string headshotRes = HttpRequest(L"GET", L"thumbnails.roblox.com", headshotPath, cookie, "", "", nullptr);
+                    try {
+                        auto hs = json::parse(headshotRes);
+                        if (hs.contains("data") && hs["data"].size() > 0 && hs["data"][0]["imageUrl"].is_string()) {
+                            j["headshotUrl"] = hs["data"][0]["imageUrl"].get<std::string>();
+                        } else {
+                            j["headshotUrl"] = "";
+                        }
+                    } catch (...) { j["headshotUrl"] = ""; }
                     
                     outJson = j.dump();
                     return true;

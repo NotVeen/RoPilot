@@ -1904,7 +1904,7 @@ const char* HTML_CONTENT = R"HTML(
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
                     <div style="padding: 0px 20px 0px 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <div style="width: 250px; height: 250px; margin: -30px auto 0px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; position: relative;" id="outfit-current-avatar-container">
+                        <div style="width: 250px; height: 250px; margin: -20px auto 10px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; position: relative;" id="outfit-current-avatar-container">
                             <img id="outfit-current-avatar" src="" style="width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;" onload="this.style.opacity='1'; let c = document.getElementById('outfit-current-avatar-container'); c.style.animation='none'; c.style.background='none';" />
                         </div>
                                             </div>
@@ -1912,7 +1912,10 @@ const char* HTML_CONTENT = R"HTML(
                     <!-- Middle section: Grid of Outfits -->
                     <div style="padding: 20px; flex: 1;">
                         <h3 data-i18n="lbl_outfits" style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--text-main);">Outfits</h3>
-                        <div id="outfits-loading" style="text-align: center; color: var(--text-muted); padding: 20px; display: none;">Loading outfits...</div>
+                        <div id="outfits-loading" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
+    <svg class="spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; color: var(--text-main);"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+    <span data-i18n="lbl_loading_outfits" style="color: var(--text-muted); font-weight: 500;">Loading outfits...</span>
+</div>
                         <div id="outfits-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 16px;">
                             <!-- Outfits will be populated here -->
                         </div>
@@ -3781,9 +3784,13 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
         
         let currentTargetOutfitId = 0;
         window.wornOutfitIds = {};
+        try {
+            let saved = localStorage.getItem('wornOutfitIds');
+            if (saved) window.wornOutfitIds = JSON.parse(saved);
+        } catch(e) {}
         
         window.fetchOutfits = function() {
-            document.getElementById('outfits-loading').style.display = 'block';
+            document.getElementById('outfits-loading').style.display = 'flex';
             document.getElementById('outfits-grid').innerHTML = '';
             
             
@@ -3821,11 +3828,11 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         div.id = 'outfit-card-' + outfit.id;
                         
                         let isHighlighted = (window.wornOutfitIds && window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
-                        let bgStyle = isHighlighted ? 'var(--bg-hover)' : 'transparent';
                         let borderStyle = isHighlighted ? 'var(--primary-color)' : 'var(--border-color)';
-                        let borderWidth = isHighlighted ? '2px' : '1px';
+                        let shadowStyle = isHighlighted ? '0 0 0 2px var(--primary-color)' : 'none';
+                        let bgStyle = isHighlighted ? 'var(--bg-hover)' : 'transparent';
                         
-                        div.style.cssText = `background: ${bgStyle}; border: ${borderWidth} solid ${borderStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
+                        div.style.cssText = `background: ${bgStyle}; border: 1px solid ${borderStyle}; box-shadow: ${shadowStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
                         
                         div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) div.style.borderColor = 'var(--text-muted)'; };
                         div.onmouseout = () => { div.style.transform = 'translateY(0)'; if(!isHighlighted) div.style.borderColor = 'var(--border-color)'; };
@@ -3904,7 +3911,12 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             
             // Save the worn outfit ID
             if (!window.wornOutfitIds) window.wornOutfitIds = {};
+        try {
+            let saved = localStorage.getItem('wornOutfitIds');
+            if (saved) window.wornOutfitIds = JSON.parse(saved);
+        } catch(e) {}
             window.wornOutfitIds[currentManageUserId] = currentTargetOutfitId;
+            localStorage.setItem('wornOutfitIds', JSON.stringify(window.wornOutfitIds));
             
             // Refetch outfits to update the top image, account list image, and highlight the outfit!
             window.fetchOutfits();
