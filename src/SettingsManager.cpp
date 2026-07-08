@@ -33,6 +33,7 @@ void SettingsManager::Load() {
         m_Settings.SidebarCollapsed = j.value("sidebarCollapsed", false);
         m_Settings.WindowOpacity = j.value("windowOpacity", 1.0f);
         m_Settings.EnableWindowBlur = j.value("enableWindowBlur", false);
+        m_Settings.HideIdentity = j.value("hideIdentity", false);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -59,6 +60,7 @@ void SettingsManager::Save() {
         j["sidebarCollapsed"] = m_Settings.SidebarCollapsed;
         j["windowOpacity"] = m_Settings.WindowOpacity;
         j["enableWindowBlur"] = m_Settings.EnableWindowBlur;
+        j["hideIdentity"] = m_Settings.HideIdentity;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

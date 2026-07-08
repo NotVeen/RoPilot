@@ -20,6 +20,7 @@ struct Settings {
     bool SidebarCollapsed = false;
     float WindowOpacity = 1.0f;
     bool EnableWindowBlur = false;
+    bool HideIdentity = false;
 };
 
 class SettingsManager {
