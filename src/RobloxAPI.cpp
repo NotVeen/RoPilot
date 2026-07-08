@@ -228,7 +228,7 @@ namespace RobloxAPI {
         if (csrf.empty()) { outError = "Failed to obtain CSRF token."; LogWear("No CSRF"); return false; }
         std::string headers = "x-csrf-token: " + csrf + "\r\nContent-Type: application/json\r\n";
         std::wstring path = L"/v1/outfits/" + std::wstring(outfitId.begin(), outfitId.end()) + L"/wear";
-        std::string response = HttpRequest(L"POST", L"avatar.roblox.com", path, cookie, headers, "{}", nullptr);
+        std::string response = HttpRequest(L"POST", L"avatar.roblox.com", path, cookie, headers, "", nullptr);
         LogWear("Response for outfit " + outfitId + ": " + response);
         try {
             if (!response.empty()) {
