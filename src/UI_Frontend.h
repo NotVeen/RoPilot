@@ -1803,7 +1803,7 @@ const char* HTML_CONTENT = R"HTML(
                 <div class="manage-tab active" data-tab="manage-home" title="Account Overview">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 </div>
-                <div class="manage-tab" data-tab="outfits" title="Outfits">
+                <div class="manage-tab" data-tab="manage-outfits" title="Outfits">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a8.59 8.59 0 0 0-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
                 </div>
                 <div class="manage-tab" data-tab="manage-globe" title="Network/Sessions">
@@ -3981,7 +3981,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 // Add animation class based on direction
                 activeEl.classList.add(isRight ? 'manage-page-left' : 'manage-page-right');
                 
-                if (target === 'outfits' && window.fetchOutfits) {
+                if (target === 'manage-outfits' && window.fetchOutfits) {
                     window.fetchOutfits();
                 }
             });
