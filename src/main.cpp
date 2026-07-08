@@ -293,11 +293,29 @@ void ProcessWebMessage(const std::string& msg) {
             
             std::string errorMsg;
             if (RobloxAPI::ChangeDisplayName(cookie, userId, newName, errorMsg)) {
-                SendStatusMessage("Display Name changed successfully!", false);
-                std::string js = "if(window.refreshManageAccount) window.refreshManageAccount();";
+                std::string js = "if(window.onChangeDisplayNameSuccess) window.onChangeDisplayNameSuccess('" + newName + "');";
                 g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
             } else {
-                SendStatusMessage("Failed to change Display Name: " + errorMsg, true);
+                std::string errorId = "";
+                std::string lowerError = errorMsg;
+                for(auto& c : lowerError) c = tolower(c);
+                
+                if (lowerError.find("throttled") != std::string::npos || lowerError.find("too many") != std::string::npos) {
+                    errorId = "throttled";
+                } else if (lowerError.find("filter") != std::string::npos || lowerError.find("inappropriate") != std::string::npos || lowerError.find("moderated") != std::string::npos) {
+                    errorId = "moderated";
+                }
+                
+                // Escape quotes for JS
+                std::string safeErrorMsg = errorMsg;
+                size_t pos = 0;
+                while((pos = safeErrorMsg.find("'", pos)) != std::string::npos) {
+                    safeErrorMsg.replace(pos, 1, "\'");
+                    pos += 2;
+                }
+                
+                std::string js = "if(window.onChangeDisplayNameError) window.onChangeDisplayNameError('" + errorId + "', '" + safeErrorMsg + "');";
+                g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
             }
         }
         else if (action == "add_cookie") {

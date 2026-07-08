@@ -2682,7 +2682,10 @@ const char* HTML_CONTENT = R"HTML(
                     "lbl_account_overview": "Account Overview",
                     "lbl_display_name": "Display Name",
                     "lbl_user_id": "User ID",
-                    "lbl_account_age": "Account Age",
+                                        "lbl_account_age": "Account Age",
+                    "lbl_change_display_name": "Change Display Name",
+                    "desc_change_display_name": "Enter a new Display Name (3-20 characters, alphanumeric or _).",
+                    "desc_display_name_warning": "Note: You can only change your Display Name once every 7 days.",
                     "lbl_hide_identity": "Hide Username & User ID",
                     "desc_hide_identity": "Censor your account's username and user ID",
                     "nav_settings": "Settings",
@@ -2816,7 +2819,10 @@ const char* HTML_CONTENT = R"HTML(
                     "lbl_account_overview": "Ringkasan Akun",
                     "lbl_display_name": "Nama Tampilan",
                     "lbl_user_id": "ID User",
-                    "lbl_account_age": "Umur Akun",
+                                        "lbl_account_age": "Umur Akun",
+                    "lbl_change_display_name": "Ubah Nama Tampilan",
+                    "desc_change_display_name": "Masukkan Nama Tampilan baru (3-20 karakter, huruf/angka/_).",
+                    "desc_display_name_warning": "Catatan: Anda hanya dapat mengubah Nama Tampilan sekali setiap 7 hari.",
                     "lbl_hide_identity": "Sembunyikan Username & ID",
                     "desc_hide_identity": "Sensor username dan user ID akun Anda",
                     "lbl_appearance": "Tampilan",
@@ -3700,6 +3706,28 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             });
         };
         
+        
+        window.onChangeDisplayNameSuccess = function(newName) {
+            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
+            showToast(isId ? "Nama Tampilan berhasil diubah!" : "Display Name changed successfully!", false);
+            
+            // Immediate UI update
+            document.getElementById('mo-displayname').innerText = newName;
+            
+            if(window.refreshManageAccount) window.refreshManageAccount();
+        };
+
+        window.onChangeDisplayNameError = function(errorId, errorMsg) {
+            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
+            let msg = errorMsg;
+            if (errorId === 'throttled') {
+                msg = isId ? "Anda sudah mengubah nama dalam 7 hari terakhir." : "You have already changed your name in the last 7 days.";
+            } else if (errorId === 'moderated') {
+                msg = isId ? "Nama Tampilan tidak lolos filter moderasi Roblox." : "Display Name did not pass Roblox moderation filters.";
+            }
+            showToast((isId ? "Gagal: " : "Failed: ") + msg, true);
+        };
+
         window.refreshManageAccount = function() {
             window.chrome.webview.postMessage({ action: 'manage_account', cookie: currentManageCookie });
         };
