@@ -50,10 +50,10 @@ const char* HTML_CONTENT = R"HTML(
         [data-theme="light"] .setting-title { color: var(--text-main) !important; }
         [data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3 { color: var(--text-main) !important; }
         [data-theme="light"] .hamburger-btn:hover { color: var(--text-main) !important; }
-        [data-theme="light"] .nav-item.active { background-color: var(--accent-color, #e5e7eb) !important; color: var(--text-main) !important; }
+        [data-theme="light"] .nav-item.active { background-color: #e5e7eb !important; background-image: linear-gradient(var(--accent-tint-active, transparent), var(--accent-tint-active, transparent)) !important; color: var(--text-main) !important; }
         [data-theme="light"] .nav-item::before { background-color: var(--accent-color, var(--text-main)) !important; }
         [data-theme="light"] .nav-text { color: inherit !important; }
-        [data-theme="light"] .btn-icon:hover { color: var(--text-main) !important; background-color: var(--accent-color, var(--btn-hover)) !important; }
+        [data-theme="light"] .btn-icon:hover { color: var(--text-main) !important; background-color: var(--btn-hover) !important; background-image: linear-gradient(var(--accent-tint-hover, transparent), var(--accent-tint-hover, transparent)) !important; }
         [data-theme="light"] .dropdown-menu { background: var(--bg-card) !important; color: var(--text-main) !important; }
         [data-theme="light"] .group-header { background: var(--bg-card) !important; }
 
@@ -356,12 +356,14 @@ const char* HTML_CONTENT = R"HTML(
         }
 
         .nav-item:hover {
-            background-color: var(--accent-color, var(--bg-hover));
+            background-color: var(--bg-hover);
+            background-image: linear-gradient(var(--accent-tint-hover, transparent), var(--accent-tint-hover, transparent));
             color: var(--text-main);
         }
 
         .nav-item.active {
-            background-color: var(--accent-color, #1f1f1f);
+            background-color: #1f1f1f;
+            background-image: linear-gradient(var(--accent-tint-active, transparent), var(--accent-tint-active, transparent));
             color: #ffffff;
         }
 
@@ -575,6 +577,7 @@ const char* HTML_CONTENT = R"HTML(
 
         .btn-icon:hover {
             background-color: var(--bg-hover);
+            background-image: linear-gradient(var(--accent-tint-hover, transparent), var(--accent-tint-hover, transparent));
             color: var(--text-main);
         }
 
@@ -1820,7 +1823,7 @@ const char* HTML_CONTENT = R"HTML(
                                         </div>
                                         <div class="user-info">
                                             <span class="username">${escapeHtml(acc.Username)}</span>
-                                            <span class="userid" style="color: var(--accent-color);">PID: ${acc.ProcessId || 'Loading...'}</span>
+                                            <span class="userid">PID: ${acc.ProcessId || 'Loading...'}</span>
                                         </div>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -2475,10 +2478,14 @@ let btnStartUpdate = document.getElementById('btn-start-update');
                             }
                             if (accentColorInput) {
                                 accentColorInput.value = msg.accentColor || '#ffffff';
-                                if (msg.accentColor && msg.accentColor.trim() !== '') {
+                                if (typeof msg.accentColor === 'string' && msg.accentColor.trim() !== '') {
                                     document.documentElement.style.setProperty('--accent-color', msg.accentColor);
+                                    document.documentElement.style.setProperty('--accent-tint-hover', msg.accentColor + '26');
+                                    document.documentElement.style.setProperty('--accent-tint-active', msg.accentColor + '40');
                                 } else {
                                     document.documentElement.style.removeProperty('--accent-color');
+                                    document.documentElement.style.removeProperty('--accent-tint-hover');
+                                    document.documentElement.style.removeProperty('--accent-tint-active');
                                 }
                             }
                             
