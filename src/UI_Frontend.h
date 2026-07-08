@@ -271,7 +271,7 @@ const char* HTML_CONTENT = R"HTML(
         }
         
         .hamburger-btn:hover {
-            color: #fff;
+            color: var(--accent-color, #fff);
         }
 
         .nav-item {
@@ -357,12 +357,12 @@ const char* HTML_CONTENT = R"HTML(
 
         .nav-item:hover {
             background-color: var(--bg-hover);
-            color: var(--text-main);
+            color: var(--accent-color, var(--text-main));
         }
 
         .nav-item.active {
             background-color: #1f1f1f;
-            color: #ffffff;
+            color: var(--accent-color, #ffffff);
         }
 
         .sidebar-spacer {
