@@ -1110,6 +1110,115 @@ const char* HTML_CONTENT = R"HTML(
     
         .modal-header { border-bottom: 1px solid var(--border-color); }
         .modal-footer { border-top: 1px solid var(--border-color); }
+
+        /* Manage Account Modal Styles */
+        #manage-account-modal .modal-content {
+            width: 700px;
+            max-width: 95vw;
+            height: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .manage-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-elevated);
+        }
+
+        .manage-tab {
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px 4px;
+            position: relative;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .manage-tab:hover {
+            color: var(--text-main);
+        }
+
+        .manage-tab.active {
+            color: var(--text-main);
+        }
+
+        .manage-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -13px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--text-main);
+            border-radius: 2px;
+        }
+
+        .manage-content {
+            flex-grow: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .manage-overview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .overview-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .overview-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .overview-value {
+            font-size: 16px;
+            color: var(--text-main);
+            font-weight: 500;
+            word-break: break-all;
+        }
+        
+        .manage-header-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+        .manage-header-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+        }
 </style>
 </head>
 <body>
@@ -1608,7 +1717,81 @@ const char* HTML_CONTENT = R"HTML(
         </div>
     </div>
 
-    <!-- Add Account Modal -->
+    
+    <!-- Manage Account Modal -->
+    <div id="manage-account-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+        <div class="modal-content" style="position: relative; transform: scale(0.95); transition: transform 0.2s ease;">
+            <button class="manage-header-close" onclick="closeManageAccountModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="manage-topbar">
+                <div class="manage-tab active" data-tab="manage-home" title="Account Overview">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                </div>
+                <div class="manage-tab" data-tab="manage-code" title="Developer/API">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                </div>
+                <div class="manage-tab" data-tab="manage-globe" title="Network/Sessions">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                </div>
+                <div class="manage-tab" data-tab="manage-gear" title="Account Settings">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </div>
+            </div>
+            <div class="manage-content">
+                <div id="manage-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+                    <svg class="spinner" viewBox="0 0 50 50" style="width: 40px; height: 40px; margin-bottom: 16px;"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
+                    <span data-i18n="lbl_fetching_details">Fetching account details...</span>
+                </div>
+                
+                <div id="manage-home" class="manage-page" style="display: none; flex-direction: column; gap: 24px;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <img id="manage-avatar" src="" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--border-color);">
+                        <div>
+                            <h2 id="manage-title-username" style="margin: 0; font-size: 24px; color: var(--text-main);">Username</h2>
+                            <div style="color: var(--text-muted); font-size: 14px;" data-i18n="lbl_account_overview">Account Overview</div>
+                        </div>
+                    </div>
+                    
+                    <div class="manage-overview-grid">
+                        <div class="overview-card">
+                            <span class="overview-label">Username</span>
+                            <span class="overview-value" id="mo-username">-</span>
+                        </div>
+                        <div class="overview-card">
+                            <span class="overview-label">Display Name</span>
+                            <span class="overview-value" id="mo-displayname">-</span>
+                        </div>
+                        <div class="overview-card">
+                            <span class="overview-label">User ID</span>
+                            <span class="overview-value" id="mo-userid">-</span>
+                        </div>
+                        <div class="overview-card">
+                            <span class="overview-label">Robux</span>
+                            <span class="overview-value" id="mo-robux" style="color: #00b06f; font-weight: 700;">-</span>
+                        </div>
+                        <div class="overview-card">
+                            <span class="overview-label">Account Age</span>
+                            <span class="overview-value" id="mo-age">-</span>
+                        </div>
+                        <div class="overview-card">
+                            <span class="overview-label">Roblox Plus</span>
+                            <span class="overview-value" id="mo-premium">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="manage-placeholder" class="manage-page" style="display: none; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
+                    <div style="text-align: center;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px; opacity: 0.5;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        <h3 style="margin: 0 0 8px 0; color: var(--text-main);">Work in Progress</h3>
+                        <p style="margin: 0; font-size: 14px;">This section is currently under development.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Add Account Modal -->
     <div id="modal-add-account" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div id="modal-add-account-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column;">
             <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -1985,6 +2168,9 @@ const char* HTML_CONTENT = R"HTML(
                                 </div>
                                 
                                 <div class="card-actions">
+                                    <button class="btn-launch" style="background: var(--bg-hover); color: var(--text-muted);" onclick="event.stopPropagation(); openManageAccountModal('${cookie}', '${userId}', '${avatarSrc}', '${escapeHtml(acc.Username)}')" title="Manage Account">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                    </button>
                                     ${acc.Status === 3 ?
                                         `<button class="btn-launch btn-relogin" onclick="event.stopPropagation(); document.getElementById('btn-add-account').click()">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -2353,6 +2539,8 @@ const char* HTML_CONTENT = R"HTML(
             const translations = {
                 "en": {
                     "nav_accounts": "Accounts",
+                    "lbl_fetching_details": "Fetching account details...",
+                    "lbl_account_overview": "Account Overview",
                     "lbl_hide_identity": "Hide Username & User ID",
                     "desc_hide_identity": "Censor your account's username and user ID",
                     "nav_settings": "Settings",
@@ -2482,6 +2670,8 @@ const char* HTML_CONTENT = R"HTML(
                     "desc_background": "Biarkan RoPilot berjalan di latar belakang saat jendela ditutup",
                     "lbl_auto_updates": "Pembaruan Otomatis",
                     "desc_auto_updates": "Unduh dan instal versi baru secara otomatis saat meluncurkan RoPilot",
+                    "lbl_fetching_details": "Mengambil rincian akun...",
+                    "lbl_account_overview": "Ringkasan Akun",
                     "lbl_hide_identity": "Sembunyikan Username & ID",
                     "desc_hide_identity": "Sensor username dan user ID akun Anda",
                     "lbl_appearance": "Tampilan",

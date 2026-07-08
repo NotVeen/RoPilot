@@ -19,4 +19,15 @@ namespace RobloxAPI {
     // Get Presence using own cookie
     bool GetPresence(const std::string& cookie, const std::string& userId, std::string& outJobId, int& outPresenceType);
 
+        struct AccountOverviewData {
+        std::string Username;
+        std::string DisplayName;
+        long long UserId = 0;
+        std::string CreatedDate;
+        long long Robux = 0;
+        bool IsPremium = false;
+    };
+
+    AccountOverviewData GetAccountOverview(const std::string& cookie, long long userId);
+
     UserInfo GetUserInfo(const std::string& cookie);}

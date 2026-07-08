@@ -164,5 +164,38 @@ namespace RobloxAPI {
         
         return info;
     }
+
+    AccountOverviewData GetAccountOverview(const std::string& cookie, long long userId) {
+        AccountOverviewData data;
+        data.UserId = userId;
+        
+        std::wstring userPath = L"/v1/users/" + std::to_wstring(userId);
+        std::string userApi = HttpRequest(L"GET", L"users.roblox.com", userPath, cookie, "", "", nullptr);
+        if (!userApi.empty()) {
+            try {
+                auto j = json::parse(userApi);
+                if (j.contains("name")) data.Username = j["name"].get<std::string>();
+                if (j.contains("displayName")) data.DisplayName = j["displayName"].get<std::string>();
+                if (j.contains("created")) data.CreatedDate = j["created"].get<std::string>();
+            } catch (...) {}
+        }
+        
+        std::wstring econPath = L"/v1/users/" + std::to_wstring(userId) + L"/currency";
+        std::string econApi = HttpRequest(L"GET", L"economy.roblox.com", econPath, cookie, "", "", nullptr);
+        if (!econApi.empty()) {
+            try {
+                auto j = json::parse(econApi);
+                if (j.contains("robux")) data.Robux = j["robux"].get<long long>();
+            } catch (...) {}
+        }
+        
+        std::wstring premiumPath = L"/v1/users/" + std::to_wstring(userId) + L"/validate-membership";
+        std::string premiumApi = HttpRequest(L"GET", L"premiumfeatures.roblox.com", premiumPath, cookie, "", "", nullptr);
+        if (!premiumApi.empty()) {
+            if (premiumApi.find("true") != std::string::npos) data.IsPremium = true;
+        }
+        
+        return data;
+    }
 }
 

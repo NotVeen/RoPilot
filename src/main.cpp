@@ -16,6 +16,7 @@
 #include "Updater.h"
 #include <json.hpp>
 #include <iostream>
+#include <regex>
 #include <string>
 #include <windowsx.h>
 #include <fstream>
@@ -247,6 +248,31 @@ void ProcessWebMessage(const std::string& msg) {
                 UpdateUI();
             } else {
                 SendStatusMessage("Failed to add accounts. Invalid or expired cookies?", true);
+            }
+        }
+                else if (action == "get_account_overview") {
+            std::string cookie = j.value("cookie", "");
+            long long userId = j.value("userId", (long long)0);
+            if (!cookie.empty() && userId != 0) {
+                std::thread([cookie, userId]() {
+                    RobloxAPI::AccountOverviewData data = RobloxAPI::GetAccountOverview(cookie, userId);
+                    
+                    json jOut;
+                    jOut["action"] = "account_overview_data";
+                    jOut["success"] = true;
+                    jOut["userId"] = data.UserId;
+                    jOut["username"] = data.Username;
+                    jOut["displayName"] = data.DisplayName;
+                    jOut["createdDate"] = data.CreatedDate;
+                    jOut["robux"] = data.Robux;
+                    jOut["isPremium"] = data.IsPremium;
+                    
+                    std::string payload = jOut.dump();
+                    payload = std::regex_replace(payload, std::regex("\\"), "\\\\");
+                    payload = std::regex_replace(payload, std::regex("\""), "\\\"");
+                    std::string script = "window.postMessage('" + payload + "', '*');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(script), 0);
+                }).detach();
             }
         }
         else if (action == "add_cookie") {
