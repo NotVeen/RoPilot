@@ -3957,22 +3957,33 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 document.getElementById('manage-loading').style.display = 'none';
                 
                 // Switch pages
-                let homeEl = document.getElementById('manage-home');
-                let placeholderEl = document.getElementById('manage-placeholder');
+                let allPages = [
+                    document.getElementById('manage-home'),
+                    document.getElementById('manage-outfits'),
+                    document.getElementById('manage-placeholder')
+                ];
                 
-                let activeEl = target === 'manage-home' ? homeEl : placeholderEl;
-                let inactiveEl = target === 'manage-home' ? placeholderEl : homeEl;
+                let activeEl = document.getElementById(target);
+                if (!activeEl) activeEl = document.getElementById('manage-placeholder');
                 
-                inactiveEl.style.display = 'none';
+                allPages.forEach(p => {
+                    if (p && p !== activeEl) {
+                        p.style.display = 'none';
+                    }
+                });
                 
                 activeEl.classList.remove('manage-page-left', 'manage-page-right');
-                activeEl.style.display = target === 'manage-home' ? 'flex' : 'flex'; // home is flex column, placeholder is flex center. Actually both are flex.
+                activeEl.style.display = 'flex';
                 
                 // Force reflow
                 void activeEl.offsetWidth;
                 
                 // Add animation class based on direction
                 activeEl.classList.add(isRight ? 'manage-page-left' : 'manage-page-right');
+                
+                if (target === 'outfits' && window.fetchOutfits) {
+                    window.fetchOutfits();
+                }
             });
         });
 
