@@ -1393,7 +1393,7 @@ const char* HTML_CONTENT = R"HTML(
             <div id="page-accounts" class="page-container active">
                 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
-                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;" data-i18n="lbl_manage_accounts">Manage Accounts</h1>
+                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;" data-i18n="lbl_manage_accounts">Utility</h1>
                         <div class="page-subtitle" data-i18n="desc_accounts_page">Manage and monitor your connected Roblox accounts.</div>
                     </div>
                     <div style="display: flex; gap: 16px; align-items: center;">
@@ -1904,7 +1904,9 @@ const char* HTML_CONTENT = R"HTML(
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
                     <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <img id="outfit-current-avatar" src="" style="width: 250px; height: 250px; object-fit: contain; margin-top: -30px; margin-bottom: -10px;" />
+                        <div style="width: 250px; height: 250px; margin: -30px auto -10px auto; border-radius: 12px; background: linear-gradient(90deg, var(--bg-main) 25%, rgba(255,255,255,0.1) 50%, var(--bg-main) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; position: relative;" id="outfit-current-avatar-container">
+                            <img id="outfit-current-avatar" src="" style="width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;" onload="this.style.opacity='1'; document.getElementById('outfit-current-avatar-container').style.animation='none';" />
+                        </div>
                         <span id="outfit-current-name" style="font-weight: 600; color: var(--text-main); font-size: 18px;">-</span>
                     </div>
                     
@@ -2321,9 +2323,9 @@ const char* HTML_CONTENT = R"HTML(
                             let cookie = escapeHtml(acc.Cookie);
 
                             html += `
-                                                        <div class="card" data-cookie="${cookie}">
-                                <button class="btn-manage-account" onclick="event.stopPropagation(); openManageAccountModal('${cookie}', '${userId}', '${avatarSrc}', '${escapeHtml(acc.Username)}')" title="Manage Account">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                                        <div class="card" data-userid="${userId}" data-cookie="${cookie}">
+                                <button class="btn-manage-account" onclick="event.stopPropagation(); openManageAccountModal('${cookie}', '${userId}', '${avatarSrc}', '${escapeHtml(acc.Username)}')" title="Utility">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
                                 </button>
                                 <div class="card-header">
                                     <div class="avatar">
@@ -2734,7 +2736,7 @@ const char* HTML_CONTENT = R"HTML(
                     "desc_hide_identity": "Censor your account's username and user ID",
                     "nav_settings": "Settings",
                     "btn_add_account": "Add Account",
-                    "lbl_manage_accounts": "Manage Accounts",
+                    "lbl_manage_accounts": "Utility",
                     "desc_accounts": "Launch an account to see real-time analytics",
                     "lbl_general": "General",
                     "lbl_always_on_top": "Always on Top",
@@ -2849,7 +2851,7 @@ const char* HTML_CONTENT = R"HTML(
                     "nav_accounts": "Akun",
                     "nav_settings": "Pengaturan",
                     "btn_add_account": "Tambah Akun",
-                    "lbl_manage_accounts": "Kelola Akun",
+                    "lbl_manage_accounts": "Utilitas",
                     "desc_accounts": "Luncurkan akun untuk melihat analitik langsung",
                     "lbl_general": "Umum",
                     "lbl_always_on_top": "Selalu di Atas",
@@ -3799,11 +3801,14 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 grid.innerHTML = '';
                 
                 if (j.fullBodyUrl) {
-                    document.getElementById('outfit-current-avatar').src = j.fullBodyUrl;
+                    let fbImg = document.getElementById('outfit-current-avatar');
+                    fbImg.style.opacity = '0';
+                    document.getElementById('outfit-current-avatar-container').style.animation = 'loadingSkeleton 1.5s infinite';
+                    fbImg.src = j.fullBodyUrl;
                 }
                 if (j.headshotUrl) {
                     document.getElementById('manage-avatar').src = j.headshotUrl;
-                    let accountCardImg = document.querySelector(`.account-card[data-userid="${currentManageUserId}"] .account-avatar`);
+                    let accountCardImg = document.querySelector(`.card[data-userid="${currentManageUserId}"] .account-avatar`);
                     if (accountCardImg) accountCardImg.src = j.headshotUrl;
                 }
                 
@@ -3813,11 +3818,12 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         div.className = 'outfit-card';
                         div.id = 'outfit-card-' + outfit.id;
                         
-                        let isHighlighted = (window.currentWornOutfitId && window.currentWornOutfitId == outfit.id);
-                        let bgStyle = isHighlighted ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255,255,255,0.05)';
-                        let borderStyle = isHighlighted ? 'rgba(255, 255, 255, 0.5)' : 'var(--border-color)';
+                        let isHighlighted = (window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
+                        let bgStyle = isHighlighted ? 'var(--bg-hover)' : 'rgba(255,255,255,0.05)';
+                        let borderStyle = isHighlighted ? 'var(--primary-color)' : 'var(--border-color)';
+                        let borderWidth = isHighlighted ? '2px' : '1px';
                         
-                        div.style.cssText = `background: ${bgStyle}; border: 1px solid ${borderStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
+                        div.style.cssText = `background: ${bgStyle}; border: ${borderWidth} solid ${borderStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
                         
                         div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) div.style.borderColor = 'rgba(255,255,255,0.2)'; };
                         div.onmouseout = () => { div.style.transform = 'translateY(0)'; if(!isHighlighted) div.style.borderColor = 'var(--border-color)'; };
@@ -3843,8 +3849,9 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         
                         if (isHighlighted) {
                             let badge = document.createElement('div');
-                            badge.innerText = 'Worn';
-                            badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: white; color: black; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;';
+                            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
+                            badge.innerText = isId ? 'Dipakai' : 'Worn';
+                            badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: var(--primary-color); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;';
                             div.appendChild(badge);
                         }
                         
@@ -3893,7 +3900,8 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             btn.disabled = false;
             
             // Save the worn outfit ID
-            window.currentWornOutfitId = currentTargetOutfitId;
+            if (!window.wornOutfitIds) window.wornOutfitIds = {};
+            window.wornOutfitIds[currentManageUserId] = currentTargetOutfitId;
             
             // Refetch outfits to update the top image, account list image, and highlight the outfit!
             window.fetchOutfits();
