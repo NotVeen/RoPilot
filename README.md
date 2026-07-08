@@ -1,29 +1,38 @@
-# RoPilot
+# 🚀 RoPilot
 
-RoPilot is a lightning-fast, C++ based multi-instance account manager for Roblox. It allows you to store, organize, and launch multiple Roblox accounts simultaneously without running into the "same instance" restriction.
+This is just a fun little side project I put together mostly through vibe coding. I built this as a modern, lightweight, and sleek alternative to the Roblox Account Manager (RAM).
 
-## Features
-- **True Multi-Instancing:** Bypasses Roblox's single-instance restriction natively and dynamically, allowing you to run as many Roblox clients as your PC can handle.
-- **Account Management:** Save multiple accounts using their `.ROBLOSECURITY` cookies.
-- **Drag & Drop Reordering:** Organize your accounts effortlessly with full drag-and-drop support.
-- **Group Sorting:** Group accounts together (e.g. "Mains", "Alts") for cleaner organization.
-- **Instant Kill Switch:** Rapidly terminate all active Roblox processes instantly using native Windows APIs.
-- **Rich UI:** Built using a lightweight WebView2 frontend featuring a dark-mode, animated interface with sleek toast notifications.
+This project is **100% open source**! Feel free to explore the codebase, fork it for your own use, or simply enjoy it as it is.
 
-## How to Use
-1. Download the repository by clicking the green **Code** button and selecting **Download ZIP**.
-2. Extract the ZIP file to a folder on your computer.
-3. Double-click on `RoPilot.exe` to launch the application.
-4. **Important:** You must leave the `WebView2Loader.dll` file in the same folder as `RoPilot.exe`, as the interface relies on it!
+## ✨ What does it do?
+RoPilot is a C++ based multi-instance account manager for Roblox. Basically, it lets you store, organize, and launch multiple Roblox accounts at the exact same time without the annoying "same instance" error stopping you. 
 
-## Adding Accounts
+### Key Features:
+- **True Multi-Instancing:** Bypasses Roblox's single-client limit natively so you can run as many accounts as your PC can physically handle.
+- **Account Management:** Securely save your accounts using their `.ROBLOSECURITY` cookies.
+- **Group Sorting:** Neatly group your accounts together (e.g., "Mains", "Alts") for a cleaner workspace.
+- **Instant Kill Switch:** Rapidly terminate every active Roblox process instantly via native Windows APIs.
+- **Modern UI:** Built on a super lightweight WebView2 frontend. It features dark/light modes, customizable fonts, UI scaling, smooth animations, and toast notifications.
+- **Resource Optimizer:** Limits background CPU usage of unfocused Roblox clients to save your system resources.
+
+## 🛠️ How to Use
+1. Grab the latest version from the [Releases page](../../releases/latest).
+2. Extract the ZIP file to a safe folder on your computer.
+3. Double-click on `RoPilot.exe` to open the app.
+4. **Important:** Make sure `WebView2Loader.dll` stays in the exact same folder as `RoPilot.exe`, otherwise the user interface won't load!
+
+## ➕ Adding Accounts
 1. Click the **Add Account** button.
-2. Paste your Roblox account's `.ROBLOSECURITY` cookie.
-3. The app will automatically fetch your Username, Display Name, and Avatar thumbnail.
+2. Paste your account's `.ROBLOSECURITY` cookie, or login via browser.
+3. Done! The app will automatically fetch your Username, Display Name, and Avatar thumbnail.
 
-## Launching
-Simply click the **Launch** button next to any account. RoPilot will securely handle the authentication ticket and bypass the instance limits to load the game. You can launch specific Job IDs by entering a Place ID into the search bar, or just click Launch to open the Roblox home page.
+## 💻 Compiling from Source
+If you're a developer and want to compile this yourself:
+1. Make sure you have Visual Studio 2022/2026 Build Tools with "Desktop development with C++" installed.
+2. Open the Developer Command Prompt.
+3. Run the `build.bat` script to compile the executable.
 
-## Compiling from Source
-If you wish to compile RoPilot yourself, you will need Visual Studio 2022/2026 Build Tools with C++ Desktop Development installed.
-Run the build script via the Developer Command Prompt to compile the executable.
+## 💬 Contact & Support
+If you run into any weird bugs, have suggestions, or just want to chat about the project, feel free to reach out to me!
+
+**Discord:** `vxxn.`
