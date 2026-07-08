@@ -3788,6 +3788,10 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             let saved = localStorage.getItem('wornOutfitIds');
             if (saved) window.wornOutfitIds = JSON.parse(saved);
         } catch(e) {}
+        try {
+            let saved = localStorage.getItem('wornOutfitIds');
+            if (saved) window.wornOutfitIds = JSON.parse(saved);
+        } catch(e) {}
         
         window.fetchOutfits = function() {
             document.getElementById('outfits-loading').style.display = 'flex';
@@ -3817,8 +3821,16 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 }
                 if (j.headshotUrl) {
                     document.getElementById('manage-avatar').src = j.headshotUrl;
-                    let accountCardImg = document.querySelector(`.card[data-userid="${currentManageUserId}"] .account-avatar`);
-                    if (accountCardImg) accountCardImg.src = j.headshotUrl;
+                    if (window.currentAccounts) {
+                        for (let i = 0; i < window.currentAccounts.length; i++) {
+                            if (window.currentAccounts[i].UserId == currentManageUserId || window.currentAccounts[i].Id == currentManageUserId) {
+                                window.currentAccounts[i].ThumbnailUrl = j.headshotUrl;
+                                break;
+                            }
+                        }
+                        window.lastRenderedAccountsString = "";
+                        if (window.renderAccounts) window.renderAccounts(window.currentAccounts);
+                    }
                 }
                 
                 if (j.data && j.data.length > 0) {
