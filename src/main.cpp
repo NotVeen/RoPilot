@@ -320,6 +320,10 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["backgroundCpuLimit"] = s.BackgroundCpuLimit;
             jOut["lightMode"] = s.LightMode;
             jOut["accentColor"] = s.AccentColor;
+            jOut["fontFamily"] = s.FontFamily;
+            jOut["language"] = s.Language;
+            jOut["uiScale"] = s.UiScale;
+            jOut["sidebarCollapsed"] = s.SidebarCollapsed;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -337,15 +341,20 @@ void ProcessWebMessage(const std::string& msg) {
             s.BackgroundCpuLimit = j.value("backgroundCpuLimit", s.BackgroundCpuLimit);
             s.LightMode = j.value("lightMode", s.LightMode);
             s.AccentColor = j.value("accentColor", s.AccentColor);
+            s.FontFamily = j.value("fontFamily", s.FontFamily);
+            s.Language = j.value("language", s.Language);
+            s.UiScale = j.value("uiScale", s.UiScale);
+            s.SidebarCollapsed = j.value("sidebarCollapsed", s.SidebarCollapsed);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             
             HWND insertAfter = s.AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
             SetWindowPos(g_hWnd, insertAfter, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
             
+            bool silent = j.value("silent", false);
             if (oldHardwareAccel != s.HardwareAcceleration) {
                 SendStatusMessage("Hardware Acceleration changed. Restart RoPilot to apply.", false);
-            } else {
+            } else if (!silent) {
                 SendStatusMessage("Settings saved successfully.", false);
             }
         }
@@ -826,7 +835,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                             g_webviewController->put_Bounds(bounds);
 
 std::string html = HTML_CONTENT;
-if (g_settingsManager.GetSettings().LightMode) {
+Settings s = g_settingsManager.GetSettings();
+if (s.LightMode) {
     size_t pos = html.find("<html lang=\"en\">");
     if (pos != std::string::npos) {
         html.replace(pos, 16, "<html lang=\"en\" data-theme=\"light\">");
@@ -837,6 +847,31 @@ if (g_settingsManager.GetSettings().LightMode) {
         }
     }
 }
+
+if (s.SidebarCollapsed) {
+    size_t pos = html.find("class=\"sidebar\" id=\"sidebar\"");
+    if (pos != std::string::npos) {
+        html.replace(pos, 28, "class=\"sidebar collapsed\" id=\"sidebar\"");
+    }
+}
+
+std::string extraStyle = "<style>:root {";
+if (!s.AccentColor.empty()) {
+    extraStyle += "--accent-color: " + s.AccentColor + ";";
+    extraStyle += "--accent-tint-hover: " + s.AccentColor + "26;";
+    extraStyle += "--accent-tint-active: " + s.AccentColor + "40;";
+}
+if (!s.FontFamily.empty()) {
+    extraStyle += "--font-family: " + s.FontFamily + ";";
+}
+    extraStyle += "--ui-scale: " + std::to_string(s.UiScale) + ";";
+extraStyle += "}</style>";
+
+size_t headPos = html.find("</head>");
+if (headPos != std::string::npos) {
+    html.insert(headPos, extraStyle);
+}
+
 g_webview->NavigateToString(s2ws(html).c_str());
 
                             g_webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(

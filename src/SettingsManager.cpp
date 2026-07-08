@@ -27,6 +27,10 @@ void SettingsManager::Load() {
         m_Settings.BackgroundCpuLimit = j.value("backgroundCpuLimit", 2);
         m_Settings.LightMode = j.value("lightMode", false);
         m_Settings.AccentColor = j.value("accentColor", "");
+        m_Settings.FontFamily = j.value("fontFamily", "Segoe UI, sans-serif");
+        m_Settings.Language = j.value("language", "en");
+        m_Settings.UiScale = j.value("uiScale", 1.0);
+        m_Settings.SidebarCollapsed = j.value("sidebarCollapsed", false);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -47,6 +51,10 @@ void SettingsManager::Save() {
         j["backgroundCpuLimit"] = m_Settings.BackgroundCpuLimit;
         j["lightMode"] = m_Settings.LightMode;
         j["accentColor"] = m_Settings.AccentColor;
+        j["fontFamily"] = m_Settings.FontFamily;
+        j["language"] = m_Settings.Language;
+        j["uiScale"] = m_Settings.UiScale;
+        j["sidebarCollapsed"] = m_Settings.SidebarCollapsed;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {
