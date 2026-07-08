@@ -1181,16 +1181,7 @@ const char* HTML_CONTENT = R"HTML(
             color: var(--text-main);
         }
 
-        .manage-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -13px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--text-main);
-            border-radius: 2px;
-        }
+        
 
         .manage-content {
             flex-grow: 1;
@@ -1261,11 +1252,11 @@ const char* HTML_CONTENT = R"HTML(
         }
 
         html[data-theme='dark'] #manage-account-modal .modal-content {
-            background-color: #050505 !important;
+            background-color: #000000 !important;
             border-color: #222 !important;
         }
         html[data-theme='dark'] .manage-topbar {
-            background-color: #050505 !important;
+            background-color: #000000 !important;
             border-bottom-color: #222 !important;
         }
         html[data-theme='dark'] .overview-card {
@@ -1291,12 +1282,19 @@ const char* HTML_CONTENT = R"HTML(
             -webkit-mask-position: center;
         }
 
-        @keyframes swipeIn {
+        @keyframes swipeInLeft {
             from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
         }
-        .manage-page {
-            animation: swipeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        @keyframes swipeInRight {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .manage-page-left {
+            animation: swipeInLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .manage-page-right {
+            animation: swipeInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 </style>
 </head>
@@ -1800,7 +1798,8 @@ const char* HTML_CONTENT = R"HTML(
     <!-- Manage Account Modal -->
     <div id="manage-account-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; display: flex; backdrop-filter: blur(4px);">
         <div class="modal-content manage-modal-content" style="position: relative; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; width: 800px; max-width: 90vw; height: 600px; max-height: 85vh; padding: 0; overflow: hidden; border-radius: 12px; border: 1px solid var(--border-color);">
-            <div class="manage-topbar" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 32px; padding: 8px 16px; border-bottom: 1px solid var(--border-color);">
+            <div class="manage-topbar" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 32px; padding: 4px 16px; border-bottom: 1px solid var(--border-color);">
+                <div id="manage-tab-indicator" style="position: absolute; bottom: 0; left: 0; height: 2px; width: 20px; background-color: var(--text-main); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 2px 2px 0 0;"></div>
                 <div class="manage-tab active" data-tab="manage-home" title="Account Overview">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 </div>
@@ -1825,7 +1824,7 @@ const char* HTML_CONTENT = R"HTML(
                     <span data-i18n="lbl_fetching_details" style="color: var(--text-muted); font-weight: 500;">Fetching account details...</span>
                 </div>
                 
-                <div id="manage-home" class="manage-page" style="display: none; flex-direction: column; gap: 32px;">
+                <div id="manage-home" class="manage-page" style="display: none; flex-direction: column; gap: 16px;">
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; margin-bottom: 8px;">
                         <img id="manage-avatar" src="" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--border-color); object-fit: cover;">
                         <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
@@ -3696,30 +3695,55 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             manageAccountModal.querySelector('.modal-content').style.transform = 'scale(0.95)';
         };
         
-        manageTabs.forEach(tab => {
+        let currentManageTabIndex = 0;
+        function updateTabIndicator(index, tabEl) {
+            let indicator = document.getElementById('manage-tab-indicator');
+            if (indicator && tabEl) {
+                indicator.style.width = tabEl.offsetWidth + 'px';
+                indicator.style.transform = 'translateX(' + tabEl.offsetLeft + 'px)';
+            }
+        }
+        
+        // initialize indicator on modal open
+        const origOpenManageAccountModal = window.openManageAccountModal;
+        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {
+            origOpenManageAccountModal(cookie, userId, avatarSrc, username);
+            currentManageTabIndex = 0;
+            setTimeout(() => { updateTabIndicator(0, manageTabs[0]); }, 50);
+        };
+
+        manageTabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
+                if (index === currentManageTabIndex) return;
+                
+                let isRight = index > currentManageTabIndex;
+                currentManageTabIndex = index;
+                
                 manageTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
+                
+                updateTabIndicator(index, tab);
                 
                 const target = tab.getAttribute('data-tab');
                 document.getElementById('manage-loading').style.display = 'none';
                 
-                if (target === 'manage-home') {
-                    document.getElementById('manage-placeholder').style.display = 'none';
-                    let el = document.getElementById('manage-home');
-                    // force reflow to restart animation on display flex
-                    el.style.animation = 'none';
-                    el.style.display = 'flex';
-                    void el.offsetWidth;
-                    el.style.animation = null;
-                } else {
-                    document.getElementById('manage-home').style.display = 'none';
-                    let el = document.getElementById('manage-placeholder');
-                    el.style.animation = 'none';
-                    el.style.display = 'flex';
-                    void el.offsetWidth;
-                    el.style.animation = null;
-                }
+                // Switch pages
+                let homeEl = document.getElementById('manage-home');
+                let placeholderEl = document.getElementById('manage-placeholder');
+                
+                let activeEl = target === 'manage-home' ? homeEl : placeholderEl;
+                let inactiveEl = target === 'manage-home' ? placeholderEl : homeEl;
+                
+                inactiveEl.style.display = 'none';
+                
+                activeEl.classList.remove('manage-page-left', 'manage-page-right');
+                activeEl.style.display = target === 'manage-home' ? 'flex' : 'flex'; // home is flex column, placeholder is flex center. Actually both are flex.
+                
+                // Force reflow
+                void activeEl.offsetWidth;
+                
+                // Add animation class based on direction
+                activeEl.classList.add(isRight ? 'manage-page-left' : 'manage-page-right');
             });
         });
 
