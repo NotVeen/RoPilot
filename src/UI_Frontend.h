@@ -65,7 +65,7 @@ const char* HTML_CONTENT = R"HTML(
 
         
         
-        [data-theme="light"] .btn-add-account { background-color: var(--accent-color, #e5e7eb) !important; color: #111827 !important; }
+        [data-theme="light"] .btn-add-account { background-color: #e5e7eb !important; background-image: linear-gradient(var(--accent-tint-active, transparent), var(--accent-tint-active, transparent)) !important; color: #111827 !important; }
         [data-theme="light"] .btn-add-account:hover { filter: brightness(0.85); }
 
         
@@ -371,7 +371,8 @@ const char* HTML_CONTENT = R"HTML(
             flex-grow: 1;
         }
 
-        .btn-add-account { background-color: var(--accent-color, #ffffff);
+        .btn-add-account { background-color: #ffffff;
+            background-image: linear-gradient(var(--accent-tint-active, transparent), var(--accent-tint-active, transparent));
             color: #000000;
             border: none;
             padding: 12px;
