@@ -1,6 +1,13 @@
 #include "RobloxAPI.h"
 
 #include <fstream>
+void LogWear(const std::string& msg) {
+    std::ofstream out("ropilot_wear.log", std::ios::app);
+    out << msg << "\n";
+}
+
+
+#include <fstream>
 void LogDebug(const std::string& msg) {
     std::ofstream out("ropilot_outfits.log", std::ios::app);
     out << msg << "\n";
@@ -218,19 +225,33 @@ namespace RobloxAPI {
 
     bool WearOutfit(const std::string& cookie, const std::string& outfitId, std::string& outError) {
         std::string csrf = GetCSRFToken(cookie);
-        if (csrf.empty()) { outError = "Failed to obtain CSRF token."; return false; }
+        if (csrf.empty()) { outError = "Failed to obtain CSRF token."; LogWear("No CSRF"); return false; }
         std::string headers = "x-csrf-token: " + csrf + "\r\nContent-Type: application/json\r\n";
         std::wstring path = L"/v1/outfits/" + std::wstring(outfitId.begin(), outfitId.end()) + L"/wear";
         std::string response = HttpRequest(L"POST", L"avatar.roblox.com", path, cookie, headers, "{}", nullptr);
+        LogWear("Response for outfit " + outfitId + ": " + response);
         try {
             if (!response.empty()) {
                 auto j = json::parse(response);
                 if (j.contains("errors")) {
-                    outError = j["errors"][0]["message"].get<std::string>();
+                    if (j["errors"].size() > 0 && j["errors"][0].contains("message") && j["errors"][0]["message"].is_string()) {
+                        outError = j["errors"][0]["message"].get<std::string>();
+                    } else {
+                        outError = response; // Dump full response if message is not a string
+                    }
+                    LogWear("Error found: " + outError);
+                    return false;
+                } else if (j.contains("success") && j["success"].get<bool>() == false) {
+                    outError = "Success is false: " + response;
+                    LogWear("Success false: " + outError);
                     return false;
                 }
+            } else {
+                LogWear("Response was empty! Returning true anyway?");
             }
-        } catch (...) {}
+        } catch (const std::exception& e) {
+            LogWear(std::string("Exception: ") + e.what());
+        }
         return true;
     }
 
