@@ -1904,11 +1904,10 @@ const char* HTML_CONTENT = R"HTML(
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
                     <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <div style="width: 250px; height: 250px; margin: -30px auto -10px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; position: relative;" id="outfit-current-avatar-container">
-                            <img id="outfit-current-avatar" src="" style="width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;" onload="this.style.opacity='1'; document.getElementById('outfit-current-avatar-container').style.animation='none';" />
+                        <div style="width: 250px; height: 250px; margin: -30px auto 10px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; position: relative;" id="outfit-current-avatar-container">
+                            <img id="outfit-current-avatar" src="" style="width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;" onload="this.style.opacity='1'; let c = document.getElementById('outfit-current-avatar-container'); c.style.animation='none'; c.style.background='none';" />
                         </div>
-                        <span id="outfit-current-name" style="font-weight: 600; color: var(--text-main); font-size: 18px;">-</span>
-                    </div>
+                                            </div>
                     
                     <!-- Middle section: Grid of Outfits -->
                     <div style="padding: 20px; flex: 1;">
@@ -3787,7 +3786,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             document.getElementById('outfits-loading').style.display = 'block';
             document.getElementById('outfits-grid').innerHTML = '';
             
-            document.getElementById('outfit-current-name').innerText = document.getElementById('manage-title-username').innerText;
+            
             
             window.chrome.webview.postMessage(JSON.stringify({
                 action: 'get_outfits',
@@ -3834,7 +3833,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         
                         // Loading animation logic
                         let imgContainer = document.createElement('div');
-                        imgContainer.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; margin-bottom: 8px; position: relative;';
+                        imgContainer.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; margin-bottom: 8px; position: relative;';
                         
                         let img = document.createElement('img');
                         img.style.cssText = 'width: 100%; height: 100%; border-radius: 8px; object-fit: cover; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;';
