@@ -592,6 +592,7 @@ const char* HTML_CONTENT = R"HTML(
         .status-dot.online { background-color: var(--text-green); }
         .status-dot.offline { background-color: var(--text-muted); }
         .status-dot.loading { background-color: var(--text-yellow); }
+        .status-dot.danger { background-color: #ef4444 !important; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
 
         .user-info {
             display: flex;
@@ -662,6 +663,26 @@ const char* HTML_CONTENT = R"HTML(
         
         .btn-launch:hover {
             background-color: var(--btn-hover);
+        }
+
+        [data-theme="light"] .btn-launch.btn-relogin, .btn-relogin {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            border-color: rgba(239, 68, 68, 0.3) !important;
+            color: #ef4444 !important;
+        }
+
+        [data-theme="light"] .btn-launch.btn-relogin:hover, .btn-relogin:hover {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+        }
+
+        [data-theme="light"] .btn-launch.btn-relogin, .btn-relogin {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            border-color: rgba(239, 68, 68, 0.3) !important;
+            color: #ef4444 !important;
+        }
+
+        [data-theme="light"] .btn-launch.btn-relogin:hover, .btn-relogin:hover {
+            background-color: rgba(239, 68, 68, 0.2) !important;
         }
 
         .btn-icon {
@@ -956,22 +977,22 @@ const char* HTML_CONTENT = R"HTML(
             pointer-events: auto;
         }
 
-        #cookie-modal, #group-modal, #update-prompt-modal, #changelog-modal {
+        #cookie-modal, #group-modal, #update-prompt-modal, #changelog-modal, #modal-add-account {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s ease;
             display: flex;
             backdrop-filter: blur(4px);
         }
-        #cookie-modal.show, #group-modal.show, #update-prompt-modal.show, #changelog-modal.show {
+        #cookie-modal.show, #group-modal.show, #update-prompt-modal.show, #changelog-modal.show, #modal-add-account.show {
             opacity: 1;
             pointer-events: auto;
         }
-        #cookie-modal-content, #group-modal-content, #update-prompt-content, #changelog-modal-content {
+        #cookie-modal-content, #group-modal-content, #update-prompt-content, #changelog-modal-content, #modal-add-account-content {
             transform: scale(0.95);
             transition: transform 0.2s ease;
         }
-        #cookie-modal.show #cookie-modal-content, #group-modal.show #group-modal-content, #update-prompt-modal.show #update-prompt-content, #changelog-modal.show #changelog-modal-content {
+        #cookie-modal.show #cookie-modal-content, #group-modal.show #group-modal-content, #update-prompt-modal.show #update-prompt-content, #changelog-modal.show #changelog-modal-content, #modal-add-account.show #modal-add-account-content {
             transform: scale(1);
         }
 
@@ -1165,10 +1186,7 @@ const char* HTML_CONTENT = R"HTML(
             <div class="sidebar-spacer"></div>
             
             <div style="position: relative; width: 100%;">
-                <div id="add-menu" style="position: absolute; bottom: 100%; left: 0; width: 208px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 8px; flex-direction: column; overflow: hidden; z-index: 100;">
-                    <div class="add-menu-item" id="btn-add-browser" data-i18n="btn_add_browser">Add via Browser</div>
-                    <div class="add-menu-item" id="btn-add-cookie" data-i18n="btn_add_cookie">Add via Cookie</div>
-                </div>
+
                 <button class="btn-add-account" id="btn-add-account">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -1574,19 +1592,49 @@ const char* HTML_CONTENT = R"HTML(
         </div>
     </div>
 
+    <!-- Add Account Modal -->
+    <div id="modal-add-account" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div id="modal-add-account-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span data-i18n="btn_add_account">Add Account</span>
+                </h2>
+                <button class="btn-icon" style="margin: -8px;" onclick="document.getElementById('modal-add-account').classList.remove('show');"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+            </div>
+            <div style="padding: 20px; display: flex; gap: 12px;">
+                <button class="btn-launch" id="btn-add-browser" style="flex: 1; padding: 20px; flex-direction: column; height: auto; border: 1px solid var(--border-color);" onclick="document.getElementById('modal-add-account').classList.remove('show');">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <span data-i18n="btn_add_browser">Add via Browser</span>
+                </button>
+                <button class="btn-launch" id="btn-add-cookie" style="flex: 1; padding: 20px; flex-direction: column; height: auto; border: 1px solid var(--border-color);" onclick="document.getElementById('modal-add-account').classList.remove('show');">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 12.5v.01"></path><path d="M12 16v.01"></path><path d="M11 12.5v.01"></path></svg>
+                    <span data-i18n="btn_add_cookie">Add via Cookie</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Cookie Login Modal -->
     <div id="cookie-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
         <div id="cookie-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 500px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column;">
             <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg><span data-i18n="lbl_add_via_cookie">Add Account via Cookie</span></h2>
-                <button class="btn-icon" id="btn-close-cookie-modal" style="margin: -8px;" onclick="document.getElementById('cookie-modal').classList.remove('show');"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                <button class="btn-icon" id="btn-close-cookie-modal" style="margin: -8px;" onclick="document.getElementById('cookie-modal').classList.remove('show'); document.getElementById('modal-add-account').classList.add('show');"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
             </div>
             <div style="padding: 20px;">
                 <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;" data-i18n="desc_add_cookie_desc">Enter your Roblox .ROBLOSECURITY cookies below (one per line).</p>
                 <textarea id="cookie-input" placeholder="_|WARNING:-DO-NOT-SHARE-THIS..." style="width: 100%; height: 100px; padding: 10px 14px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-main); outline: none; resize: none; font-family: monospace; font-size: 12px;"></textarea>
+                <div style="margin-top: 12px; display: flex; align-items: flex-start; gap: 8px; color: var(--text-muted); font-size: 12px; background: rgba(255, 255, 255, 0.05); padding: 10px 12px; border-radius: 8px; border-left: 3px solid #60a5fa;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span data-i18n="desc_cookie_local_warning">Cookies are stored locally and encrypted on your device. For your security, do not share your cookies with anyone.</span>
+                </div>
             </div>
             <div class="modal-footer" style="padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px;">
-                <button class="btn-secondary" id="btn-cancel-cookie" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;" onclick="document.getElementById('cookie-modal').classList.remove('show');" data-i18n="btn_cancel">Cancel</button>
+                <button class="btn-secondary" id="btn-cancel-cookie" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;" onclick="document.getElementById('cookie-modal').classList.remove('show'); document.getElementById('modal-add-account').classList.add('show');" data-i18n="btn_cancel">Cancel</button>
                 <button class="btn-primary" id="btn-confirm-cookie" style="padding: 8px 16px; background: white; color: black; border: none; border-radius: 12px; font-weight: 600; cursor: pointer;">Login</button>
             </div>
         </div>
@@ -1884,6 +1932,10 @@ const char* HTML_CONTENT = R"HTML(
                                 statusColorClass = 'online';
                                 statusText = translations[document.getElementById('setting-language')?.value || 'en']?.lbl_launching || 'Launching';
                                 statusValueClass = 'green';
+                            } else if (acc.Status === 3) {
+                                statusColorClass = 'danger';
+                                statusText = translations[document.getElementById('setting-language')?.value || 'en']?.lbl_invalid || 'Invalid Cookie';
+                                statusValueClass = 'red';
                             }
                                             
                             let instanceText = (acc.ProcessId && acc.Status !== 0) ? acc.ProcessId.toString() : (translations[document.getElementById('setting-language')?.value || 'en']?.lbl_none || 'None');
@@ -1917,11 +1969,17 @@ const char* HTML_CONTENT = R"HTML(
                                 </div>
                                 
                                 <div class="card-actions">
-                                    ${acc.Status === 1 ? 
-                                        `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)">
-                                            <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
-                                        </button>` : 
-                                        `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg> <span data-i18n="btn_launch">Launch</span></button>`
+                                    ${acc.Status === 3 ?
+                                        `<button class="btn-launch btn-relogin" onclick="event.stopPropagation(); document.getElementById('btn-add-account').click()">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                                            <span data-i18n="btn_relogin">Re-Login</span>
+                                        </button>` :
+                                        (acc.Status === 1 ? 
+                                            `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)">
+                                                <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                                            </button>` : 
+                                            `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg> <span data-i18n="btn_launch">Launch</span></button>`
+                                        )
                                     }
                                     <button class="btn-icon danger" onclick="window.removeAccount('${cookie}', '${username}')">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -2230,17 +2288,13 @@ const char* HTML_CONTENT = R"HTML(
             
             // UI Button Listeners
             let btnAddAccount = document.getElementById('btn-add-account');
-            let addMenu = document.getElementById('add-menu');
-            if (btnAddAccount && addMenu) {
+            if (btnAddAccount) {
                 btnAddAccount.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    addMenu.classList.toggle('show');
+                    let modal = document.getElementById('modal-add-account');
+                    if (modal) modal.classList.add('show');
                 });
             }
-            
-            document.addEventListener('click', () => {
-                if (addMenu) addMenu.classList.remove('show');
-            });
 
             let btnClose = document.getElementById('btn-close');
             if (btnClose) btnClose.addEventListener('click', () => window.chrome.webview.postMessage(JSON.stringify({action: 'close'})));
@@ -2326,6 +2380,7 @@ const char* HTML_CONTENT = R"HTML(
                     "desc_hardware_accel": "Use GPU to render the UI smoothly. Disable this to save GPU memory for Roblox.",
                     "desc_resource_opt": "Prioritize focused window and limit CPU/RAM usage of background instances",
                     "desc_add_cookie_desc": "Enter your Roblox .ROBLOSECURITY cookies below (one per line)",
+                "desc_cookie_local_warning": "Cookies are stored locally and encrypted on your device. For your security, do not share your cookies with anyone.",
                     "btn_no": "No",
                     "btn_yes": "Yes",
                     "desc_empty_accounts": "Click the \"Add Account\" button to add your Roblox account",
@@ -2440,6 +2495,7 @@ const char* HTML_CONTENT = R"HTML(
                     "desc_hardware_accel": "Gunakan GPU untuk merender UI dengan mulus. Nonaktifkan ini untuk menghemat memori GPU bagi Roblox.",
                     "desc_resource_opt": "Prioritaskan jendela yang difokuskan dan batasi penggunaan CPU/RAM klien di latar belakang",
                     "desc_add_cookie_desc": "Masukkan cookies .ROBLOSECURITY Roblox Anda di bawah ini (satu per baris)",
+                "desc_cookie_local_warning": "Cookies disimpan secara lokal dan dienkripsi di perangkat Anda. Demi keamanan, jangan pernah membagikan cookie Anda kepada siapa pun.",
                     "btn_no": "Tidak",
                     "btn_yes": "Ya",
                     "desc_empty_accounts": "Klik tombol \"Tambah Akun\" untuk menambahkan akun Roblox Anda",

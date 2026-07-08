@@ -830,7 +830,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             for (const auto& acc : accounts) {
                 if (!g_running) break;
                 auto info = RobloxAPI::GetUserInfo(acc.Cookie);
-                if (info.UserId != 0 && (info.ThumbnailUrl != acc.Info.ThumbnailUrl || info.Username != acc.Info.Username || info.DisplayName != acc.Info.DisplayName)) {
+                if (info.UserId == 0) {
+                    // Invalid cookie detected
+                    if (acc.Status != 3) {
+                        g_accountManager.UpdateAccountProcess(acc.Cookie, 3, 0);
+                        anyChanged = true;
+                    }
+                } else if (info.ThumbnailUrl != acc.Info.ThumbnailUrl || info.Username != acc.Info.Username || info.DisplayName != acc.Info.DisplayName) {
                     g_accountManager.UpdateAccountInfo(acc.Cookie, info);
                     anyChanged = true;
                 }

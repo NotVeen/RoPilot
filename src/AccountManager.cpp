@@ -127,6 +127,7 @@ bool AccountManager::AddAccount(const std::string& cookie) {
             if (acc.Info.UserId == info.UserId) {
                 acc.Cookie = cookie;
                 acc.Info = info;
+                acc.Status = 0;
                 exists = true;
                 break;
             }
