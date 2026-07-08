@@ -148,7 +148,7 @@ namespace RobloxAPI {
         return true;
     }
 
-        bool GetOutfits(const std::string& cookie, const std::string& userId, std::string& outJson) {
+            bool GetOutfits(const std::string& cookie, const std::string& userId, std::string& outJson) {
         std::wstring path = L"/v1/users/" + std::wstring(userId.begin(), userId.end()) + L"/outfits";
         std::string outHeaders;
         std::string response = HttpRequest(L"GET", L"avatar.roblox.com", path, cookie, "", "", &outHeaders);
@@ -157,6 +157,16 @@ namespace RobloxAPI {
             if (!response.empty()) {
                 auto j = json::parse(response);
                 if (j.contains("data")) {
+                    auto& data = j["data"];
+                    auto it = data.begin();
+                    while (it != data.end()) {
+                        if (it->contains("isEditable") && !(*it)["isEditable"].get<bool>()) {
+                            it = data.erase(it);
+                        } else {
+                            ++it;
+                        }
+                    }
+
                     std::string outfitIds = "";
                     for (const auto& outfit : j["data"]) {
                         if (!outfitIds.empty()) outfitIds += ",";
