@@ -1904,7 +1904,7 @@ const char* HTML_CONTENT = R"HTML(
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
                     <div style="padding: 0px 20px 0px 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <div style="width: 250px; height: 250px; margin: -20px auto 10px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; position: relative;" id="outfit-current-avatar-container">
+                        <div style="width: 250px; height: 250px; margin: -10px auto 5px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; position: relative;" id="outfit-current-avatar-container">
                             <img id="outfit-current-avatar" src="" style="width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;" onload="this.style.opacity='1'; let c = document.getElementById('outfit-current-avatar-container'); c.style.animation='none'; c.style.background='none';" />
                         </div>
                                             </div>
@@ -3788,10 +3788,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             let saved = localStorage.getItem('wornOutfitIds');
             if (saved) window.wornOutfitIds = JSON.parse(saved);
         } catch(e) {}
-        try {
-            let saved = localStorage.getItem('wornOutfitIds');
-            if (saved) window.wornOutfitIds = JSON.parse(saved);
-        } catch(e) {}
+
         
         window.fetchOutfits = function() {
             document.getElementById('outfits-loading').style.display = 'flex';
@@ -3816,11 +3813,33 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 if (j.fullBodyUrl) {
                     let fbImg = document.getElementById('outfit-current-avatar');
                     fbImg.style.opacity = '0';
-                    document.getElementById('outfit-current-avatar-container').style.animation = 'loadingSkeleton 1.5s infinite';
+                    let avatarC = document.getElementById('outfit-current-avatar-container');
+                    avatarC.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%)';
+                    avatarC.style.backgroundSize = '200% 100%';
+                    avatarC.style.animation = 'loadingSkeleton 1.5s infinite linear';
                     fbImg.src = j.fullBodyUrl;
                 }
                 if (j.headshotUrl) {
                     document.getElementById('manage-avatar').src = j.headshotUrl;
+                    // Directly update matching card avatar in DOM
+                    let cardEl = document.querySelector('.card[data-userid="' + currentManageUserId + '"]');
+                    if (cardEl) {
+                        let cardImg = cardEl.querySelector('.avatar img, .account-avatar');
+                        if (cardImg) cardImg.src = j.headshotUrl;
+                    }
+                    // Also update the button onclick with new avatarSrc
+                    if (cardEl) {
+                        let manageBtn = cardEl.querySelector('.btn-manage-account');
+                        if (manageBtn) {
+                            let oldOnclick = manageBtn.getAttribute('onclick');
+                            if (oldOnclick) {
+                                // Replace the old avatar URL in the onclick handler
+                                manageBtn.setAttribute('onclick', oldOnclick.replace(/openManageAccountModal\('[^']*',\s*'[^']*',\s*'[^']*'/, 
+                                    "openManageAccountModal('" + currentManageCookie.replace(/'/g, "\\'") + "', '" + currentManageUserId + "', '" + j.headshotUrl.replace(/'/g, "\\'") + "'"));
+                            }
+                        }
+                    }
+                    // Update currentAccounts array for future renders
                     if (typeof currentAccounts !== 'undefined' && currentAccounts) {
                         for (let i = 0; i < currentAccounts.length; i++) {
                             if (currentAccounts[i].UserId == currentManageUserId || currentAccounts[i].Id == currentManageUserId) {
@@ -3829,7 +3848,6 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                             }
                         }
                         window.lastRenderedAccountsString = "";
-                        if (window.renderAccounts) window.renderAccounts(currentAccounts);
                     }
                 }
                 
@@ -3840,14 +3858,15 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         div.id = 'outfit-card-' + outfit.id;
                         
                         let isHighlighted = (window.wornOutfitIds && window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
-                        let borderStyle = isHighlighted ? 'var(--primary-color)' : 'var(--border-color)';
-                        let shadowStyle = isHighlighted ? '0 0 0 2px var(--primary-color), 0 0 15px var(--primary-color)' : 'none';
-                        let bgStyle = isHighlighted ? 'rgba(59, 130, 246, 0.15)' : 'transparent';
                         
-                        div.style.cssText = `background: ${bgStyle}; border: 1px solid ${borderStyle}; box-shadow: ${shadowStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
+                        if (isHighlighted) {
+                            div.style.cssText = 'background: rgba(59,130,246,0.08); border: 2px solid var(--primary-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative; box-shadow: 0 0 12px rgba(59,130,246,0.25);';
+                        } else {
+                            div.style.cssText = 'background: transparent; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;';
+                        }
                         
-                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) div.style.borderColor = 'var(--text-muted)'; };
-                        div.onmouseout = () => { div.style.transform = 'translateY(0)'; if(!isHighlighted) div.style.borderColor = 'var(--border-color)'; };
+                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) { div.style.borderColor = 'var(--text-muted)'; div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; } };
+                        div.onmouseout = () => { div.style.transform = 'translateY(0)'; if(!isHighlighted) { div.style.borderColor = 'var(--border-color)'; div.style.boxShadow = 'none'; } };
                         div.onclick = () => { window.promptWearOutfit(outfit.id, outfit.name, outfit.imageUrl); };
                         
                         // Loading animation logic
@@ -3871,9 +3890,10 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         
                         if (isHighlighted) {
                             let badge = document.createElement('div');
+                            badge.className = 'worn-badge';
                             let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
                             badge.innerText = isId ? 'Dipakai' : 'Worn';
-                            badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: var(--primary-color); color: white; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;';
+                            badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: var(--primary-color); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;';
                             div.appendChild(badge);
                         }
                         
@@ -3921,17 +3941,40 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             btn.innerText = 'Wear';
             btn.disabled = false;
             
-            // Save the worn outfit ID
+            // Save worn outfit ID
             if (!window.wornOutfitIds) window.wornOutfitIds = {};
-        try {
-            let saved = localStorage.getItem('wornOutfitIds');
-            if (saved) window.wornOutfitIds = JSON.parse(saved);
-        } catch(e) {}
             window.wornOutfitIds[currentManageUserId] = currentTargetOutfitId;
             localStorage.setItem('wornOutfitIds', JSON.stringify(window.wornOutfitIds));
             
-            // Refetch outfits to update the top image, account list image, and highlight the outfit!
-            window.fetchOutfits();
+            // Immediately update highlight on current grid without refetch
+            document.querySelectorAll('.outfit-card').forEach(card => {
+                let cardId = card.id.replace('outfit-card-', '');
+                let isWorn = (cardId == currentTargetOutfitId);
+                if (isWorn) {
+                    card.style.border = '2px solid var(--primary-color)';
+                    card.style.background = 'rgba(59,130,246,0.08)';
+                    card.style.boxShadow = '0 0 12px rgba(59,130,246,0.25)';
+                } else {
+                    card.style.border = '1px solid var(--border-color)';
+                    card.style.background = 'transparent';
+                    card.style.boxShadow = 'none';
+                }
+                // Add or remove badge
+                let existingBadge = card.querySelector('.worn-badge');
+                if (isWorn && !existingBadge) {
+                    let badge = document.createElement('div');
+                    badge.className = 'worn-badge';
+                    badge.innerText = isId ? 'Dipakai' : 'Worn';
+                    badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: var(--primary-color); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;';
+                    card.appendChild(badge);
+                } else if (!isWorn && existingBadge) {
+                    existingBadge.remove();
+                }
+            });
+            
+            // Refetch outfits to update fullbody avatar with a small delay 
+            // to allow Roblox CDN to propagate the new avatar
+            setTimeout(() => { window.fetchOutfits(); }, 2000);
         };
         
         window.onWearOutfitError = function(errorMsg) {
