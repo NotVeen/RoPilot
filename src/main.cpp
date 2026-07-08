@@ -363,6 +363,7 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["sidebarCollapsed"] = s.SidebarCollapsed;
             jOut["windowOpacity"] = s.WindowOpacity;
             jOut["enableWindowBlur"] = s.EnableWindowBlur;
+        jOut["hideIdentity"] = s.HideIdentity;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -387,6 +388,7 @@ void ProcessWebMessage(const std::string& msg) {
             bool oldBlur = s.EnableWindowBlur;
             s.WindowOpacity = j.value("windowOpacity", s.WindowOpacity);
             s.EnableWindowBlur = j.value("enableWindowBlur", s.EnableWindowBlur);
+        s.HideIdentity = j.value("hideIdentity", s.HideIdentity);
             g_settingsManager.SetSettings(s);
             SetStartupRegistry(s.RunOnStartup);
             

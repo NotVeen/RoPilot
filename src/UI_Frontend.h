@@ -1426,7 +1426,7 @@ const char* HTML_CONTENT = R"HTML(
                     <div class="setting-item" style="padding: 12px 0px; border-bottom: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_hide_identity">Hide Username & User ID</div>
-                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_hide_identity">Blur your account's username and user ID.</div>
+                            <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_hide_identity">Censor your account's username and user ID.</div>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="setting-hide-identity">
@@ -1963,8 +1963,8 @@ const char* HTML_CONTENT = R"HTML(
                                         <div class="status-dot ${statusColorClass}"></div>
                                     </div>
                                     <div class="user-info">
-                                        <span class="username" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>${username}</span>
-                                        <span class="userid" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>${userId}</span>
+                                        <span class="username">${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? '******' : username}</span>
+                                        <span class="userid">${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? '******' : userId}</span>
                                     </div>
                                 </div>
                                 
@@ -2071,8 +2071,8 @@ const char* HTML_CONTENT = R"HTML(
                                             <div class="status-dot green"></div>
                                         </div>
                                         <div class="user-info">
-                                            <span class="username" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>${escapeHtml(acc.Username)}</span>
-                                            <span class="userid" ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? 'style="filter: blur(4px); user-select: none;"' : ''}>PID: ${acc.ProcessId || 'Loading...'}</span>
+                                            <span class="username">${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? '******' : escapeHtml(acc.Username)}</span>
+                                            <span class="userid">PID: ${document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? '******' : (acc.ProcessId || 'Loading...')}</span>
                                         </div>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -2348,6 +2348,8 @@ const char* HTML_CONTENT = R"HTML(
             const translations = {
                 "en": {
                     "nav_accounts": "Accounts",
+                    "lbl_hide_identity": "Hide Username & User ID",
+                    "desc_hide_identity": "Censor your account's username and user ID",
                     "nav_settings": "Settings",
                     "btn_add_account": "Add Account",
                     "lbl_manage_accounts": "Manage Accounts",
@@ -2476,7 +2478,7 @@ const char* HTML_CONTENT = R"HTML(
                     "lbl_auto_updates": "Pembaruan Otomatis",
                     "desc_auto_updates": "Unduh dan instal versi baru secara otomatis saat meluncurkan RoPilot",
                     "lbl_hide_identity": "Sembunyikan Username & ID",
-                    "desc_hide_identity": "Buramkan username dan user ID akun Anda",
+                    "desc_hide_identity": "Sensor username dan user ID akun Anda",
                     "lbl_appearance": "Tampilan",
                     "lbl_light_mode": "Mode Terang",
                     "lbl_accent_color": "Warna Aksen",
