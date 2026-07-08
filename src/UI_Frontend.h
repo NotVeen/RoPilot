@@ -3778,15 +3778,6 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             document.getElementById('outfits-loading').style.display = 'block';
             document.getElementById('outfits-grid').innerHTML = '';
             
-            // Fetch full body avatar
-            fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${currentManageUserId}&size=352x352&format=Png&isCircular=false`)
-                .then(r => r.json())
-                .then(d => {
-                    if (d.data && d.data[0]) {
-                        document.getElementById('outfit-current-avatar').src = d.data[0].imageUrl;
-                    }
-                }).catch(e => console.error(e));
-                
             document.getElementById('outfit-current-name').innerText = document.getElementById('manage-title-username').innerText;
             
             window.chrome.webview.postMessage(JSON.stringify({
@@ -3803,6 +3794,10 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 let grid = document.getElementById('outfits-grid');
                 grid.innerHTML = '';
                 
+                if (j.fullBodyUrl) {
+                    document.getElementById('outfit-current-avatar').src = j.fullBodyUrl;
+                }
+                
                 if (j.data && j.data.length > 0) {
                     j.data.forEach(outfit => {
                         let div = document.createElement('div');
@@ -3816,7 +3811,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         img.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: var(--bg-main); margin-bottom: 8px;';
                         
                         let name = document.createElement('span');
-                        name.innerText = outfit.name;
+                        name.innerText = outfit.name || 'Outfit ' + outfit.id;
                         name.style.cssText = 'font-size: 12px; font-weight: 500; color: var(--text-main); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;';
                         
                         div.appendChild(img);

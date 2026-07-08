@@ -1,4 +1,11 @@
 #include "RobloxAPI.h"
+
+#include <fstream>
+void LogDebug(const std::string& msg) {
+    std::ofstream out("ropilot_outfits.log", std::ios::app);
+    out << msg << "\n";
+}
+
 #include <windows.h>
 #include <winhttp.h>
 #include "../vendor/json.hpp"
@@ -141,7 +148,7 @@ namespace RobloxAPI {
         return true;
     }
 
-    bool GetOutfits(const std::string& cookie, const std::string& userId, std::string& outJson) {
+        bool GetOutfits(const std::string& cookie, const std::string& userId, std::string& outJson) {
         std::wstring path = L"/v1/users/" + std::wstring(userId.begin(), userId.end()) + L"/outfits";
         std::string outHeaders;
         std::string response = HttpRequest(L"GET", L"avatar.roblox.com", path, cookie, "", "", &outHeaders);
@@ -153,27 +160,43 @@ namespace RobloxAPI {
                     std::string outfitIds = "";
                     for (const auto& outfit : j["data"]) {
                         if (!outfitIds.empty()) outfitIds += ",";
-                        outfitIds += std::to_string(outfit["id"].get<int>());
+                        outfitIds += std::to_string(outfit["id"].get<long long>());
                     }
                     
                     if (!outfitIds.empty()) {
                         std::wstring thumbPath = L"/v1/users/outfits?userOutfitIds=" + std::wstring(outfitIds.begin(), outfitIds.end()) + L"&size=150x150&format=Png&isCircular=false";
                         std::string thumbRes = HttpRequest(L"GET", L"thumbnails.roblox.com", thumbPath, cookie, "", "", nullptr);
                         
-                        auto t = json::parse(thumbRes);
-                        std::unordered_map<int, std::string> thumbnails;
-                        if (t.contains("data")) {
-                            for (const auto& thumb : t["data"]) {
-                                thumbnails[thumb["targetId"].get<int>()] = thumb["imageUrl"].get<std::string>();
+                        try {
+                            auto t = json::parse(thumbRes);
+                            std::unordered_map<long long, std::string> thumbnails;
+                            if (t.contains("data")) {
+                                for (const auto& thumb : t["data"]) {
+                                    if (thumb["imageUrl"].is_string()) {
+                                        thumbnails[thumb["targetId"].get<long long>()] = thumb["imageUrl"].get<std::string>();
+                                    }
+                                }
                             }
-                        }
-                        
-                        for (auto& outfit : j["data"]) {
-                            int id = outfit["id"].get<int>();
-                            if (thumbnails.count(id)) outfit["imageUrl"] = thumbnails[id];
-                            else outfit["imageUrl"] = "";
-                        }
+                            
+                            for (auto& outfit : j["data"]) {
+                                long long id = outfit["id"].get<long long>();
+                                if (thumbnails.count(id)) outfit["imageUrl"] = thumbnails[id];
+                                else outfit["imageUrl"] = "";
+                            }
+                        } catch (...) {}
                     }
+                    
+                    std::wstring fullBodyPath = L"/v1/users/avatar?userIds=" + std::wstring(userId.begin(), userId.end()) + L"&size=352x352&format=Png&isCircular=false";
+                    std::string fullBodyRes = HttpRequest(L"GET", L"thumbnails.roblox.com", fullBodyPath, cookie, "", "", nullptr);
+                    try {
+                        auto fb = json::parse(fullBodyRes);
+                        if (fb.contains("data") && fb["data"].size() > 0 && fb["data"][0]["imageUrl"].is_string()) {
+                            j["fullBodyUrl"] = fb["data"][0]["imageUrl"].get<std::string>();
+                        } else {
+                            j["fullBodyUrl"] = "";
+                        }
+                    } catch (...) { j["fullBodyUrl"] = ""; }
+                    
                     outJson = j.dump();
                     return true;
                 }
