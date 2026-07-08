@@ -252,7 +252,13 @@ void ProcessWebMessage(const std::string& msg) {
         }
                 else if (action == "get_account_overview") {
             std::string cookie = j.value("cookie", "");
-            long long userId = j.value("userId", (long long)0);
+            long long userId = 0;
+            if (j.contains("userId")) {
+                if (j["userId"].is_number()) userId = j["userId"].get<long long>();
+                else if (j["userId"].is_string()) {
+                    try { userId = std::stoll(j["userId"].get<std::string>()); } catch(...) {}
+                }
+            }
             if (!cookie.empty() && userId != 0) {
                 std::thread([cookie, userId]() {
                     RobloxAPI::AccountOverviewData data = RobloxAPI::GetAccountOverview(cookie, userId);
@@ -268,9 +274,14 @@ void ProcessWebMessage(const std::string& msg) {
                     jOut["isPremium"] = data.IsPremium;
                     
                     std::string payload = jOut.dump();
-                    payload = std::regex_replace(payload, std::regex("\\"), "\\\\");
-                    payload = std::regex_replace(payload, std::regex("\""), "\\\"");
-                    std::string script = "window.postMessage('" + payload + "', '*');";
+                    std::string escaped_payload;
+                    for (char c : payload) {
+                        if (c == '\\') escaped_payload += "\\\\";
+                        else if (c == '"') escaped_payload += "\\\"";
+                        else if (c == '\'') escaped_payload += "\\\'";
+                        else escaped_payload += c;
+                    }
+                    std::string script = "window.postMessage('" + escaped_payload + "', '*');";
                     PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(script), 0);
                 }).detach();
             }

@@ -549,6 +549,7 @@ const char* HTML_CONTENT = R"HTML(
         }
 
         .card {
+            position: relative;
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -642,6 +643,31 @@ const char* HTML_CONTENT = R"HTML(
         .card-actions {
             display: flex;
             gap: 8px;
+        }
+
+        
+        .btn-manage-account {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+        .btn-manage-account:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+            transform: scale(1.05);
         }
 
         .btn-launch {
@@ -1113,9 +1139,9 @@ const char* HTML_CONTENT = R"HTML(
 
         /* Manage Account Modal Styles */
         #manage-account-modal .modal-content {
-            width: 700px;
+            width: 600px;
             max-width: 95vw;
-            height: 500px;
+            height: 420px;
             max-height: 90vh;
             display: flex;
             flex-direction: column;
@@ -1131,7 +1157,7 @@ const char* HTML_CONTENT = R"HTML(
             align-items: center;
             justify-content: center;
             gap: 24px;
-            padding: 12px 24px;
+            padding: 8px 16px;
             border-bottom: 1px solid var(--border-color);
             background: var(--bg-elevated);
         }
@@ -1218,6 +1244,34 @@ const char* HTML_CONTENT = R"HTML(
         .manage-header-close:hover {
             background: var(--bg-hover);
             color: var(--text-main);
+        }
+
+        @keyframes ellipsis {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+        .loading-text::after {
+            content: '';
+            animation: ellipsis 1.5s infinite;
+            display: inline-block;
+            width: 1em;
+            text-align: left;
+        }
+
+        html[data-theme='dark'] #manage-account-modal .modal-content {
+            background-color: #121212 !important;
+            border-color: #2a2a2a !important;
+        }
+        html[data-theme='dark'] .manage-topbar {
+            background-color: #1a1a1a !important;
+            border-bottom-color: #2a2a2a !important;
+        }
+        html[data-theme='dark'] .overview-card {
+            background-color: #1a1a1a !important;
+            border-color: #2a2a2a !important;
         }
 </style>
 </head>
@@ -1726,22 +1780,22 @@ const char* HTML_CONTENT = R"HTML(
             </button>
             <div class="manage-topbar">
                 <div class="manage-tab active" data-tab="manage-home" title="Account Overview">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                 </div>
                 <div class="manage-tab" data-tab="manage-code" title="Developer/API">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
                 </div>
                 <div class="manage-tab" data-tab="manage-globe" title="Network/Sessions">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
                 </div>
                 <div class="manage-tab" data-tab="manage-gear" title="Account Settings">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 </div>
             </div>
             <div class="manage-content">
                 <div id="manage-loading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
                     <svg class="spinner" viewBox="0 0 50 50" style="width: 40px; height: 40px; margin-bottom: 16px;"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg>
-                    <span data-i18n="lbl_fetching_details">Fetching account details...</span>
+                    <span class="loading-text" data-i18n="lbl_fetching_details">Fetching account details</span>
                 </div>
                 
                 <div id="manage-home" class="manage-page" style="display: none; flex-direction: column; gap: 24px;">
@@ -2144,7 +2198,10 @@ const char* HTML_CONTENT = R"HTML(
                             let cookie = escapeHtml(acc.Cookie);
 
                             html += `
-                            <div class="card" data-cookie="${cookie}">
+                                                        <div class="card" data-cookie="${cookie}">
+                                <button class="btn-manage-account" onclick="event.stopPropagation(); openManageAccountModal('${cookie}', '${userId}', '${avatarSrc}', '${escapeHtml(acc.Username)}')" title="Manage Account">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                </button>
                                 <div class="card-header">
                                     <div class="avatar">
                                         <img src="${avatarSrc}" onerror="this.src='https://tr.rbxcdn.com/38c6edcb50633730ff4cf39458e0c139/150/150/AvatarHeadshot/Png'"/>
@@ -2168,9 +2225,7 @@ const char* HTML_CONTENT = R"HTML(
                                 </div>
                                 
                                 <div class="card-actions">
-                                    <button class="btn-launch" style="background: var(--bg-hover); color: var(--text-muted);" onclick="event.stopPropagation(); openManageAccountModal('${cookie}', '${userId}', '${avatarSrc}', '${escapeHtml(acc.Username)}')" title="Manage Account">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                                    </button>
+
                                     ${acc.Status === 3 ?
                                         `<button class="btn-launch btn-relogin" onclick="event.stopPropagation(); document.getElementById('btn-add-account').click()">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -2539,7 +2594,7 @@ const char* HTML_CONTENT = R"HTML(
             const translations = {
                 "en": {
                     "nav_accounts": "Accounts",
-                    "lbl_fetching_details": "Fetching account details...",
+                    "lbl_fetching_details": "Fetching account details",
                     "lbl_account_overview": "Account Overview",
                     "lbl_hide_identity": "Hide Username & User ID",
                     "desc_hide_identity": "Censor your account's username and user ID",
@@ -2670,7 +2725,7 @@ const char* HTML_CONTENT = R"HTML(
                     "desc_background": "Biarkan RoPilot berjalan di latar belakang saat jendela ditutup",
                     "lbl_auto_updates": "Pembaruan Otomatis",
                     "desc_auto_updates": "Unduh dan instal versi baru secara otomatis saat meluncurkan RoPilot",
-                    "lbl_fetching_details": "Mengambil rincian akun...",
+                    "lbl_fetching_details": "Mengambil rincian akun",
                     "lbl_account_overview": "Ringkasan Akun",
                     "lbl_hide_identity": "Sembunyikan Username & ID",
                     "desc_hide_identity": "Sensor username dan user ID akun Anda",
@@ -3454,6 +3509,31 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         else if (msg.action === 'start_update') {
                             window.chrome.webview.postMessage(JSON.stringify({ action: 'start_update' }));
                         }
+                        else if (msg.action === 'account_overview_data') {
+                            document.getElementById('manage-loading').style.display = 'none';
+                            document.getElementById('manage-home').style.display = 'flex';
+                            
+                            const isCensored = document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked;
+                            
+                            document.getElementById('mo-username').innerText = isCensored ? '******' : (msg.username || "-");
+                            document.getElementById('mo-displayname').innerText = isCensored ? '******' : (msg.displayName || "-");
+                            document.getElementById('mo-userid').innerText = isCensored ? '******' : (msg.userId || "-");
+                            document.getElementById('mo-robux').innerText = (msg.robux != null) ? msg.robux.toLocaleString() : "-";
+                            document.getElementById('mo-age').innerText = calculateAccountAge(msg.createdDate);
+                            
+                            let premiumEl = document.getElementById('mo-premium');
+                            if (msg.isPremium) {
+                                premiumEl.innerText = "Active";
+                                premiumEl.style.color = "#00b06f";
+                                premiumEl.style.fontWeight = "700";
+                            } else {
+                                premiumEl.innerText = "Inactive";
+                                premiumEl.style.color = "var(--text-muted)";
+                                premiumEl.style.fontWeight = "500";
+                            }
+                            
+                            updateTranslations();
+                        }
                         else if (msg.action === 'update_progress') {
                             let overlay = document.getElementById('update-overlay');
                             if (overlay) overlay.style.opacity = '1';
@@ -3500,5 +3580,80 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                     window.chrome.webview.postMessage(JSON.stringify({ action: 'resize', edge: edgeCode }));
                 });
             });
+
+        // Manage Account Modal Logic
+        let currentManageCookie = '';
+        let manageAccountModal = document.getElementById('manage-account-modal');
+        let manageTabs = document.querySelectorAll('.manage-tab');
+        
+        function calculateAccountAge(createdIsoStr) {
+            if (!createdIsoStr) return "-";
+            const createdDate = new Date(createdIsoStr);
+            const now = new Date();
+            const diffTime = Math.abs(now - createdDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const years = Math.floor(diffDays / 365);
+            const months = Math.floor((diffDays % 365) / 30);
+            
+            if (years > 0) {
+                return `${years} Year${years > 1 ? 's' : ''}, ${months} Month${months !== 1 ? 's' : ''}`;
+            } else if (months > 0) {
+                return `${months} Month${months > 1 ? 's' : ''}`;
+            } else {
+                return `${diffDays} Day${diffDays !== 1 ? 's' : ''}`;
+            }
+        }
+        
+        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {
+            currentManageCookie = cookie;
+            
+            // Set initial state
+            document.getElementById('manage-avatar').src = avatarSrc;
+            document.getElementById('manage-title-username').innerText = document.getElementById('setting-hide-identity') && document.getElementById('setting-hide-identity').checked ? '******' : username;
+            
+            document.getElementById('manage-loading').style.display = 'flex';
+            document.getElementById('manage-home').style.display = 'none';
+            document.getElementById('manage-placeholder').style.display = 'none';
+            
+            // Set home tab active
+            manageTabs.forEach(t => t.classList.remove('active'));
+            if(manageTabs.length > 0) manageTabs[0].classList.add('active');
+            
+            manageAccountModal.style.pointerEvents = 'auto';
+            manageAccountModal.style.opacity = '1';
+            manageAccountModal.querySelector('.modal-content').style.transform = 'scale(1)';
+            
+            window.chrome.webview.postMessage(JSON.stringify({
+                action: 'get_account_overview',
+                cookie: cookie,
+                userId: parseInt(userId)
+            }));
+        };
+        
+        window.closeManageAccountModal = function() {
+            manageAccountModal.style.pointerEvents = 'none';
+            manageAccountModal.style.opacity = '0';
+            manageAccountModal.querySelector('.modal-content').style.transform = 'scale(0.95)';
+        };
+        
+        manageTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                manageTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const target = tab.getAttribute('data-tab');
+                document.getElementById('manage-loading').style.display = 'none';
+                
+                if (target === 'manage-home') {
+                    document.getElementById('manage-home').style.display = 'flex';
+                    document.getElementById('manage-placeholder').style.display = 'none';
+                } else {
+                    document.getElementById('manage-home').style.display = 'none';
+                    document.getElementById('manage-placeholder').style.display = 'flex';
+                }
+            });
+        });
+
 </script>
 )HTML";
