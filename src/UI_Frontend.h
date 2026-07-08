@@ -1314,7 +1314,12 @@ const char* HTML_CONTENT = R"HTML(
                             <div class="setting-title" style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white;" data-i18n="lbl_accent_color">Accent Color</div>
                             <div class="setting-desc" style="font-size: 13px; color: var(--text-muted);" data-i18n="desc_accent_color">Customize the primary highlight color of the UI.</div>
                         </div>
-                        <input type="color" id="setting-accent-color" style="cursor: pointer; background: var(--bg-card); border: 1px solid var(--border-color); width: 36px; height: 36px; padding: 2px; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button id="btn-reset-accent-color" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center;" title="Reset Accent Color">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            </button>
+                            <input type="color" id="setting-accent-color" style="cursor: pointer; background: var(--bg-card); border: 1px solid var(--border-color); width: 36px; height: 36px; padding: 2px; border-radius: 8px;">
+                        </div>
                     </div>
                     <div class="setting-item" style="padding: 12px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
                         <div>
@@ -2890,6 +2895,7 @@ const char* HTML_CONTENT = R"HTML(
                     document.documentElement.style.setProperty('--accent-tint-active', e.target.value + '40');
                 });
                 accentColorInput.addEventListener('change', (e) => {
+                    accentColorInput.dataset.reset = 'false';
                     saveSettings();
                 });
             }
@@ -2966,7 +2972,7 @@ const char* HTML_CONTENT = R"HTML(
                     cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
                     backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2,
                     lightMode: lightModeToggle ? lightModeToggle.checked : false,
-                    accentColor: accentColorInput ? accentColorInput.value : "",
+                    accentColor: (accentColorInput && accentColorInput.dataset.reset !== "true") ? accentColorInput.value : "",
                     fontFamily: fontFamilyInput ? fontFamilyInput.value : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                     language: document.getElementById('setting-language') ? document.getElementById('setting-language').value : "en",
                     uiScale: document.getElementById('setting-ui-scale') ? parseFloat(document.getElementById('setting-ui-scale').value) : 1.0,
@@ -3093,7 +3099,18 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                     saveSettings();
                 });
             }
-let btnStartUpdate = document.getElementById('btn-start-update');
+            let btnResetAccent = document.getElementById('btn-reset-accent-color');
+            if (btnResetAccent && accentColorInput) {
+                btnResetAccent.addEventListener('click', () => {
+                    accentColorInput.dataset.reset = 'true';
+                    accentColorInput.value = '#ffffff';
+                    document.documentElement.style.removeProperty('--accent-color');
+                    document.documentElement.style.removeProperty('--accent-tint-hover');
+                    document.documentElement.style.removeProperty('--accent-tint-active');
+                    saveSettings();
+                });
+            }
+            let btnStartUpdate = document.getElementById('btn-start-update');
             if (btnStartUpdate) {
                 btnStartUpdate.addEventListener('click', () => {
                     document.getElementById('update-prompt-modal').classList.remove('show');
@@ -3129,12 +3146,15 @@ let btnStartUpdate = document.getElementById('btn-start-update');
                                 }
                             }
                             if (accentColorInput) {
-                                accentColorInput.value = msg.accentColor || '#ffffff';
                                 if (typeof msg.accentColor === 'string' && msg.accentColor.trim() !== '') {
+                                    accentColorInput.value = msg.accentColor;
+                                    accentColorInput.dataset.reset = 'false';
                                     document.documentElement.style.setProperty('--accent-color', msg.accentColor);
                                     document.documentElement.style.setProperty('--accent-tint-hover', msg.accentColor + '26');
                                     document.documentElement.style.setProperty('--accent-tint-active', msg.accentColor + '40');
                                 } else {
+                                    accentColorInput.value = '#ffffff';
+                                    accentColorInput.dataset.reset = 'true';
                                     document.documentElement.style.removeProperty('--accent-color');
                                     document.documentElement.style.removeProperty('--accent-tint-hover');
                                     document.documentElement.style.removeProperty('--accent-tint-active');

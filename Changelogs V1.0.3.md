@@ -11,4 +11,4 @@
 - **Smart Cookie Validation**: Sistem otomatis mengecek akun secara berkala di latar belakang. Jika *cookie* kedaluwarsa (401), antarmuka akan menampilkan status "Invalid Cookie" lengkap dengan indikator merah dan tombol "Re-Login".
 - **In-Place Re-Login**: Fitur *Re-Login* akan memperbarui *cookie* akun Anda secara langsung tanpa memindahkan/mengeluarkan akun tersebut dari pengaturan Grupnya.
 - **Add Account Modal Revamp**: Desain baru untuk antarmuka penambahan akun (via Browser & Cookie) yang menggunakan *modal pop-up* terpusat dengan animasi transisi yang mulus, dilengkapi dengan kotak peringatan keamanan *cookie*.
-- **Hide Username & User ID**: Fitur untuk menyembunyikan username dan user ID akun Anda (Dapat dinyalakan melalui Settings)
+- **Hide Username & User ID**: Fitur untuk menyembunyikan username dan user ID akun Anda (Dapat dinyalakan melalui Settings).
