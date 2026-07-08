@@ -9,6 +9,10 @@ const char* HTML_CONTENT = R"HTML(
     <title>RoPilot</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        @keyframes loadingSkeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
         /* CSS Reset & Variables */
         .custom-dropdown {
             position: relative;
@@ -1900,7 +1904,7 @@ const char* HTML_CONTENT = R"HTML(
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
                     <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <img id="outfit-current-avatar" src="" style="width: 200px; height: 200px; object-fit: contain; margin-bottom: 10px;" />
+                        <img id="outfit-current-avatar" src="" style="width: 250px; height: 250px; object-fit: contain; margin-top: -30px; margin-bottom: -10px;" />
                         <span id="outfit-current-name" style="font-weight: 600; color: var(--text-main); font-size: 18px;">-</span>
                     </div>
                     
@@ -2432,7 +2436,7 @@ const char* HTML_CONTENT = R"HTML(
                                 <div class="card">
                                     <div class="card-header" style="padding-bottom: 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px;">
                                         <div class="avatar">
-                                            <img src="${acc.ThumbnailUrl}" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-15E6D8A279B926E6C5779D6BA1D97ACD-Bc/150/150/AvatarHeadshot/Png/noFilter'">
+                                            <img src="${acc.ThumbnailUrl}" class="account-avatar" onerror="this.src='https://tr.rbxcdn.com/30DAY-AvatarHeadshot-15E6D8A279B926E6C5779D6BA1D97ACD-Bc/150/150/AvatarHeadshot/Png/noFilter'">
                                             <div class="status-dot green"></div>
                                         </div>
                                         <div class="user-info">
@@ -3797,24 +3801,54 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                 if (j.fullBodyUrl) {
                     document.getElementById('outfit-current-avatar').src = j.fullBodyUrl;
                 }
+                if (j.headshotUrl) {
+                    document.getElementById('manage-avatar').src = j.headshotUrl;
+                    let accountCardImg = document.querySelector(`.account-card[data-userid="${currentManageUserId}"] .account-avatar`);
+                    if (accountCardImg) accountCardImg.src = j.headshotUrl;
+                }
                 
                 if (j.data && j.data.length > 0) {
                     j.data.forEach(outfit => {
                         let div = document.createElement('div');
-                        div.style.cssText = 'background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px;';
-                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; div.style.borderColor = 'rgba(255,255,255,0.2)'; };
-                        div.onmouseout = () => { div.style.transform = 'translateY(0)'; div.style.borderColor = 'var(--border-color)'; };
+                        div.className = 'outfit-card';
+                        div.id = 'outfit-card-' + outfit.id;
+                        
+                        let isHighlighted = (window.currentWornOutfitId && window.currentWornOutfitId == outfit.id);
+                        let bgStyle = isHighlighted ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255,255,255,0.05)';
+                        let borderStyle = isHighlighted ? 'rgba(255, 255, 255, 0.5)' : 'var(--border-color)';
+                        
+                        div.style.cssText = `background: ${bgStyle}; border: 1px solid ${borderStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
+                        
+                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) div.style.borderColor = 'rgba(255,255,255,0.2)'; };
+                        div.onmouseout = () => { div.style.transform = 'translateY(0)'; if(!isHighlighted) div.style.borderColor = 'var(--border-color)'; };
                         div.onclick = () => { window.promptWearOutfit(outfit.id, outfit.name, outfit.imageUrl); };
                         
+                        // Loading animation logic
+                        let imgContainer = document.createElement('div');
+                        imgContainer.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; background: linear-gradient(90deg, var(--bg-main) 25%, rgba(255,255,255,0.1) 50%, var(--bg-main) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; margin-bottom: 8px; position: relative;';
+                        
                         let img = document.createElement('img');
+                        img.style.cssText = 'width: 100%; height: 100%; border-radius: 8px; object-fit: cover; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;';
+                        img.onload = () => {
+                            img.style.opacity = '1';
+                            imgContainer.style.animation = 'none';
+                        };
                         img.src = outfit.imageUrl || '';
-                        img.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: var(--bg-main); margin-bottom: 8px;';
+                        
+                        imgContainer.appendChild(img);
                         
                         let name = document.createElement('span');
                         name.innerText = outfit.name || 'Outfit ' + outfit.id;
                         name.style.cssText = 'font-size: 12px; font-weight: 500; color: var(--text-main); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;';
                         
-                        div.appendChild(img);
+                        if (isHighlighted) {
+                            let badge = document.createElement('div');
+                            badge.innerText = 'Worn';
+                            badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: white; color: black; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;';
+                            div.appendChild(badge);
+                        }
+                        
+                        div.appendChild(imgContainer);
                         div.appendChild(name);
                         grid.appendChild(div);
                     });
@@ -3858,9 +3892,10 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             btn.innerText = 'Wear';
             btn.disabled = false;
             
-            // Refresh modal avatar immediately by triggering manage_account reload
-            if(window.refreshManageAccount) window.refreshManageAccount();
-            // Also refetch outfits to update the top image
+            // Save the worn outfit ID
+            window.currentWornOutfitId = currentTargetOutfitId;
+            
+            // Refetch outfits to update the top image, account list image, and highlight the outfit!
             window.fetchOutfits();
         };
         
