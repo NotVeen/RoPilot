@@ -1903,8 +1903,8 @@ const char* HTML_CONTENT = R"HTML(
                 
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
-                    <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <div style="width: 250px; height: 250px; margin: -30px auto 10px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; position: relative;" id="outfit-current-avatar-container">
+                    <div style="padding: 0px 20px 0px 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
+                        <div style="width: 250px; height: 250px; margin: -30px auto 0px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite linear; position: relative;" id="outfit-current-avatar-container">
                             <img id="outfit-current-avatar" src="" style="width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;" onload="this.style.opacity='1'; let c = document.getElementById('outfit-current-avatar-container'); c.style.animation='none'; c.style.background='none';" />
                         </div>
                                             </div>
@@ -3821,13 +3821,13 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         div.id = 'outfit-card-' + outfit.id;
                         
                         let isHighlighted = (window.wornOutfitIds && window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
-                        let bgStyle = isHighlighted ? 'var(--bg-hover)' : 'rgba(255,255,255,0.05)';
+                        let bgStyle = isHighlighted ? 'var(--bg-hover)' : 'transparent';
                         let borderStyle = isHighlighted ? 'var(--primary-color)' : 'var(--border-color)';
                         let borderWidth = isHighlighted ? '2px' : '1px';
                         
                         div.style.cssText = `background: ${bgStyle}; border: ${borderWidth} solid ${borderStyle}; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;`;
                         
-                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) div.style.borderColor = 'rgba(255,255,255,0.2)'; };
+                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) div.style.borderColor = 'var(--text-muted)'; };
                         div.onmouseout = () => { div.style.transform = 'translateY(0)'; if(!isHighlighted) div.style.borderColor = 'var(--border-color)'; };
                         div.onclick = () => { window.promptWearOutfit(outfit.id, outfit.name, outfit.imageUrl); };
                         
@@ -3840,6 +3840,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         img.onload = () => {
                             img.style.opacity = '1';
                             imgContainer.style.animation = 'none';
+                            imgContainer.style.background = 'none';
                         };
                         img.src = outfit.imageUrl || '';
                         
