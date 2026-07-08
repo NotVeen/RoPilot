@@ -152,7 +152,7 @@ namespace RobloxAPI {
         
         // 2. Get Avatar Thumbnail
         if (info.UserId != 0) {
-            std::wstring path = L"/v1/users/avatar-headshot?userIds=" + std::to_wstring(info.UserId) + L"&size=150x150&format=Png&isCircular=true";
+            std::wstring path = L"/v1/users/avatar-headshot?userIds=" + std::to_wstring(info.UserId) + L"&size=150x150&format=Png";
             std::string thumbData = HttpRequest(L"GET", L"thumbnails.roblox.com", path, cookie, "", "", nullptr);
             try {
                 auto j = json::parse(thumbData);
