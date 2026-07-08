@@ -3791,11 +3791,19 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
         };
         
         let currentManageTabIndex = 0;
-        function updateTabIndicator(index, tabEl) {
+        function updateTabIndicator(index, tabEl, animate = true) {
             let indicator = document.getElementById('manage-tab-indicator');
             if (indicator && tabEl) {
-                indicator.style.width = tabEl.offsetWidth + 'px';
-                indicator.style.transform = 'translateX(' + tabEl.offsetLeft + 'px)';
+                if (!animate) {
+                    indicator.style.transition = 'none';
+                    indicator.style.width = tabEl.offsetWidth + 'px';
+                    indicator.style.transform = 'translateX(' + tabEl.offsetLeft + 'px)';
+                    void indicator.offsetWidth; // Force reflow
+                    indicator.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                } else {
+                    indicator.style.width = tabEl.offsetWidth + 'px';
+                    indicator.style.transform = 'translateX(' + tabEl.offsetLeft + 'px)';
+                }
             }
         }
         
@@ -3805,7 +3813,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             currentManageUserId = userId;
             origOpenManageAccountModal(cookie, userId, avatarSrc, username);
             currentManageTabIndex = 0;
-            setTimeout(() => { updateTabIndicator(0, manageTabs[0]); }, 50);
+            setTimeout(() => { updateTabIndicator(0, manageTabs[0], false); }, 50);
         };
 
         manageTabs.forEach((tab, index) => {
