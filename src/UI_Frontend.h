@@ -50,10 +50,10 @@ const char* HTML_CONTENT = R"HTML(
         [data-theme="light"] .setting-title { color: var(--text-main) !important; }
         [data-theme="light"] h1, [data-theme="light"] h2, [data-theme="light"] h3 { color: var(--text-main) !important; }
         [data-theme="light"] .hamburger-btn:hover { color: var(--text-main) !important; }
-        [data-theme="light"] .nav-item.active { background-color: #e5e7eb !important; color: var(--accent-color, var(--text-main)) !important; }
+        [data-theme="light"] .nav-item.active { background-color: var(--accent-color, #e5e7eb) !important; color: var(--text-main) !important; }
         [data-theme="light"] .nav-item::before { background-color: var(--accent-color, var(--text-main)) !important; }
         [data-theme="light"] .nav-text { color: inherit !important; }
-        [data-theme="light"] .btn-icon:hover { color: var(--accent-color, var(--text-main)) !important; background-color: var(--btn-hover) !important; }
+        [data-theme="light"] .btn-icon:hover { color: var(--text-main) !important; background-color: var(--accent-color, var(--btn-hover)) !important; }
         [data-theme="light"] .dropdown-menu { background: var(--bg-card) !important; color: var(--text-main) !important; }
         [data-theme="light"] .group-header { background: var(--bg-card) !important; }
 
@@ -271,7 +271,7 @@ const char* HTML_CONTENT = R"HTML(
         }
         
         .hamburger-btn:hover {
-            color: var(--accent-color, #fff);
+            color: #fff;
         }
 
         .nav-item {
@@ -356,13 +356,13 @@ const char* HTML_CONTENT = R"HTML(
         }
 
         .nav-item:hover {
-            background-color: var(--bg-hover);
-            color: var(--accent-color, var(--text-main));
+            background-color: var(--accent-color, var(--bg-hover));
+            color: var(--text-main);
         }
 
         .nav-item.active {
-            background-color: #1f1f1f;
-            color: var(--accent-color, #ffffff);
+            background-color: var(--accent-color, #1f1f1f);
+            color: #ffffff;
         }
 
         .sidebar-spacer {
