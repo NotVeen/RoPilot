@@ -3709,7 +3709,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
         
         window.onChangeDisplayNameSuccess = function(newName) {
             let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
-            showToast(isId ? "Nama Tampilan berhasil diubah!" : "Display Name changed successfully!", false);
+            window.showStatus(isId ? "Nama Tampilan berhasil diubah!" : "Display Name changed successfully!", false);
             
             // Immediate UI update
             document.getElementById('mo-displayname').innerText = newName;
@@ -3725,7 +3725,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             } else if (errorId === 'moderated') {
                 msg = isId ? "Nama Tampilan tidak lolos filter moderasi Roblox." : "Display Name did not pass Roblox moderation filters.";
             }
-            showToast((isId ? "Gagal: " : "Failed: ") + msg, true);
+            window.showStatus((isId ? "Gagal! " : "Failed! ") + msg, true);
         };
 
         window.refreshManageAccount = function() {
