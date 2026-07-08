@@ -1896,6 +1896,23 @@ const char* HTML_CONTENT = R"HTML(
                     </div>
                 </div>
                 
+                
+                <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
+                    <!-- Top section: Current Avatar Display -->
+                    <div style="background: var(--bg-hover); padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
+                        <img id="outfit-current-avatar" src="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; background: var(--bg-main); border: 2px solid var(--border-color);" />
+                        <span id="outfit-current-name" style="margin-top: 10px; font-weight: 600; color: var(--text-main); font-size: 16px;">-</span>
+                    </div>
+                    
+                    <!-- Middle section: Grid of Outfits -->
+                    <div style="padding: 20px; flex: 1;">
+                        <h3 data-i18n="lbl_outfits" style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--text-main);">Outfits</h3>
+                        <div id="outfits-loading" style="text-align: center; color: var(--text-muted); padding: 20px; display: none;">Loading outfits...</div>
+                        <div id="outfits-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 16px;">
+                            <!-- Outfits will be populated here -->
+                        </div>
+                    </div>
+                </div>
                 <div id="manage-placeholder" class="manage-page" style="display: none; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
                     <div style="text-align: center;">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px; opacity: 0.5;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
