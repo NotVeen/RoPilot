@@ -1393,7 +1393,7 @@ const char* HTML_CONTENT = R"HTML(
             <div id="page-accounts" class="page-container active">
                 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end;">
                     <div>
-                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;" data-i18n="lbl_manage_accounts">Utility</h1>
+                        <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700;" data-i18n="lbl_utility">Utility</h1>
                         <div class="page-subtitle" data-i18n="desc_accounts_page">Manage and monitor your connected Roblox accounts.</div>
                     </div>
                     <div style="display: flex; gap: 16px; align-items: center;">
@@ -1904,7 +1904,7 @@ const char* HTML_CONTENT = R"HTML(
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
                     <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <div style="width: 250px; height: 250px; margin: -30px auto -10px auto; border-radius: 12px; background: linear-gradient(90deg, var(--bg-main) 25%, rgba(255,255,255,0.1) 50%, var(--bg-main) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; position: relative;" id="outfit-current-avatar-container">
+                        <div style="width: 250px; height: 250px; margin: -30px auto -10px auto; border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; position: relative;" id="outfit-current-avatar-container">
                             <img id="outfit-current-avatar" src="" style="width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;" onload="this.style.opacity='1'; document.getElementById('outfit-current-avatar-container').style.animation='none';" />
                         </div>
                         <span id="outfit-current-name" style="font-weight: 600; color: var(--text-main); font-size: 18px;">-</span>
@@ -2736,7 +2736,8 @@ const char* HTML_CONTENT = R"HTML(
                     "desc_hide_identity": "Censor your account's username and user ID",
                     "nav_settings": "Settings",
                     "btn_add_account": "Add Account",
-                    "lbl_manage_accounts": "Utility",
+                    "lbl_manage_accounts": "Manage Accounts",
+                    "lbl_utility": "Utility",
                     "desc_accounts": "Launch an account to see real-time analytics",
                     "lbl_general": "General",
                     "lbl_always_on_top": "Always on Top",
@@ -2851,7 +2852,8 @@ const char* HTML_CONTENT = R"HTML(
                     "nav_accounts": "Akun",
                     "nav_settings": "Pengaturan",
                     "btn_add_account": "Tambah Akun",
-                    "lbl_manage_accounts": "Utilitas",
+                    "lbl_manage_accounts": "Kelola Akun",
+                    "lbl_utility": "Utilitas",
                     "desc_accounts": "Luncurkan akun untuk melihat analitik langsung",
                     "lbl_general": "Umum",
                     "lbl_always_on_top": "Selalu di Atas",
@@ -3779,6 +3781,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
 
         
         let currentTargetOutfitId = 0;
+        window.wornOutfitIds = {};
         
         window.fetchOutfits = function() {
             document.getElementById('outfits-loading').style.display = 'block';
@@ -3818,7 +3821,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         div.className = 'outfit-card';
                         div.id = 'outfit-card-' + outfit.id;
                         
-                        let isHighlighted = (window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
+                        let isHighlighted = (window.wornOutfitIds && window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
                         let bgStyle = isHighlighted ? 'var(--bg-hover)' : 'rgba(255,255,255,0.05)';
                         let borderStyle = isHighlighted ? 'var(--primary-color)' : 'var(--border-color)';
                         let borderWidth = isHighlighted ? '2px' : '1px';
@@ -3831,7 +3834,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         
                         // Loading animation logic
                         let imgContainer = document.createElement('div');
-                        imgContainer.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; background: linear-gradient(90deg, var(--bg-main) 25%, rgba(255,255,255,0.1) 50%, var(--bg-main) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; margin-bottom: 8px; position: relative;';
+                        imgContainer.style.cssText = 'width: 100%; aspect-ratio: 1; border-radius: 8px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loadingSkeleton 1.5s infinite; margin-bottom: 8px; position: relative;';
                         
                         let img = document.createElement('img');
                         img.style.cssText = 'width: 100%; height: 100%; border-radius: 8px; object-fit: cover; opacity: 0; transition: opacity 0.3s; position: absolute; top: 0; left: 0;';
