@@ -12,3 +12,5 @@
 - **In-Place Re-Login**: Fitur *Re-Login* akan memperbarui *cookie* akun Anda secara langsung tanpa memindahkan/mengeluarkan akun tersebut dari pengaturan Grupnya.
 - **Add Account Modal Revamp**: Desain baru untuk antarmuka penambahan akun (via Browser & Cookie) yang menggunakan *modal pop-up* terpusat dengan animasi transisi yang mulus, dilengkapi dengan kotak peringatan keamanan *cookie*.
 - **Hide Username & User ID**: Fitur untuk menyembunyikan username dan user ID akun Anda (Dapat dinyalakan melalui Settings).
+- **Manage Account Dashboard Revamp**: Peningkatan UI yang signifikan pada menu pengaturan individual akun, dengan penambahan data *account age*, status *premium* (Roblox Plus), dan informasi spesifik lainnya dalam *layout* yang elegan, lengkap dengan animasi antar halaman menu.
+- **Display Name Editing**: Kini Anda bisa langsung mengganti *Display Name* akun Anda lewat RoPilot. Aplikasi akan otomatis mengatur komunikasi *backend* secara mulus dengan integrasi validasi 7-hari khas Roblox.
