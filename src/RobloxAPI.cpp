@@ -141,6 +141,67 @@ namespace RobloxAPI {
         return true;
     }
 
+    bool GetOutfits(const std::string& cookie, const std::string& userId, std::string& outJson) {
+        std::wstring path = L"/v1/users/" + std::wstring(userId.begin(), userId.end()) + L"/outfits";
+        std::string outHeaders;
+        std::string response = HttpRequest(L"GET", L"avatar.roblox.com", path, cookie, "", "", &outHeaders);
+
+        try {
+            if (!response.empty()) {
+                auto j = json::parse(response);
+                if (j.contains("data")) {
+                    std::string outfitIds = "";
+                    for (const auto& outfit : j["data"]) {
+                        if (!outfitIds.empty()) outfitIds += ",";
+                        outfitIds += std::to_string(outfit["id"].get<int>());
+                    }
+                    
+                    if (!outfitIds.empty()) {
+                        std::wstring thumbPath = L"/v1/users/outfits?userOutfitIds=" + std::wstring(outfitIds.begin(), outfitIds.end()) + L"&size=150x150&format=Png&isCircular=false";
+                        std::string thumbRes = HttpRequest(L"GET", L"thumbnails.roblox.com", thumbPath, cookie, "", "", nullptr);
+                        
+                        auto t = json::parse(thumbRes);
+                        std::unordered_map<int, std::string> thumbnails;
+                        if (t.contains("data")) {
+                            for (const auto& thumb : t["data"]) {
+                                thumbnails[thumb["targetId"].get<int>()] = thumb["imageUrl"].get<std::string>();
+                            }
+                        }
+                        
+                        for (auto& outfit : j["data"]) {
+                            int id = outfit["id"].get<int>();
+                            if (thumbnails.count(id)) outfit["imageUrl"] = thumbnails[id];
+                            else outfit["imageUrl"] = "";
+                        }
+                    }
+                    outJson = j.dump();
+                    return true;
+                }
+            }
+        } catch (...) {}
+        outJson = "{}";
+        return false;
+    }
+
+    bool WearOutfit(const std::string& cookie, const std::string& outfitId, std::string& outError) {
+        std::string csrf = GetCSRFToken(cookie);
+        if (csrf.empty()) { outError = "Failed to obtain CSRF token."; return false; }
+        std::string headers = "x-csrf-token: " + csrf + "\r\nContent-Type: application/json\r\n";
+        std::wstring path = L"/v1/outfits/" + std::wstring(outfitId.begin(), outfitId.end()) + L"/wear";
+        std::string response = HttpRequest(L"POST", L"avatar.roblox.com", path, cookie, headers, "{}", nullptr);
+        try {
+            if (!response.empty()) {
+                auto j = json::parse(response);
+                if (j.contains("errors")) {
+                    outError = j["errors"][0]["message"].get<std::string>();
+                    return false;
+                }
+            }
+        } catch (...) {}
+        return true;
+    }
+
+
     bool GetPresence(const std::string& cookie, const std::string& userId, std::string& outJobId, int& outPresenceType) {
         std::string headers = "Content-Type: application/json\r\n";
         std::string body = "{\"userIds\": [" + userId + "]}";

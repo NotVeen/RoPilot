@@ -16,6 +16,8 @@ namespace RobloxAPI {
     std::string GetCSRFToken(const std::string& cookie);
     std::string GetAuthTicket(const std::string& cookie, const std::string& csrfToken);
     bool ChangeDisplayName(const std::string& cookie, const std::string& userId, const std::string& newName, std::string& outError);
+    bool GetOutfits(const std::string& cookie, const std::string& userId, std::string& outJson);
+    bool WearOutfit(const std::string& cookie, const std::string& outfitId, std::string& outError);
 
     // Get Presence using own cookie
     bool GetPresence(const std::string& cookie, const std::string& userId, std::string& outJobId, int& outPresenceType);

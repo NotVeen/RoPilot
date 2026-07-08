@@ -317,6 +317,53 @@ void ProcessWebMessage(const std::string& msg) {
                     std::string js = "if(window.onChangeDisplayNameError) window.onChangeDisplayNameError('" + errorId + "', '" + safeErrorMsg + "');";
                     PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
                 }
+                        }).detach();
+        }
+        else if (action == "get_outfits") {
+            std::string cookie = j.value("cookie", "");
+            std::string userId = j.value("userId", "");
+            std::thread([cookie, userId]() {
+                std::string outJson;
+                if (RobloxAPI::GetOutfits(cookie, userId, outJson)) {
+                    std::string escaped;
+                    for (char c : outJson) {
+                        if (c == '\\') escaped += "\\\\";
+                        else if (c == '"') escaped += "\\\"";
+                        else if (c == '\'') escaped += "\\\'";
+                        else escaped += c;
+                    }
+                    std::string js = "if(window.onReceiveOutfits) window.onReceiveOutfits('" + escaped + "');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                } else {
+                    std::string js = "if(window.onReceiveOutfitsError) window.onReceiveOutfitsError();";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                }
+            }).detach();
+        }
+        else if (action == "wear_outfit") {
+            std::string cookie = j.value("cookie", "");
+            std::string outfitId = j.value("outfitId", "");
+            std::thread([cookie, outfitId]() {
+                std::string outError;
+                if (RobloxAPI::WearOutfit(cookie, outfitId, outError)) {
+                    RobloxAPI::UserInfo info = RobloxAPI::GetUserInfo(cookie);
+                    if (info.UserId != 0) {
+                        g_accountManager.UpdateAccountInfo(cookie, info);
+                        g_accountManager.Save();
+                    }
+                    std::string js = "if(window.onWearOutfitSuccess) window.onWearOutfitSuccess();";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                    PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+                } else {
+                    std::string safeErrorMsg = outError;
+                    size_t pos = 0;
+                    while((pos = safeErrorMsg.find("'", pos)) != std::string::npos) {
+                        safeErrorMsg.replace(pos, 1, "\\'");
+                        pos += 2;
+                    }
+                    std::string js = "if(window.onWearOutfitError) window.onWearOutfitError('" + safeErrorMsg + "');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                }
             }).detach();
         }
         else if (action == "add_cookie") {

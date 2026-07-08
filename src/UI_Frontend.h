@@ -1899,9 +1899,9 @@ const char* HTML_CONTENT = R"HTML(
                 
                 <div id="manage-outfits" class="manage-page" style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto;">
                     <!-- Top section: Current Avatar Display -->
-                    <div style="background: var(--bg-hover); padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
-                        <img id="outfit-current-avatar" src="" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; background: var(--bg-main); border: 2px solid var(--border-color);" />
-                        <span id="outfit-current-name" style="margin-top: 10px; font-weight: 600; color: var(--text-main); font-size: 16px;">-</span>
+                    <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid var(--border-color);">
+                        <img id="outfit-current-avatar" src="" style="width: 200px; height: 200px; object-fit: contain; margin-bottom: 10px;" />
+                        <span id="outfit-current-name" style="font-weight: 600; color: var(--text-main); font-size: 18px;">-</span>
                     </div>
                     
                     <!-- Middle section: Grid of Outfits -->
@@ -3778,8 +3778,15 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             document.getElementById('outfits-loading').style.display = 'block';
             document.getElementById('outfits-grid').innerHTML = '';
             
-            // Set current avatar
-            document.getElementById('outfit-current-avatar').src = document.getElementById('manage-avatar').src;
+            // Fetch full body avatar
+            fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${currentManageUserId}&size=352x352&format=Png&isCircular=false`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.data && d.data[0]) {
+                        document.getElementById('outfit-current-avatar').src = d.data[0].imageUrl;
+                    }
+                }).catch(e => console.error(e));
+                
             document.getElementById('outfit-current-name').innerText = document.getElementById('manage-title-username').innerText;
             
             window.chrome.webview.postMessage(JSON.stringify({
