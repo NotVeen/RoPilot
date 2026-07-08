@@ -197,7 +197,6 @@ namespace Optimizer {
                                             g_TrimmedPids.erase(pe.th32ProcessID);
                                         }
                                     } else {
-                                        // It is in the background
                                         SetLowestPriority(hProc);
                                         SetProcessCpuLimit(hProc, pe.th32ProcessID, g_settingsManager.GetSettings().CpuLimiter ? g_settingsManager.GetSettings().BackgroundCpuLimit : 100);
                                         TrimWorkingSet(hProc, pe.th32ProcessID);

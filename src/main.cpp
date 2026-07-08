@@ -37,7 +37,6 @@ bool IsProcessRunning(DWORD pid) {
     return false;
 }
 
-// IsAnyRobloxRunning moved to Launcher.cpp
 
 using namespace Microsoft::WRL;
 using json = nlohmann::json;
@@ -60,7 +59,6 @@ ComPtr<ICoreWebView2Controller> g_webviewController;
 ComPtr<ICoreWebView2> g_webview;
 ComPtr<ICoreWebView2Environment> g_webviewEnv;
 
-// Forward declaration
 void UpdateUI();
 
 #define WM_TRAYICON (WM_USER + 1)
@@ -154,7 +152,6 @@ uint64_t FileTimeToUInt64(const FILETIME& ft) {
 void SendStatusMessage(const std::string& msg, bool isError) {
     if (!g_webview) return;
     std::string escapedMsg = msg;
-    // Basic escape
     size_t pos = 0;
     while ((pos = escapedMsg.find("'", pos)) != std::string::npos) {
         escapedMsg.replace(pos, 1, "\\'");
@@ -171,7 +168,6 @@ void ProcessWebMessage(const std::string& msg) {
         std::string action = j.value("action", "");
         
         if (action == "add_browser") {
-            // Need to spawn BrowserLogin
             BrowserLogin::OpenLoginBrowser(g_webviewEnv.Get(), [](const std::string& cookie) {
                 if (!cookie.empty()) {
                     if (g_accountManager.AddAccount(cookie)) {
@@ -195,7 +191,6 @@ void ProcessWebMessage(const std::string& msg) {
             int failedCount = 0;
             for (const auto& cItem : cookies) {
                 std::string cookie = cItem.get<std::string>();
-                // Trim string just in case
                 cookie.erase(0, cookie.find_first_not_of(" \t\r\n"));
                 cookie.erase(cookie.find_last_not_of(" \t\r\n") + 1);
                 
@@ -207,11 +202,11 @@ void ProcessWebMessage(const std::string& msg) {
                 }
             }
             if (addedCount > 0) {
-                std::string msg = std::to_string(addedCount) + " account(s) added successfully!";
+                std::string toastMsg = std::to_string(addedCount) + " account(s) added successfully!";
                 if (failedCount > 0) {
-                    msg += " (" + std::to_string(failedCount) + " failed)";
+                    toastMsg += " (" + std::to_string(failedCount) + " failed)";
                 }
-                SendStatusMessage(msg, false);
+                SendStatusMessage(toastMsg, false);
                 UpdateUI();
             } else {
                 SendStatusMessage("Failed to add accounts. Invalid or expired cookies?", true);
@@ -360,10 +355,8 @@ void ProcessWebMessage(const std::string& msg) {
                     g_pendingUpdateUrl = downloadUrl;
                     
                     if (g_settingsManager.GetSettings().AutoUpdate) {
-                        // Auto-start
                         PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string("window.postMessage({\"action\":\"start_update\"}, '*');"), 0);
                     } else {
-                        // Prompt user
                         json jOut;
                         jOut["action"] = "update_available";
                         jOut["version"] = newVersion;
@@ -412,7 +405,6 @@ void ProcessWebMessage(const std::string& msg) {
                     }
                 }
                 
-                // Keep any missing ones at the end just in case
                 for (auto& acc : currentAccounts) {
                     bool found = false;
                     for (auto& u : updatedAccounts) {
@@ -626,10 +618,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             g_showChangelog = true;
         }
 
-        // Initialize Mutex
         Launcher::InitializeMultiInstance();
 
-    // Load Accounts
     g_accountManager.Load();
 
     WNDCLASSEXW wcex = { sizeof(WNDCLASSEX) };
@@ -660,18 +650,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     AddTrayIcon(g_hWnd);
     SetStartupRegistry(g_settingsManager.GetSettings().RunOnStartup);
 
-    // Apply dark mode to the window border
     BOOL useDarkMode = TRUE;
     HMODULE hDwm = LoadLibraryW(L"dwmapi.dll");
     if (hDwm) {
         typedef HRESULT(WINAPI* DwmSetWindowAttributePtr)(HWND, DWORD, LPCVOID, DWORD);
         DwmSetWindowAttributePtr pDwmSetWindowAttribute = (DwmSetWindowAttributePtr)GetProcAddress(hDwm, "DwmSetWindowAttribute");
         if (pDwmSetWindowAttribute) {
-            // 20 is for Windows 11 and newer Windows 10 builds, 19 is for older Windows 10 builds
             pDwmSetWindowAttribute(g_hWnd, 20, &useDarkMode, sizeof(useDarkMode));
             pDwmSetWindowAttribute(g_hWnd, 19, &useDarkMode, sizeof(useDarkMode));
             
-            // Set window border color directly if available (Windows 11)
             #ifndef DWMWA_BORDER_COLOR
             #define DWMWA_BORDER_COLOR 34
             #endif
@@ -710,16 +697,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                 if (exitCode == STILL_ACTIVE) {
                                     isProcessAlive = true;
                                     
-                                    // Calculate Analytics
                                     AnalyticsState state = acc.Analytics;
                                     
-                                    // RAM
                                     PROCESS_MEMORY_COUNTERS pmc;
                                     if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
                                         state.ramUsageMB = (double)pmc.WorkingSetSize / (1024.0 * 1024.0);
                                     }
                                     
-                                    // CPU
                                     FILETIME idleTime, kernelTime, userTime;
                                     if (GetSystemTimes(&idleTime, &kernelTime, &userTime)) {
                                         FILETIME creationTime, processExitTime, processKernelTime, processUserTime;
@@ -778,7 +762,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             if (anyChanged && g_running) {
                 PostMessage(g_hWnd, WM_APP + 2, 0, 0);
             }
-            // Sleep for 30 seconds before next full check
             for (int i = 0; i < 30; ++i) {
                 if (!g_running) break;
                 Sleep(1000);
@@ -791,7 +774,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         return FALSE;
     }
 
-    // Initial region is handled by WM_SIZE
 
     ShowWindow(g_hWnd, nCmdShow);
     UpdateWindow(g_hWnd);
@@ -814,7 +796,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                 g_webviewController->get_CoreWebView2(&g_webview);
                             }
 
-                            // Disable DevTools and Context Menu
                             ICoreWebView2Settings* settings;
                             if (SUCCEEDED(g_webviewController->get_CoreWebView2(&g_webview)) && g_webview) {
                                 if (SUCCEEDED(g_webview->get_Settings(&settings)) && settings) {
@@ -824,7 +805,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                 }
                             }
 
-                            // Setup Message Received
                             EventRegistrationToken token;
                             g_webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>(
                                 [](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
@@ -839,12 +819,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                     return S_OK;
                                 }).Get(), &token);
 
-                            // Initial Size
                             RECT bounds;
                             GetClientRect(g_hWnd, &bounds);
                             g_webviewController->put_Bounds(bounds);
 
-                            // Load UI
 std::string html = HTML_CONTENT;
 if (g_settingsManager.GetSettings().LightMode) {
     size_t pos = html.find("<html lang=\"en\">");
@@ -859,7 +837,6 @@ if (g_settingsManager.GetSettings().LightMode) {
 }
 g_webview->NavigateToString(s2ws(html).c_str());
 
-                            // Populate Accounts after initial load
                             g_webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(
                                 [](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
                                     UpdateUI();

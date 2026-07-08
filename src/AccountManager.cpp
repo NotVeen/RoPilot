@@ -32,7 +32,6 @@ void AccountManager::Load() {
             jsonStr = std::string((char*)DataOut.pbData, DataOut.cbData);
             LocalFree(DataOut.pbData);
         } else {
-            // Fallback for older plaintext files
             jsonStr = std::string((char*)buffer.data(), buffer.size());
         }
 
@@ -73,9 +72,6 @@ void AccountManager::Load() {
 }
 
 void AccountManager::Save() {
-    // Save() is called from within locked contexts, so it shouldn't lock again to avoid deadlock.
-    // Or we can assume Save is private? It's public, but usually called internally.
-    // Let's copy accounts to a local array first to avoid holding lock during I/O.
     std::vector<Account> accsCopy;
     std::vector<std::string> groupsCopy;
     {
@@ -124,7 +120,6 @@ bool AccountManager::AddAccount(const std::string& cookie) {
     RobloxAPI::UserInfo info = RobloxAPI::GetUserInfo(cookie);
     if (info.UserId == 0) return false; // Invalid cookie
 
-    // Check if exists, update it
     bool exists = false;
     {
         std::lock_guard<std::mutex> lock(m_mutex);

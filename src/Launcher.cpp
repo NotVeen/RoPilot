@@ -121,7 +121,6 @@ namespace Launcher {
 
         ActiveClientLock::UnlockClient();
 
-        // Smart Update Checker
         std::string latestVersion = Updater::GetLatestRobloxVersion();
         bool needsUpdate = false;
         
@@ -136,11 +135,9 @@ namespace Launcher {
         }
         
         if (needsUpdate && !IsAnyRobloxRunning()) {
-            // Fall back to bootstrapper to allow updates
             ShellExecuteA(NULL, "open", uri.c_str(), NULL, NULL, SW_SHOWNORMAL);
             outPID = 0; // Temporarily 0
             
-            // Spawn background thread to find the newly launched process ID and update AccountManager
             std::thread([cookie]() {
                 for (int i = 0; i < 120; i++) {
                     Sleep(1000); // Check every second for up to 120 seconds
@@ -151,7 +148,6 @@ namespace Launcher {
                         if (Process32FirstW(hSnapshot, &pe32)) {
                             do {
                                 if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
-                                    // Found a running instance, assume it's the one we just launched
                                     g_accountManager.UpdateAccountProcess(cookie, 2, pe32.th32ProcessID);
                                     CloseHandle(hSnapshot);
                                     return; // Exit thread
@@ -190,9 +186,6 @@ namespace Launcher {
 
         outPID = pi.dwProcessId;
 
-        // Wait up to 15 seconds for the new process to initialize its Window.
-        // Once the window is visible, the singleton mutex is guaranteed to be created.
-        // Polling EnumWindows is completely free (0% CPU) compared to NtQuerySystemInformation!
         for (int i = 0; i < 150; i++) {
             if (HasWindow(outPID)) {
                 break;
@@ -200,7 +193,6 @@ namespace Launcher {
             Sleep(100);
         }
 
-        // Now close the Mutex. We try a few times just in case.
         for (int i = 0; i < 10; i++) {
             if (HandleCloser::CloseProcessRobloxHandle(outPID)) {
                 break;
@@ -214,8 +206,6 @@ namespace Launcher {
     }
 
     void InitializeMultiInstance() {
-        // Multi-instance is now handled via HandleCloser dynamically.
-        // We do not need to hold the singleton handles in RoPilot.
     }
 
     void ShutdownMultiInstance() {
