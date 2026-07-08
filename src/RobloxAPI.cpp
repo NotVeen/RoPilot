@@ -115,6 +115,32 @@ namespace RobloxAPI {
         return ExtractHeader(outHeaders, "rbx-authentication-ticket");
     }
 
+
+    bool ChangeDisplayName(const std::string& cookie, const std::string& userId, const std::string& newName, std::string& outError) {
+        std::string csrf = GetCSRFToken(cookie);
+        if (csrf.empty()) {
+            outError = "Failed to obtain CSRF token.";
+            return false;
+        }
+
+        std::string headers = "x-csrf-token: " + csrf + "\r\nContent-Type: application/json\r\n";
+        std::string body = "{\"newDisplayName\": \"" + newName + "\"}";
+        std::wstring path = L"/v1/users/" + std::wstring(userId.begin(), userId.end()) + L"/display-names";
+        std::string outHeaders;
+        std::string response = HttpRequest(L"PATCH", L"users.roblox.com", path, cookie, headers, body, &outHeaders);
+
+        try {
+            if (!response.empty()) {
+                auto j = json::parse(response);
+                if (j.contains("errors")) {
+                    outError = j["errors"][0]["message"].get<std::string>();
+                    return false;
+                }
+            }
+        } catch (...) {}
+        return true;
+    }
+
     bool GetPresence(const std::string& cookie, const std::string& userId, std::string& outJobId, int& outPresenceType) {
         std::string headers = "Content-Type: application/json\r\n";
         std::string body = "{\"userIds\": [" + userId + "]}";

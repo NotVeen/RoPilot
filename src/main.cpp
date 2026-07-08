@@ -286,6 +286,20 @@ void ProcessWebMessage(const std::string& msg) {
                 }).detach();
             }
         }
+        else if (action == "change_display_name") {
+            std::string cookie = j.value("cookie", "");
+            std::string userId = j.value("userId", "");
+            std::string newName = j.value("newName", "");
+            
+            std::string errorMsg;
+            if (RobloxAPI::ChangeDisplayName(cookie, userId, newName, errorMsg)) {
+                SendStatusMessage("Display Name changed successfully!", false);
+                std::string js = "if(window.refreshManageAccount) window.refreshManageAccount();";
+                g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
+            } else {
+                SendStatusMessage("Failed to change Display Name: " + errorMsg, true);
+            }
+        }
         else if (action == "add_cookie") {
             std::string cookie = j.value("cookie", "");
             if (g_accountManager.AddAccount(cookie)) {

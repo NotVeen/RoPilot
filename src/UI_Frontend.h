@@ -1846,11 +1846,16 @@ const char* HTML_CONTENT = R"HTML(
                         <div class="overview-item" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px; border-bottom: 1px solid var(--border-color);">
                             <div style="display: flex; align-items: center;">
                                 <div class="overview-icon" style="color: var(--text-muted); margin-right: 16px; width: 24px; display: flex; justify-content: center;">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
                                 </div>
                                 <span class="overview-label" data-i18n="lbl_display_name" style="font-size: 14px; color: var(--text-muted); font-weight: 500;">Display Name</span>
                             </div>
-                            <span class="overview-value" id="mo-displayname" style="font-size: 16px; color: var(--text-main); font-weight: 500;">-</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="overview-value" id="mo-displayname" style="font-size: 16px; color: var(--text-main); font-weight: 500;">-</span>
+                                <button class="btn-icon" id="btn-edit-displayname" style="width: 24px; height: 24px; padding: 4px;" title="Change Display Name" onclick="promptChangeDisplayName()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="overview-item" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 12px; border-bottom: 1px solid var(--border-color);">
                             <div style="display: flex; align-items: center;">
@@ -3653,17 +3658,20 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             
             const years = Math.floor(diffDays / 365);
             const months = Math.floor((diffDays % 365) / 30);
+            const days = diffDays - (years * 365) - (months * 30);
+            
+            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
             
             if (years > 0) {
-                return `${years} Year${years > 1 ? 's' : ''}, ${months} Month${months !== 1 ? 's' : ''}`;
+                return isId ? `${years} Tahun, ${months} Bulan, ${days} Hari` : `${years} Year${years > 1 ? 's' : ''}, ${months} Month${months !== 1 ? 's' : ''}, ${days} Day${days !== 1 ? 's' : ''}`;
             } else if (months > 0) {
-                return `${months} Month${months > 1 ? 's' : ''}`;
+                return isId ? `${months} Bulan, ${days} Hari` : `${months} Month${months !== 1 ? 's' : ''}, ${days} Day${days !== 1 ? 's' : ''}`;
             } else {
-                return `${diffDays} Day${diffDays !== 1 ? 's' : ''}`;
+                return isId ? `${diffDays} Hari` : `${diffDays} Day${diffDays !== 1 ? 's' : ''}`;
             }
         }
         
-        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {
+        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {\n            currentManageUserId = userId;
             currentManageCookie = cookie;
             
             // Set initial state
@@ -3706,7 +3714,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
         
         // initialize indicator on modal open
         const origOpenManageAccountModal = window.openManageAccountModal;
-        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {
+        window.openManageAccountModal = function(cookie, userId, avatarSrc, username) {\n            currentManageUserId = userId;
             origOpenManageAccountModal(cookie, userId, avatarSrc, username);
             currentManageTabIndex = 0;
             setTimeout(() => { updateTabIndicator(0, manageTabs[0]); }, 50);
