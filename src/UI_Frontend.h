@@ -3783,11 +3783,6 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
 
         
         let currentTargetOutfitId = 0;
-        window.wornOutfitIds = {};
-        try {
-            let saved = localStorage.getItem('wornOutfitIds');
-            if (saved) window.wornOutfitIds = JSON.parse(saved);
-        } catch(e) {}
 
         
         window.fetchOutfits = function() {
@@ -3857,16 +3852,9 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         div.className = 'outfit-card';
                         div.id = 'outfit-card-' + outfit.id;
                         
-                        let isHighlighted = (window.wornOutfitIds && window.wornOutfitIds[currentManageUserId] && window.wornOutfitIds[currentManageUserId] == outfit.id);
-                        
-                        if (isHighlighted) {
-                            div.style.cssText = 'background: rgba(59,130,246,0.08); border: 2px solid var(--primary-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative; box-shadow: 0 0 12px rgba(59,130,246,0.25);';
-                        } else {
-                            div.style.cssText = 'background: transparent; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;';
-                        }
-                        
-                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; if(!isHighlighted) { div.style.borderColor = 'var(--text-muted)'; div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; } };
-                        div.onmouseout = () => { div.style.transform = 'translateY(0)'; if(!isHighlighted) { div.style.borderColor = 'var(--border-color)'; div.style.boxShadow = 'none'; } };
+                        div.style.cssText = 'background: transparent; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; align-items: center; padding: 12px; position: relative;';
+                        div.onmouseover = () => { div.style.transform = 'translateY(-2px)'; div.style.borderColor = 'var(--text-muted)'; div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; };
+                        div.onmouseout = () => { div.style.transform = 'translateY(0)'; div.style.borderColor = 'var(--border-color)'; div.style.boxShadow = 'none'; };
                         div.onclick = () => { window.promptWearOutfit(outfit.id, outfit.name, outfit.imageUrl); };
                         
                         // Loading animation logic
@@ -3888,14 +3876,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
                         name.innerText = outfit.name || 'Outfit ' + outfit.id;
                         name.style.cssText = 'font-size: 12px; font-weight: 500; color: var(--text-main); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;';
                         
-                        if (isHighlighted) {
-                            let badge = document.createElement('div');
-                            badge.className = 'worn-badge';
-                            let isId = (document.getElementById('setting-language') && document.getElementById('setting-language').value === 'id');
-                            badge.innerText = isId ? 'Dipakai' : 'Worn';
-                            badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: var(--primary-color); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;';
-                            div.appendChild(badge);
-                        }
+
                         
                         div.appendChild(imgContainer);
                         div.appendChild(name);
@@ -3941,36 +3922,7 @@ let autoUpdateToggle = document.getElementById('setting-auto-update');
             btn.innerText = 'Wear';
             btn.disabled = false;
             
-            // Save worn outfit ID
-            if (!window.wornOutfitIds) window.wornOutfitIds = {};
-            window.wornOutfitIds[currentManageUserId] = currentTargetOutfitId;
-            localStorage.setItem('wornOutfitIds', JSON.stringify(window.wornOutfitIds));
-            
-            // Immediately update highlight on current grid without refetch
-            document.querySelectorAll('.outfit-card').forEach(card => {
-                let cardId = card.id.replace('outfit-card-', '');
-                let isWorn = (cardId == currentTargetOutfitId);
-                if (isWorn) {
-                    card.style.border = '2px solid var(--primary-color)';
-                    card.style.background = 'rgba(59,130,246,0.08)';
-                    card.style.boxShadow = '0 0 12px rgba(59,130,246,0.25)';
-                } else {
-                    card.style.border = '1px solid var(--border-color)';
-                    card.style.background = 'transparent';
-                    card.style.boxShadow = 'none';
-                }
-                // Add or remove badge
-                let existingBadge = card.querySelector('.worn-badge');
-                if (isWorn && !existingBadge) {
-                    let badge = document.createElement('div');
-                    badge.className = 'worn-badge';
-                    badge.innerText = isId ? 'Dipakai' : 'Worn';
-                    badge.style.cssText = 'position: absolute; top: 6px; right: 6px; background: var(--primary-color); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;';
-                    card.appendChild(badge);
-                } else if (!isWorn && existingBadge) {
-                    existingBadge.remove();
-                }
-            });
+
             
             // Refetch outfits to update fullbody avatar with a small delay 
             // to allow Roblox CDN to propagate the new avatar

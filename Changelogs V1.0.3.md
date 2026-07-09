@@ -14,3 +14,4 @@
 - **Hide Username & User ID**: Fitur untuk menyembunyikan username dan user ID akun Anda (Dapat dinyalakan melalui Settings).
 - **Manage Account Dashboard Revamp**: Peningkatan UI yang signifikan pada menu pengaturan individual akun, dengan penambahan data *account age*, status *premium* (Roblox Plus), dan informasi spesifik lainnya dalam *layout* yang elegan, lengkap dengan animasi antar halaman menu.
 - **Display Name Editing**: Kini Anda bisa langsung mengganti *Display Name* akun Anda lewat RoPilot. Aplikasi akan otomatis mengatur komunikasi *backend* secara mulus dengan integrasi validasi 7-hari khas Roblox.
+- **Outfit Highlight Removed**: Fitur highlight outfit (termasuk penyimpanan status outfit yang dipakai) telah dihapus untuk menyederhanakan antarmuka.
