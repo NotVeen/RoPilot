@@ -319,6 +319,33 @@ void ProcessWebMessage(const std::string& msg) {
                 }
                         }).detach();
         }
+        else if (action == "get_recent_games") {
+            std::string cookie = j.value("cookie", "");
+            std::thread([cookie]() {
+                std::string outJson;
+                if (RobloxAPI::GetRecentGames(cookie, outJson)) {
+                    std::string escaped;
+                    for (char c : outJson) {
+                        if (c == '\\') escaped += "\\\\";
+                        else if (c == '"') escaped += "\\\"";
+                        else if (c == '\'') escaped += "\\\'";
+                        else escaped += c;
+                    }
+                    std::string js = "if(window.onReceiveRecentGames) window.onReceiveRecentGames('" + escaped + "');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                } else {
+                    std::string escaped;
+                    for (char c : outJson) {
+                        if (c == '\\') escaped += "\\\\";
+                        else if (c == '"') escaped += "\\\"";
+                        else if (c == '\'') escaped += "\\\'";
+                        else escaped += c;
+                    }
+                    std::string js = "if(window.onReceiveRecentGamesError) window.onReceiveRecentGamesError('" + escaped + "');";
+                    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+                }
+            }).detach();
+        }
         else if (action == "get_outfits") {
             std::string cookie = j.value("cookie", "");
             std::string userId = j.value("userId", "");
@@ -338,6 +365,43 @@ void ProcessWebMessage(const std::string& msg) {
                     std::string js = "if(window.onReceiveOutfitsError) window.onReceiveOutfitsError();";
                     PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
                 }
+            }).detach();
+        }
+        else if (action == "get_avatar") {
+            std::string cookie = j.value("cookie", "");
+            std::string userId = j.value("userId", "");
+            std::thread([cookie, userId]() {
+                json jOut;
+                std::wstring cacheBuster = L"&v=" + std::to_wstring(std::time(nullptr));
+                
+                std::wstring fullBodyPath = L"/v1/users/avatar?userIds=" + std::wstring(userId.begin(), userId.end()) + L"&size=352x352&format=Png&isCircular=false" + cacheBuster;
+                std::string fullBodyRes = RobloxAPI::HttpRequest(L"GET", L"thumbnails.roblox.com", fullBodyPath, cookie, "", "", nullptr);
+                try {
+                    auto fb = json::parse(fullBodyRes);
+                    if (fb.contains("data") && fb["data"].size() > 0 && fb["data"][0]["imageUrl"].is_string() && fb["data"][0].value("state", "") == "Completed") {
+                        jOut["fullBodyUrl"] = fb["data"][0]["imageUrl"].get<std::string>();
+                    } else { jOut["fullBodyUrl"] = ""; }
+                } catch (...) { jOut["fullBodyUrl"] = ""; }
+                
+                std::wstring headshotPath = L"/v1/users/avatar-headshot?userIds=" + std::wstring(userId.begin(), userId.end()) + L"&size=150x150&format=Png&isCircular=false" + cacheBuster;
+                std::string headshotRes = RobloxAPI::HttpRequest(L"GET", L"thumbnails.roblox.com", headshotPath, cookie, "", "", nullptr);
+                try {
+                    auto hs = json::parse(headshotRes);
+                    if (hs.contains("data") && hs["data"].size() > 0 && hs["data"][0]["imageUrl"].is_string() && hs["data"][0].value("state", "") == "Completed") {
+                        jOut["headshotUrl"] = hs["data"][0]["imageUrl"].get<std::string>();
+                    } else { jOut["headshotUrl"] = ""; }
+                } catch (...) { jOut["headshotUrl"] = ""; }
+                
+                std::string payload = jOut.dump();
+                std::string escaped;
+                for (char c : payload) {
+                    if (c == '\\') escaped += "\\\\";
+                    else if (c == '"') escaped += "\\\"";
+                    else if (c == '\'') escaped += "\\\'";
+                    else escaped += c;
+                }
+                std::string js = "if(window.onReceiveAvatar) window.onReceiveAvatar('" + escaped + "');";
+                PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
             }).detach();
         }
         else if (action == "wear_outfit") {
@@ -382,33 +446,46 @@ void ProcessWebMessage(const std::string& msg) {
         else if (action == "launch") {
             std::string cookie = j.value("cookie", "");
             std::string placeId = j.value("placeId", "");
+            std::string linkCode = j.value("linkCode", "");
+            bool forceRejoin = j.value("forceRejoin", false);
             
             bool alreadyRunning = false;
+            DWORD existingPid = 0;
             std::string username = "Account";
             for (const auto& acc : g_accountManager.GetAccounts()) {
                 if (acc.Cookie == cookie) {
                     username = acc.Info.Username;
                     if (acc.ProcessId != 0 && IsProcessRunning(acc.ProcessId)) {
                         alreadyRunning = true;
+                        existingPid = acc.ProcessId;
                     }
                     break;
                 }
             }
             if (alreadyRunning) {
-                SendStatusMessage(username + " is already running!", true);
-                return;
+                if (forceRejoin && existingPid != 0) {
+                    HANDLE hProc = OpenProcess(PROCESS_TERMINATE, FALSE, existingPid);
+                    if (hProc != NULL) {
+                        TerminateProcess(hProc, 0);
+                        CloseHandle(hProc);
+                        Sleep(500);
+                    }
+                } else {
+                    SendStatusMessage(username + " is already running!", true);
+                    return;
+                }
             }
 
             g_accountManager.UpdateAccountProcess(cookie, 1, 0);
             PostMessage(g_hWnd, WM_APP + 2, 0, 0);
 
-            std::thread([cookie, placeId, username]() {
+            std::thread([cookie, placeId, linkCode, username]() {
                 static std::mutex launchMutex;
                 std::lock_guard<std::mutex> lock(launchMutex);
                 
                 std::string errorMsg;
                 DWORD outPID = 0;
-                if (Launcher::LaunchAccount(cookie, placeId, errorMsg, outPID)) {
+                if (Launcher::LaunchAccount(cookie, placeId, linkCode, errorMsg, outPID)) {
                     g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
                     
                     std::lock_guard<std::mutex> toastLock(g_toastMutex);
@@ -421,6 +498,12 @@ void ProcessWebMessage(const std::string& msg) {
                 }
                 PostMessage(g_hWnd, WM_APP + 2, 0, 0);
             }).detach();
+        }
+        else if (action == "save_account_game") {
+            std::string cookie = j.value("cookie", "");
+            std::string placeId = j.value("placeId", "");
+            std::string psLink = j.value("psLink", "");
+            g_accountManager.UpdateAccountGame(cookie, placeId, psLink);
         }
         else if (action == "close") {
             PostMessage(g_hWnd, WM_CLOSE, 0, 0);
@@ -646,6 +729,8 @@ void UpdateUI() {
         jAcc["JobId"] = acc.JobId;
         jAcc["ProcessId"] = acc.ProcessId;
         jAcc["Group"] = acc.Group;
+        jAcc["PlaceId"] = acc.PlaceId;
+        jAcc["PrivateServerLink"] = acc.PrivateServerLink;
         
         jAcc["CpuUsage"] = acc.Analytics.cpuUsage;
         jAcc["RamUsage"] = acc.Analytics.ramUsageMB;

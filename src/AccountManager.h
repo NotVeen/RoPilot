@@ -22,6 +22,8 @@ struct Account {
     std::string JobId = "";
     DWORD ProcessId = 0;
     std::string Group = "Ungrouped";
+    std::string PlaceId = "";
+    std::string PrivateServerLink = "";
     AnalyticsState Analytics;
 };
 
@@ -43,6 +45,7 @@ public:
     void UpdateAccountProcess(const std::string& cookie, int status, DWORD processId);
     void UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics);
     void UpdateAccountInfo(const std::string& cookie, const RobloxAPI::UserInfo& info);
+    void UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink);
 
 private:
     std::string m_FilePath;

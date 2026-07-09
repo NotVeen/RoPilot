@@ -57,6 +57,8 @@ void AccountManager::Load() {
                     acc.Info.UserId = item.value("UserId", 0LL);
                     acc.Info.ThumbnailUrl = item.value("ThumbnailUrl", "");
                     acc.Group = item.value("Group", "Ungrouped");
+                    acc.PlaceId = item.value("PlaceId", "");
+                    acc.PrivateServerLink = item.value("PrivateServerLink", "");
                     m_Accounts.push_back(acc);
                 }
             }
@@ -90,6 +92,8 @@ void AccountManager::Save() {
         item["UserId"] = acc.Info.UserId;
         item["ThumbnailUrl"] = acc.Info.ThumbnailUrl;
         item["Group"] = acc.Group;
+        item["PlaceId"] = acc.PlaceId;
+        item["PrivateServerLink"] = acc.PrivateServerLink;
         accountsArray.push_back(item);
     }
     j["accounts"] = accountsArray;
@@ -167,7 +171,6 @@ std::vector<Account> AccountManager::GetAccounts() {
     return m_Accounts;
 }
 
-
 void AccountManager::UpdateAccountProcess(const std::string& cookie, int status, DWORD processId) {
     std::lock_guard<std::mutex> lock(m_mutex);
     for (auto& acc : m_Accounts) {
@@ -228,6 +231,26 @@ void AccountManager::UpdateAccountInfo(const std::string& cookie, const RobloxAP
             if (acc.Cookie == cookie) {
                 if (acc.Info.ThumbnailUrl != info.ThumbnailUrl || acc.Info.Username != info.Username || acc.Info.DisplayName != info.DisplayName) {
                     acc.Info = info;
+                    changed = true;
+                }
+                break;
+            }
+        }
+    }
+    if (changed) {
+        Save();
+    }
+}
+
+void AccountManager::UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink) {
+    bool changed = false;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (auto& acc : m_Accounts) {
+            if (acc.Cookie == cookie) {
+                if (acc.PlaceId != placeId || acc.PrivateServerLink != psLink) {
+                    acc.PlaceId = placeId;
+                    acc.PrivateServerLink = psLink;
                     changed = true;
                 }
                 break;

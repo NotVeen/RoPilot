@@ -9,7 +9,7 @@ RoPilot is a C++ based multi-instance account manager for Roblox. Basically, it 
 
 ### Key Features:
 - **True Multi-Instancing:** Bypasses Roblox's single-client limit natively so you can run as many accounts as your PC can physically handle.
-- **Account Management:** Securely save your accounts using their `.ROBLOSECURITY` cookies.
+- **Account Management:** Securely save your accounts using their `.ROBLOSECURITY` cookies locally.
 - **Group Sorting:** Neatly group your accounts together (e.g., "Mains", "Alts") for a cleaner workspace.
 - **Instant Kill Switch:** Rapidly terminate every active Roblox process instantly via native Windows APIs.
 - **Modern UI:** Built on a super lightweight WebView2 frontend. It features dark/light modes, customizable fonts, UI scaling, smooth animations, and toast notifications.

@@ -20,6 +20,9 @@ void LogDebug(const std::string& msg) {
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
+#include <mutex>
+#include <ctime>
 
 #pragma comment(lib, "winhttp.lib")
 
@@ -117,10 +120,27 @@ namespace RobloxAPI {
         return response;
     }
 
+    static std::unordered_map<std::string, std::pair<std::string, time_t>> g_csrfCache;
+    static std::mutex g_csrfMutex;
+
     std::string GetCSRFToken(const std::string& cookie) {
+        {
+            std::lock_guard<std::mutex> lock(g_csrfMutex);
+            auto it = g_csrfCache.find(cookie);
+            if (it != g_csrfCache.end() && time(nullptr) < it->second.second) {
+                return it->second.first;
+            }
+        }
+        
         std::string outHeaders;
         HttpRequest(L"POST", L"auth.roblox.com", L"/v2/logout", cookie, "", "", &outHeaders);
-        return ExtractHeader(outHeaders, "x-csrf-token");
+        std::string token = ExtractHeader(outHeaders, "x-csrf-token");
+        
+        if (!token.empty()) {
+            std::lock_guard<std::mutex> lock(g_csrfMutex);
+            g_csrfCache[cookie] = {token, time(nullptr) + 300}; // Cache for 5 minutes
+        }
+        return token;
     }
 
     std::string GetAuthTicket(const std::string& cookie, const std::string& csrfToken) {
@@ -386,5 +406,138 @@ namespace RobloxAPI {
         }
         
         return data;
+    }
+
+    bool GetRecentGames(const std::string& cookie, std::string& outJson) {
+        std::string csrf = GetCSRFToken(cookie);
+        if (csrf.empty()) {
+            outJson = "[{\"error\": \"CSRF_FAILED\"}]";
+            return false;
+        }
+
+        std::string body = "{\"sessionId\":\"00000000-0000-0000-0000-000000000000\",\"pageType\":\"Home\",\"sessionIdHasBeenUsed\":false}";
+        std::string extraHeaders = "Content-Type: application/json\r\nAccept: application/json\r\nX-CSRF-TOKEN: " + csrf + "\r\n";
+
+        std::string res = HttpRequest(L"POST", L"apis.roblox.com", L"/discovery-api/omni-recommendation", cookie, extraHeaders, body);
+        
+        if (res.empty()) {
+            outJson = "[{\"error\": \"EMPTY_RESPONSE\"}]";
+            return false;
+        }
+
+        try {
+            json resJson = json::parse(res);
+            json gamesList = json::array();
+            
+            if (resJson.contains("sorts") && resJson["sorts"].is_array()) {
+                for (auto& sort : resJson["sorts"]) {
+                    std::string topic = sort.value("topic", "");
+                    long long topicId = sort.value("topicId", 0LL);
+                    if ((topic == "Continue" || topicId == 100000003) && sort.contains("recommendationList")) {
+                        for (auto& rec : sort["recommendationList"]) {
+                            long long universeId = rec.value("universeId", 0LL);
+                            if (universeId == 0) universeId = rec.value("contentId", 0LL);
+                            if (universeId != 0) {
+                                json game;
+                                game["universeId"] = universeId;
+                                gamesList.push_back(game);
+                                if (gamesList.size() >= 40) break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (!gamesList.empty()) {
+                std::string universeIds = "";
+                for (size_t i = 0; i < gamesList.size(); ++i) {
+                    if (i > 0) universeIds += ",";
+                    universeIds += std::to_string(gamesList[i]["universeId"].get<long long>());
+                }
+                
+                // Fetch basic game info including active players
+                std::wstring gamesPath = L"/v1/games?universeIds=" + s2ws(universeIds);
+                std::string gamesRes = HttpRequest(L"GET", L"games.roblox.com", gamesPath, cookie);
+                
+                // Fetch upVotes and downVotes
+                std::wstring votesPath = L"/v1/games/votes?universeIds=" + s2ws(universeIds);
+                std::string votesRes = HttpRequest(L"GET", L"games.roblox.com", votesPath, cookie);
+                
+                if (!gamesRes.empty()) {
+                    try {
+                        json gamesJson = json::parse(gamesRes);
+                        json votesJson = json::object();
+                        if (!votesRes.empty()) {
+                            try { votesJson = json::parse(votesRes); } catch (...) {}
+                        }
+                        
+                        if (gamesJson.contains("data") && gamesJson["data"].is_array()) {
+                            for (auto& gData : gamesJson["data"]) {
+                                long long tUid = gData.value("id", 0LL);
+                                for (auto& g : gamesList) {
+                                    if (g["universeId"] == tUid) {
+                                        g["name"] = gData.value("name", "Unknown");
+                                        g["rootPlaceId"] = gData.value("rootPlaceId", 0LL);
+                                        g["id"] = g["rootPlaceId"];
+                                        g["playing"] = gData.value("playing", 0LL);
+                                        
+                                        // Calculate like percentage
+                                        int likeRatio = 0;
+                                        if (votesJson.contains("data") && votesJson["data"].is_array()) {
+                                            for (auto& vData : votesJson["data"]) {
+                                                if (vData.value("id", 0LL) == tUid) {
+                                                    long long up = vData.value("upVotes", 0LL);
+                                                    long long down = vData.value("downVotes", 0LL);
+                                                    if (up + down > 0) {
+                                                        likeRatio = (int)((double)up / (up + down) * 100.0);
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        g["likeRatio"] = likeRatio;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (...) {}
+                }
+                
+                json validGames = json::array();
+                for (auto& g : gamesList) {
+                    if (g.contains("rootPlaceId") && g["rootPlaceId"] != 0) {
+                        validGames.push_back(g);
+                    }
+                }
+                gamesList = validGames;
+                
+                std::wstring path = L"/v1/games/icons?universeIds=" + s2ws(universeIds) + L"&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false";
+                std::string thumbRes = HttpRequest(L"GET", L"thumbnails.roblox.com", path, cookie);
+                if (!thumbRes.empty()) {
+                    try {
+                        json thumbJson = json::parse(thumbRes);
+                        if (thumbJson.contains("data") && thumbJson["data"].is_array()) {
+                            for (auto& thumb : thumbJson["data"]) {
+                                long long tUid = thumb.value("targetId", 0LL);
+                                std::string tUrl = thumb.value("imageUrl", "");
+                                for (auto& g : gamesList) {
+                                    if (g["universeId"] == tUid) {
+                                        g["thumbnail"] = tUrl;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (...) {}
+                }
+            }
+            
+            outJson = gamesList.dump();
+            return true;
+        } catch (...) {
+            outJson = "[{\"error\": \"RATE_LIMIT_OR_JSON_FAILED\"}]";
+            return false;
+        }
     }
 }

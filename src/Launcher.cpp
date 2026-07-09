@@ -9,6 +9,7 @@
 #include <thread>
 #include <tlhelp32.h>
 #include <iostream>
+#include <regex>
 #include "ActiveClientLock.h"
 #include "AccountManager.h"
 
@@ -95,7 +96,7 @@ namespace Launcher {
         return running;
     }
 
-    bool LaunchAccount(const std::string& cookie, const std::string& placeId, std::string& outError, DWORD& outPID) {
+    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, std::string& outError, DWORD& outPID) {
         std::string robloxPath = FindRobloxExecutable();
         if (robloxPath.empty()) {
             outError = "Could not find RobloxPlayerBeta.exe! Please launch Roblox once.";
@@ -115,8 +116,120 @@ namespace Launcher {
         }
 
         std::string uri = "roblox-player:1+launchmode:play+gameinfo:" + ticket;
-        if (!placeId.empty()) {
-            uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGame%26placeId%3D" + placeId + "%26isPlayTogetherGame%3Dfalse";
+        std::string localPlaceId = placeId;
+        std::string extractedLinkCode = linkCode;
+        bool isShareLink = false;
+
+        if (localPlaceId.empty() && !extractedLinkCode.empty()) {
+            size_t gamesPos = extractedLinkCode.find("/games/");
+            if (gamesPos != std::string::npos) {
+                size_t idStart = gamesPos + 7;
+                size_t idEnd = extractedLinkCode.find('/', idStart);
+                if (idEnd == std::string::npos) idEnd = extractedLinkCode.find('?', idStart);
+                if (idEnd != std::string::npos) {
+                    localPlaceId = extractedLinkCode.substr(idStart, idEnd - idStart);
+                } else {
+                    localPlaceId = extractedLinkCode.substr(idStart);
+                }
+            }
+        }
+
+        if (!localPlaceId.empty() || !extractedLinkCode.empty()) {
+            std::string resolveUrl = "";
+            size_t pos = extractedLinkCode.find("privateServerLinkCode=");
+            if (pos != std::string::npos) {
+                extractedLinkCode = extractedLinkCode.substr(pos + 22);
+                size_t ampersand = extractedLinkCode.find('&');
+                if (ampersand != std::string::npos) {
+                    extractedLinkCode = extractedLinkCode.substr(0, ampersand);
+                }
+            } else {
+                pos = extractedLinkCode.find("share?code=");
+                if (pos != std::string::npos) {
+                    extractedLinkCode = extractedLinkCode.substr(pos + 11);
+                    size_t ampersand = extractedLinkCode.find('&');
+                    if (ampersand != std::string::npos) {
+                        extractedLinkCode = extractedLinkCode.substr(0, ampersand);
+                    }
+                    isShareLink = true;
+                }
+            }
+
+            if (isShareLink && !extractedLinkCode.empty()) {
+                std::string resolveApi = "/sharelinks/v1/resolve-link";
+                std::string extraHeaders = "X-CSRF-TOKEN: " + csrf + "\r\nContent-Type: application/json\r\n";
+                std::string postData = "{\"linkId\":\"" + extractedLinkCode + "\",\"linkType\":\"Server\"}";
+                std::string dummyHeaders;
+                std::string response = RobloxAPI::HttpRequest(L"POST", L"apis.roblox.com", RobloxAPI::s2ws(resolveApi), cookie, extraHeaders, postData, &dummyHeaders);
+                
+                try {
+                    size_t statusPos = response.find("\"status\":\"");
+                    if (statusPos != std::string::npos) {
+                        size_t statusEnd = response.find("\"", statusPos + 10);
+                        std::string status = response.substr(statusPos + 10, statusEnd - (statusPos + 10));
+                        if (status == "Expired") {
+                            outError = "Tautan Private Server kedaluwarsa (Share Link Expired).";
+                            ActiveClientLock::UnlockClient();
+                            return false;
+                        }
+                    }
+                    
+                    size_t linkCodePos = response.find("\"linkCode\":\"");
+                    if (linkCodePos != std::string::npos) {
+                        size_t linkCodeEnd = response.find("\"", linkCodePos + 12);
+                        extractedLinkCode = response.substr(linkCodePos + 12, linkCodeEnd - (linkCodePos + 12));
+                    } else {
+                        outError = "Gagal memproses Share Link (Tidak ditemukan linkCode).";
+                        ActiveClientLock::UnlockClient();
+                        return false;
+                    }
+
+                    if (localPlaceId.empty()) {
+                        size_t pIdPos = response.find("\"placeId\":");
+                        if (pIdPos != std::string::npos) {
+                            size_t pIdEnd = response.find_first_of(",}", pIdPos + 10);
+                            std::string extractedPlaceId = response.substr(pIdPos + 10, pIdEnd - (pIdPos + 10));
+                            if (extractedPlaceId != "0" && !extractedPlaceId.empty()) {
+                                localPlaceId = extractedPlaceId;
+                            }
+                        }
+                    }
+                } catch(...) {
+                    outError = "Gagal memproses Share Link.";
+                    ActiveClientLock::UnlockClient();
+                    return false;
+                }
+            }
+
+            if (localPlaceId.empty()) {
+                outError = "Place ID tidak ditemukan. Harap isi Place ID atau gunakan URL yang valid.";
+                ActiveClientLock::UnlockClient();
+                return false;
+            }
+
+            if (!extractedLinkCode.empty()) {
+                resolveUrl = "/games/" + localPlaceId + "?privateServerLinkCode=" + extractedLinkCode;
+                std::string accessCode = "";
+                std::string dummyHeaders;
+                std::string extraHeaders = "X-CSRF-TOKEN: " + csrf + "\r\nReferer: https://www.roblox.com/games/" + localPlaceId + "/Game\r\n";
+                std::string response = RobloxAPI::HttpRequest(L"GET", L"www.roblox.com", RobloxAPI::s2ws(resolveUrl), cookie, extraHeaders, "", &dummyHeaders);
+                
+                std::smatch match;
+                std::regex re("joinPrivateGame\\(\\s*\\d+\\s*,\\s*'([^']+)'");
+                if (std::regex_search(response, match, re) && match.size() > 1) {
+                    accessCode = match[1].str();
+                }
+
+                if (!accessCode.empty()) {
+                    uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestPrivateGame%26placeId%3D" + localPlaceId + "%26accessCode%3D" + accessCode + "%26linkCode%3D" + extractedLinkCode;
+                } else {
+                    outError = "Tidak memiliki akses ke Private Server (Access Denied).";
+                    ActiveClientLock::UnlockClient();
+                    return false;
+                }
+            } else {
+                uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGame%26placeId%3D" + localPlaceId + "%26isPlayTogetherGame%3Dfalse";
+            }
         }
 
         ActiveClientLock::UnlockClient();
@@ -136,30 +249,40 @@ namespace Launcher {
         
         if (needsUpdate && !IsAnyRobloxRunning()) {
             ShellExecuteA(NULL, "open", uri.c_str(), NULL, NULL, SW_SHOWNORMAL);
-            outPID = 0; // Temporarily 0
+            outPID = 0;
             
-            std::thread([cookie]() {
-                for (int i = 0; i < 120; i++) {
-                    Sleep(1000); // Check every second for up to 120 seconds
-                    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-                    if (hSnapshot != INVALID_HANDLE_VALUE) {
-                        PROCESSENTRY32W pe32;
-                        pe32.dwSize = sizeof(PROCESSENTRY32W);
-                        if (Process32FirstW(hSnapshot, &pe32)) {
-                            do {
-                                if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
-                                    g_accountManager.UpdateAccountProcess(cookie, 2, pe32.th32ProcessID);
+            for (int i = 0; i < 300; i++) { // Wait up to 5 minutes for the update to complete
+                Sleep(1000); 
+                HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+                if (hSnapshot != INVALID_HANDLE_VALUE) {
+                    PROCESSENTRY32W pe32;
+                    pe32.dwSize = sizeof(PROCESSENTRY32W);
+                    if (Process32FirstW(hSnapshot, &pe32)) {
+                        do {
+                            if (_wcsicmp(pe32.szExeFile, L"RobloxPlayerBeta.exe") == 0) {
+                                DWORD pid = pe32.th32ProcessID;
+                                if (HasWindow(pid)) {
+                                    outPID = pid;
                                     CloseHandle(hSnapshot);
-                                    return; // Exit thread
+                                    
+                                    for (int j = 0; j < 10; j++) {
+                                        if (HandleCloser::CloseProcessRobloxHandle(outPID)) {
+                                            break;
+                                        }
+                                        Sleep(100);
+                                    }
+                                    
+                                    return true;
                                 }
-                            } while (Process32NextW(hSnapshot, &pe32));
-                        }
-                        CloseHandle(hSnapshot);
+                            }
+                        } while (Process32NextW(hSnapshot, &pe32));
                     }
+                    CloseHandle(hSnapshot);
                 }
-            }).detach();
+            }
             
-            return true;
+            outError = "Update timed out or Roblox failed to launch after update.";
+            return false;
         }
 
         std::string args;
