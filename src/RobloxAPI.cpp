@@ -540,4 +540,68 @@ namespace RobloxAPI {
             return false;
         }
     }
+
+    bool GetFriends(const std::string& cookie, const std::string& userId, std::string& outJson) {
+        std::wstring path = L"/v1/users/" + s2ws(userId) + L"/friends";
+        std::string res = HttpRequest(L"GET", L"friends.roblox.com", path, cookie);
+        if (res.empty() || res.find("\"data\"") == std::string::npos) {
+            outJson = "{\"error\": \"Failed to fetch friends\"}";
+            return false;
+        }
+        outJson = res;
+        return true;
+    }
+
+    bool Unfriend(const std::string& cookie, const std::string& friendId, std::string& outError) {
+        std::string csrf = GetCSRFToken(cookie);
+        if (csrf.empty()) {
+            outError = "CSRF Token missing";
+            return false;
+        }
+        std::wstring path = L"/v1/users/" + s2ws(friendId) + L"/unfriend";
+        std::string res = HttpRequest(L"POST", L"friends.roblox.com", path, cookie, "x-csrf-token: " + csrf + "\r\n", "{}");
+        if (res.find("\"errors\"") != std::string::npos) {
+            outError = "Failed to unfriend: " + res;
+            return false;
+        }
+        return true;
+    }
+
+    std::string GetLowestServer(const std::string& placeId, const std::string& cookie) {
+        if (placeId.empty()) return "";
+        std::string path = "/v1/games/" + placeId + "/servers/Public?sortOrder=Asc&limit=100";
+        std::string response = HttpRequest(L"GET", L"games.roblox.com", s2ws(path), cookie);
+        if (response.empty()) return "";
+
+        try {
+            json j = json::parse(response);
+            if (j.contains("data") && j["data"].is_array()) {
+                std::string bestServerId = "";
+                int bestPing = 999999;
+                int lowestPlaying = 999999;
+
+                for (const auto& server : j["data"]) {
+                    if (server.contains("id") && server.contains("playing") && server.contains("maxPlayers")) {
+                        int playing = server["playing"].get<int>();
+                        int maxPlayers = server["maxPlayers"].get<int>();
+                        int ping = server.value("ping", 999999);
+
+                        // Ignore full servers
+                        if (playing >= maxPlayers) continue;
+
+                        if (playing < lowestPlaying || (playing == lowestPlaying && ping < bestPing)) {
+                            lowestPlaying = playing;
+                            bestPing = ping;
+                            bestServerId = server["id"].get<std::string>();
+                        }
+                    }
+                }
+                return bestServerId;
+            }
+        } catch (...) {
+            // Parsing error
+        }
+        return "";
+    }
+
 }

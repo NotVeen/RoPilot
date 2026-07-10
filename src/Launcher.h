@@ -10,11 +10,14 @@ namespace Launcher {
     bool IsAnyRobloxRunning();
 
     // Fetches the ticket and launches the game
-    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, std::string& outError, DWORD& outPID);
+    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics = false);
 
     // Creates the Mutex to allow multiple instances (call once at app startup)
     void InitializeMultiInstance();
     
     // Releases the Mutex
     void ShutdownMultiInstance();
+
+    // Brings the process window to the foreground
+    void FocusWindow(DWORD processId);
 }

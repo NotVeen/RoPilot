@@ -59,6 +59,8 @@ void AccountManager::Load() {
                     acc.Group = item.value("Group", "Ungrouped");
                     acc.PlaceId = item.value("PlaceId", "");
                     acc.PrivateServerLink = item.value("PrivateServerLink", "");
+                    acc.JoinLowServer = item.value("JoinLowServer", false);
+                    acc.LowestGraphics = item.value("LowestGraphics", false);
                     m_Accounts.push_back(acc);
                 }
             }
@@ -94,6 +96,8 @@ void AccountManager::Save() {
         item["Group"] = acc.Group;
         item["PlaceId"] = acc.PlaceId;
         item["PrivateServerLink"] = acc.PrivateServerLink;
+        item["JoinLowServer"] = acc.JoinLowServer;
+        item["LowestGraphics"] = acc.LowestGraphics;
         accountsArray.push_back(item);
     }
     j["accounts"] = accountsArray;
@@ -242,15 +246,17 @@ void AccountManager::UpdateAccountInfo(const std::string& cookie, const RobloxAP
     }
 }
 
-void AccountManager::UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink) {
+void AccountManager::UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink, bool joinLowServer, bool lowestGraphics) {
     bool changed = false;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         for (auto& acc : m_Accounts) {
             if (acc.Cookie == cookie) {
-                if (acc.PlaceId != placeId || acc.PrivateServerLink != psLink) {
+                if (acc.PlaceId != placeId || acc.PrivateServerLink != psLink || acc.JoinLowServer != joinLowServer || acc.LowestGraphics != lowestGraphics) {
                     acc.PlaceId = placeId;
                     acc.PrivateServerLink = psLink;
+                    acc.JoinLowServer = joinLowServer;
+                    acc.LowestGraphics = lowestGraphics;
                     changed = true;
                 }
                 break;

@@ -10,6 +10,8 @@
 #include <tlhelp32.h>
 #include <iostream>
 #include <regex>
+#include <fstream>
+#include <sstream>
 #include "ActiveClientLock.h"
 #include "AccountManager.h"
 
@@ -42,6 +44,17 @@ namespace Launcher {
         EnumData data = { processId, NULL };
         EnumWindows(EnumWindowsProc, (LPARAM)&data);
         return data.hWnd != NULL;
+    }
+
+    void FocusWindow(DWORD processId) {
+        EnumData data = { processId, NULL };
+        EnumWindows(EnumWindowsProc, (LPARAM)&data);
+        if (data.hWnd != NULL) {
+            if (IsIconic(data.hWnd)) {
+                ShowWindow(data.hWnd, SW_RESTORE);
+            }
+            SetForegroundWindow(data.hWnd);
+        }
     }
 
     std::string FindRobloxExecutable() {
@@ -96,7 +109,37 @@ namespace Launcher {
         return running;
     }
 
-    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, std::string& outError, DWORD& outPID) {
+    void ApplyLowestGraphicsSettings(bool lowestGraphics) {
+        char localPath[MAX_PATH];
+        if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, localPath))) {
+            fs::path settingsPath = fs::path(localPath) / "Roblox" / "GlobalBasicSettings_13.xml";
+            if (fs::exists(settingsPath)) {
+                std::ifstream inFile(settingsPath);
+                if (inFile.is_open()) {
+                    std::stringstream buffer;
+                    buffer << inFile.rdbuf();
+                    std::string content = buffer.str();
+                    inFile.close();
+
+                    if (lowestGraphics) {
+                        content = std::regex_replace(content, std::regex("<token name=\"SavedQualityLevel\">[^<]*</token>"), "<token name=\"SavedQualityLevel\">1</token>");
+                    } else {
+                        content = std::regex_replace(content, std::regex("<token name=\"SavedQualityLevel\">[^<]*</token>"), "<token name=\"SavedQualityLevel\">0</token>");
+                    }
+
+                    std::ofstream outFile(settingsPath, std::ios::trunc);
+                    if (outFile.is_open()) {
+                        outFile << content;
+                        outFile.close();
+                    }
+                }
+            }
+        }
+    }
+
+    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics) {
+        ApplyLowestGraphicsSettings(lowestGraphics);
+        
         std::string robloxPath = FindRobloxExecutable();
         if (robloxPath.empty()) {
             outError = "Could not find RobloxPlayerBeta.exe! Please launch Roblox once.";
@@ -228,7 +271,11 @@ namespace Launcher {
                     return false;
                 }
             } else {
-                uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGame%26placeId%3D" + localPlaceId + "%26isPlayTogetherGame%3Dfalse";
+                if (!jobId.empty()) {
+                    uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGameJob%26placeId%3D" + localPlaceId + "%26gameId%3D" + jobId;
+                } else {
+                    uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGame%26placeId%3D" + localPlaceId + "%26isPlayTogetherGame%3Dfalse";
+                }
             }
         }
 

@@ -16,6 +16,8 @@
   - **Display Name Editing**: Mengubah *Display Name* akun secara langsung melalui aplikasi.
   - **Outfit Changer**: Memuat seluruh daftar *outfit* dan menggantinya secara instan.
   - **Roblox Experience**: Menampilkan riwayat game, meluncurkan game via Place ID / Tautan Server Pribadi dengan validasi otomatis, serta fitur pintar *auto-kill* instance lama.
+  - **Social**: Menampilkan seluruh daftar teman yang sedang *online*, dan mendukung fitur **Bulk Unfriend** untuk menghapus beberapa teman secara massal.
+  - **Account Settings**: Mengatur untuk join ke Low Server dan menggunakan grafik paling rendah
   
 ### Bug Fixes
 - **Private Server Access**: Fixed an issue where joining private servers via share links (`share?code=...`) or private server codes would result in a "You do not have access" error. RoPilot now correctly fetches the `AccessCode` (Job ID) beforehand, seamlessly replicating the Roblox client's native behavior.
