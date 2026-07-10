@@ -2195,6 +2195,7 @@ window.onReceiveRecentGames = function (jsonStr) {
                     document.getElementById("global-game-id").value = game.id;
                     // Optionally clear private server link if they select a new place ID directly
                     document.getElementById("global-ps-link").value = "";
+                    if (typeof window.validateGameLaunchInputs === "function") window.validateGameLaunchInputs();
                     if (typeof saveGameSettings === "function") saveGameSettings();
                 };
 
@@ -2482,6 +2483,7 @@ window.openUtilityModal = function (cookie, userId, avatarSrc, username) {
     let psLinkEl = document.getElementById("global-ps-link");
     if (gameIdEl && acc) gameIdEl.value = acc.PlaceId || "";
     if (psLinkEl && acc) psLinkEl.value = acc.PrivateServerLink || "";
+    if (typeof window.validateGameLaunchInputs === "function") window.validateGameLaunchInputs();
 };
 
 utilityTabs.forEach((tab, index) => {

@@ -11,6 +11,7 @@
 - **Add Account Modal Revamp**: Desain baru untuk antarmuka penambahan akun (via Browser & Cookie) yang menggunakan *modal pop-up* terpusat dengan animasi transisi yang mulus, dilengkapi dengan kotak peringatan keamanan *cookie*.
 - **Hide Username & User ID**: Fitur untuk menyembunyikan username dan user ID akun Anda (Dapat dinyalakan melalui Settings).
 - **Fixed Avatar Delay**: Added background polling to handle the delay in Roblox's backend updating CDN thumbnail URLs, ensuring the UI reflects the current outfit correctly.
+- **Auto-Backup & Self-Recovery**: Sistem pencadangan dan pemulihan otomatis untuk mencegah *force close* serta menghindari kehilangan data akun secara permanen apabila file `accounts.json` rusak (corrupt).
 - **Pembaruan Manajemen Akun (Utility Dashboard)**:
   - **Account Overview**: Menampilkan informasi detail seperti umur akun dan status premium (Roblox Plus).
   - **Display Name Editing**: Mengubah *Display Name* akun secara langsung melalui aplikasi.

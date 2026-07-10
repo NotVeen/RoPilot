@@ -1,5 +1,6 @@
 #include "AccountManager.h"
 #include "../vendor/json.hpp"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -32,7 +33,7 @@ void AccountManager::Load() {
             jsonStr = std::string((char*)DataOut.pbData, DataOut.cbData);
             LocalFree(DataOut.pbData);
         } else {
-            jsonStr = std::string((char*)buffer.data(), buffer.size());
+            throw std::runtime_error("Decryption failed");
         }
 
         json j = json::parse(jsonStr);
@@ -72,7 +73,15 @@ void AccountManager::Load() {
                 }
             }
         }
-    } catch (...) {}
+    } catch (...) {
+        file.close();
+        if (std::filesystem::exists(m_FilePath + ".bak")) {
+            try {
+                std::filesystem::copy(m_FilePath + ".bak", m_FilePath, std::filesystem::copy_options::overwrite_existing);
+                Load();
+            } catch (...) {}
+        }
+    }
 }
 
 void AccountManager::Save() {
@@ -119,6 +128,10 @@ void AccountManager::Save() {
         std::ofstream file(m_FilePath, std::ios::binary);
         if (file.is_open()) {
             file.write((char*)DataOut.pbData, DataOut.cbData);
+            file.close();
+            try {
+                std::filesystem::copy(m_FilePath, m_FilePath + ".bak", std::filesystem::copy_options::overwrite_existing);
+            } catch (...) {}
         }
         LocalFree(DataOut.pbData);
     }
