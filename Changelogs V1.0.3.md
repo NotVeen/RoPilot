@@ -2,25 +2,26 @@
 
 ## ✨ New Features & Improvements
 
-- **Pembaruan Pengaturan Tema (Appearance Update)**: 
-  - Ditambahkan fitur untuk mengubah **Bahasa** (Language) aplikasi, dengan dukungan terjemahan penuh untuk Bahasa Indonesia dan Inggris.
-  - Ditambahkan fitur **Skala UI** (UI Scale) berupa *slider* interaktif untuk menyesuaikan ukuran antarmuka dari Kecil (80%), Sedang (100%), hingga Besar (120%) secara instan tanpa ada *flash* saat aplikasi dimulai ulang.
-  - Ditambahkan pengaturan **Font** (Font Family) untuk mengubah jenis huruf UI secara menyeluruh dengan sistem pratinjau (*live preview*).
-  - Ditambahkan pengaturan **Window Opacity** dan **Background Blur** secara native (*Acrylic*) untuk menyesuaikan tingkat transparansi jendela utama tanpa mempengaruhi keterbacaan elemen dialog (modal).
-- **Smart Cookie Validation**: Sistem otomatis mengecek akun secara berkala di latar belakang. Jika *cookie* kedaluwarsa (401), antarmuka akan menampilkan status "Invalid Cookie" lengkap dengan indikator merah dan tombol "Re-Login".
-- **Add Account Modal Revamp**: Desain baru untuk antarmuka penambahan akun (via Browser & Cookie) yang menggunakan *modal pop-up* terpusat dengan animasi transisi yang mulus, dilengkapi dengan kotak peringatan keamanan *cookie*.
-- **Hide Username & User ID**: Fitur untuk menyembunyikan username dan user ID akun Anda (Dapat dinyalakan melalui Settings).
-- **Fixed Avatar Delay**: Added background polling to handle the delay in Roblox's backend updating CDN thumbnail URLs, ensuring the UI reflects the current outfit correctly.
-- **Auto-Backup & Self-Recovery**: Sistem pencadangan dan pemulihan otomatis untuk mencegah *force close* serta menghindari kehilangan data akun secara permanen apabila file `accounts.json` rusak (corrupt).
-- **Pembaruan Manajemen Akun (Utility Dashboard)**:
-  - **Account Overview**: Menampilkan informasi detail seperti umur akun dan status premium (Roblox Plus).
-  - **Display Name Editing**: Mengubah *Display Name* akun secara langsung melalui aplikasi.
-  - **Outfit Changer**: Memuat seluruh daftar *outfit* dan menggantinya secara instan.
-  - **Roblox Experience**: Menampilkan riwayat game, meluncurkan game via Place ID / Tautan Server Pribadi dengan validasi otomatis, serta fitur pintar *auto-kill* instance lama.
-  - **Social**: Menampilkan seluruh daftar teman yang sedang *online*, dan mendukung fitur **Bulk Unfriend** untuk menghapus beberapa teman secara massal.
-  - **Account Settings**: Mengatur untuk join ke Low Server dan menggunakan grafik paling rendah
-  
-### Bug Fixes
-- **Private Server Access**: Fixed an issue where joining private servers via share links (`share?code=...`) or private server codes would result in a "You do not have access" error. RoPilot now correctly fetches the `AccessCode` (Job ID) beforehand, seamlessly replicating the Roblox client's native behavior.
-- **Outfit Loading Pagination**: Fixed an issue where only the first 50 outfits were displayed. The system now automatically fetches all available outfits across multiple pages.
-- **Outfit Switching Speed**: Significantly sped up outfit changing speed (reduced from multiple seconds to near instant) by optimizing the internal Roblox API calls using parallelized `std::thread` processing.
+- **Appearance & Customization Update**:
+  - **Language Support**: Added full English and Indonesian translations.
+  - **UI Scale**: Added an interactive slider to seamlessly scale the interface (80% to 120%).
+  - **Font Changer**: Added font family settings with live preview.
+  - **Window Transparency**: Added native Acrylic background blur and opacity settings.
+- **Smart Cookie Validation**: Automatically checks account validity in the background and prompts "Re-Login" if a cookie expires.
+- **Add Account Modal Revamp**: Redesigned the account addition interface with a centered modal, smooth transitions, and cookie security warnings.
+- **Hide Identity**: Added a setting to hide Usernames and User IDs for privacy.
+- **Avatar Delay Fix**: Added background polling to bypass Roblox's CDN delay, ensuring your outfit is always accurate.
+- **Auto-Backup & Self-Recovery**: Automatically backups and restores `accounts.json` if data corruption occurs, preventing crashes and data loss.
+- **Utility Dashboard Revamp**:
+  - **Account Overview**: Displays detailed info like account age and Premium status.
+  - **Display Name Editing**: Change your Display Name directly within the app.
+  - **Outfit Changer**: Instantly load and switch between all saved outfits.
+  - **Roblox Experience**: View recently played games, auto-kill old instances, and launch via Place ID or Private Server Links.
+  - **Social**: View online friends and use the new **Bulk Unfriend** feature.
+  - **Account Settings**: Added toggles to automatically join Low Servers and force Lowest Graphics upon launch.
+
+## 🐛 Bug Fixes
+
+- **Private Server Access**: Fixed "You do not have access" errors when joining via share links (`share?code=...`) or link codes. RoPilot now accurately pre-fetches the `AccessCode`.
+- **Outfit Loading Pagination**: Fixed an issue where only the first 50 outfits were loaded. All pages are now fetched automatically.
+- **Outfit Switching Speed**: Dramatically increased outfit changing speed to near-instant by using parallelized API requests.
