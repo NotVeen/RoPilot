@@ -17,9 +17,3 @@
   - **Roblox Experience**: View recently played games and launch via Place ID or Private Server Links.
   - **Social**: Display your friend list, and unfriend them individually or in bulk.
   - **Account Settings**: Added toggles to automatically join Low Servers and force Lowest Graphics upon launch.
-
-## 🐛 Bug Fixes
-
-- **Private Server Access**: Fixed "You do not have access" errors when joining via share links (`share?code=...`) or link codes. RoPilot now accurately pre-fetches the `AccessCode`.
-- **Outfit Loading Pagination**: Fixed an issue where only the first 50 outfits were loaded. All pages are now fetched automatically.
-- **Outfit Switching Speed**: Dramatically increased outfit changing speed to near-instant by using parallelized API requests.
