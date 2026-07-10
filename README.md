@@ -20,7 +20,7 @@ RoPilot is a C++ based multi-instance account manager for Roblox. Basically, it 
 - **Smart Account Management:** Securely save your accounts locally with Auto-Backup & Self-Recovery to prevent data loss. The system automatically validates expired cookies in the background.
 - **Utility Dashboard:** A powerful central hub to view account details (age, Premium status), edit your Display Name, and manage/switch outfits instantly.
 - **Advanced Launching:** Launch games directly via Place ID or Private Server share links. Automatically force Roblox to join Low-Player Servers or use the Lowest Graphics settings to save resources.
-- **Social Manager:** View your online friends and easily clean up your friend list using the Bulk Unfriend tool.
+- **Social Manager:** View your friend list and easily clean it up using the Bulk Unfriend tool.
 - **Instant Kill Switch:** Rapidly terminate every active Roblox process instantly via native Windows APIs.
 - **Group Sorting:** Neatly categorize your accounts (e.g., "Mains", "Alts") for a much cleaner workspace.
 - **Privacy Mode:** Hide your Username and User ID from the interface—perfect for streaming or recording.
