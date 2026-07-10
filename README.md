@@ -2,7 +2,6 @@
   <img src="res/Header%20RoPilot.png" alt="RoPilot Header" width="100%">
 </p>
 
-# RoPilot
 This is just a fun little side project I put together mostly through vibe coding. I built this as a modern, lightweight, and sleek alternative to the Roblox Account Manager (RAM).
 
 This project is **100% open source**! Feel free to explore the codebase, fork it for your own use, or simply enjoy it as it is.
