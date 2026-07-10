@@ -6,16 +6,26 @@ RoPilot is a fun little side project I put together mostly through vibe coding. 
 
 This project is **100% open source**! Feel free to explore the codebase, fork it for your own use, or simply enjoy it as it is.
 
+## Screenshots
+<p align="center">
+  <img src="res/preview%201.png" width="49%">
+  <img src="res/preview%202.png" width="49%">
+</p>
+
 ## What does it do?
 RoPilot is a C++ based multi-instance account manager for Roblox. Basically, it lets you store, organize, and launch multiple Roblox accounts at the exact same time without the annoying "same instance" error stopping you. 
 
-### Key Features:
+### Key Features
 - **True Multi-Instancing:** Bypasses Roblox's single-client limit natively so you can run as many accounts as your PC can physically handle.
-- **Account Management:** Securely save your accounts using their `.ROBLOSECURITY` cookies locally.
-- **Group Sorting:** Neatly group your accounts together (e.g., "Mains", "Alts") for a cleaner workspace.
+- **Smart Account Management:** Securely save your accounts locally with Auto-Backup & Self-Recovery to prevent data loss. The system automatically validates expired cookies in the background.
+- **Utility Dashboard:** A powerful central hub to view account details (age, Premium status), edit your Display Name, and manage/switch outfits instantly.
+- **Advanced Launching:** Launch games directly via Place ID or Private Server share links. Automatically force Roblox to join Low-Player Servers or use the Lowest Graphics settings to save resources.
+- **Social Manager:** View your online friends and easily clean up your friend list using the Bulk Unfriend tool.
 - **Instant Kill Switch:** Rapidly terminate every active Roblox process instantly via native Windows APIs.
-- **Modern UI:** Built on a super lightweight WebView2 frontend. It features dark/light modes, customizable fonts, UI scaling, smooth animations, and toast notifications.
-- **Resource Optimizer:** Limits background CPU usage of unfocused Roblox clients to save your system resources.
+- **Group Sorting:** Neatly categorize your accounts (e.g., "Mains", "Alts") for a much cleaner workspace.
+- **Privacy Mode:** Hide your Username and User ID from the interface—perfect for streaming or recording.
+- **Modern & Lightweight UI:** Built on a native WebView2 frontend. Enjoy dark/light modes, bilingual support (English/Indonesian), UI scaling, customizable fonts, and smooth animations.
+- **Resource Optimizer:** Limits background CPU usage of unfocused Roblox clients to save your system's processing power.
 
 ## How to Use
 1. Grab the latest version from the [Releases page](../../releases/latest).
