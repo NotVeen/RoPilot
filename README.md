@@ -8,8 +8,8 @@ This project is **100% open source**! Feel free to explore the codebase, fork it
 
 ## Screenshots
 <p align="center">
-  <img src="res/preview%201.png" width="49%">
-  <img src="res/preview%202.png" width="49%">
+  <img src="res/Preview%201.png" width="49%">
+  <img src="res/Preview%202.png" width="49%">
 </p>
 
 ## What does it do?
