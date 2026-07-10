@@ -654,7 +654,7 @@ window.renderAccounts = function (accounts) {
                                         </div>
                                         <div class="user-info">
                                             <span class="username">${document.getElementById("setting-hide-identity") && document.getElementById("setting-hide-identity").checked ? "******" : escapeHtml(acc.Username)}</span>
-                                            <span class="userid">PID: ${document.getElementById("setting-hide-identity") && document.getElementById("setting-hide-identity").checked ? "******" : acc.ProcessId || "Loading..."}</span>
+                                            <span class="userid">PID: ${acc.ProcessId || "Loading..."}</span>
                                         </div>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 12px;">
