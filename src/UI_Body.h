@@ -1009,7 +1009,37 @@ constexpr const char* UI_BODY = R"HTML(
                         <span class="slider"></span>
                     </label>
                 </div>
-            </div>
+                  
+                  <div
+                      class="setting-item"
+                      style="
+                          padding: 12px 0px;
+                          display: flex;
+                          justify-content: space-between;
+                          align-items: center;
+                      "
+                  >
+                      <div>
+                          <div
+                              class="setting-title"
+                              style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white"
+                              data-i18n="lbl_create_shortcut"
+                          >
+                              Desktop Shortcut
+                          </div>
+                          <div
+                              class="setting-desc"
+                              style="font-size: 13px; color: var(--text-muted)"
+                              data-i18n="desc_create_shortcut"
+                          >
+                              Create a RoPilot shortcut on your desktop for quick access
+                          </div>
+                      </div>
+                      <button class="btn-primary" id="btn-create-shortcut" data-i18n="btn_create_shortcut">
+                          Create Shortcut
+                      </button>
+                  </div>
+              </div>
 
             <div id="settings-performance-container" class="settings-category" style="margin-bottom: 12px">
                 <div

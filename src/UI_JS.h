@@ -152,6 +152,10 @@ const translations = {
         desc_auto_kill: "Automatically terminate all Roblox instances when RoPilot is fully closed",
         lbl_discord_rpc: "Discord Rich Presence",
         desc_discord_rpc: "Show your RoPilot activity on your Discord profile",
+        lbl_create_shortcut: "Desktop Shortcut",
+        desc_create_shortcut: "Create a RoPilot shortcut on your desktop for quick access",
+        btn_create_shortcut: "Create Shortcut",
+        toast_shortcut_success: "Desktop shortcut created successfully!",
         desc_analytics: "Real-time statistics for your running Roblox instances",
         lbl_social: "Social",
         lbl_friends: "Friends",
@@ -322,6 +326,10 @@ const translations = {
         desc_auto_kill: "Secara otomatis menutup semua klien Roblox saat RoPilot ditutup sepenuhnya",
         lbl_discord_rpc: "Discord Rich Presence",
         desc_discord_rpc: "Tampilkan aktivitas RoPilot kamu di profil Discord",
+        lbl_create_shortcut: "Pintasan Desktop",
+        desc_create_shortcut: "Buat pintasan RoPilot di desktop Anda untuk akses cepat",
+        btn_create_shortcut: "Buat Pintasan",
+        toast_shortcut_success: "Pintasan desktop berhasil dibuat!",
         desc_analytics: "Statistik waktu nyata untuk klien Roblox Anda yang sedang berjalan",
     },
 };
@@ -1609,6 +1617,12 @@ if (btnStartUpdate) {
         window.chrome.webview.postMessage(JSON.stringify({ action: "start_update" }));
     });
 }
+let btnCreateShortcut = document.getElementById("btn-create-shortcut");
+if (btnCreateShortcut) {
+    btnCreateShortcut.addEventListener("click", () => {
+        window.chrome.webview.postMessage(JSON.stringify({ action: "create_shortcut" }));
+    });
+}
 
 if (window.chrome && window.chrome.webview) {
     window.addEventListener("message", (e) => {
@@ -1763,6 +1777,10 @@ if (window.chrome && window.chrome.webview) {
                 if (clModal) clModal.classList.add("show");
             } else if (msg.action === "start_update") {
                 window.chrome.webview.postMessage(JSON.stringify({ action: "start_update" }));
+            } else if (msg.action === "shortcut_success") {
+                if (typeof showToast === "function") {
+                    showToast(translations[currentLanguage].toast_shortcut_success, "success");
+                }
             } else if (msg.action === "account_overview_data") {
                 document.getElementById("utility-loading").style.display = "none";
                 let activeTab = document.querySelector(".utility-tab.active");

@@ -25,6 +25,7 @@
 #include <atomic>
 #include <tlhelp32.h>
 #include <sstream>
+#include <shlobj.h>
 
 bool IsProcessRunning(DWORD pid) {
     if (pid == 0) return false;
@@ -717,6 +718,29 @@ void ProcessWebMessage(const std::string& msg) {
         else if (action == "preview_opacity") {
             // We no longer use LWA_ALPHA for previewing opacity because it makes the whole window (including modals) transparent.
             // HTML body CSS variable var(--bg-opacity) handles the realtime preview perfectly without any Win32 API calls!
+        }
+        else if (action == "create_shortcut") {
+            IShellLinkW* psl;
+            if (SUCCEEDED(CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLinkW, (LPVOID*)&psl))) {
+                WCHAR exePath[MAX_PATH];
+                GetModuleFileNameW(NULL, exePath, MAX_PATH);
+                psl->SetPath(exePath);
+                psl->SetDescription(L"RoPilot");
+                psl->SetIconLocation(exePath, 0);
+
+                IPersistFile* ppf;
+                if (SUCCEEDED(psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf))) {
+                    WCHAR desktopPath[MAX_PATH];
+                    if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_DESKTOPDIRECTORY, NULL, 0, desktopPath))) {
+                        std::wstring linkPath = std::wstring(desktopPath) + L"\\RoPilot.lnk";
+                        if (SUCCEEDED(ppf->Save(linkPath.c_str(), TRUE))) {
+                            PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string("window.postMessage({\"action\":\"shortcut_success\"}, '*');"), 0);
+                        }
+                    }
+                    ppf->Release();
+                }
+                psl->Release();
+            }
         }
         else if (action == "check_update") {
             std::thread([]() {

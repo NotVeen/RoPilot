@@ -47,9 +47,9 @@ void DiscordRPC::UpdatePresence(int accountCount) {
     } else {
         activity["state"] = "Managing " + std::to_string(accountCount) + " Account" + (accountCount > 1 ? "s" : "");
     }
-    activity["details"] = "RoPilot v1.0.4";
+    activity["details"] = "Rich Features Multi-Instance Account Manager for Roblox";
     activity["timestamps"]["start"] = m_StartTime;
-    activity["assets"]["large_image"] = "icon";
+    activity["assets"]["large_image"] = "ropilot_icon";
     activity["assets"]["large_text"] = "RoPilot";
     
     json button;
