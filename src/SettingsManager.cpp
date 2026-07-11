@@ -34,6 +34,7 @@ void SettingsManager::Load() {
         m_Settings.WindowOpacity = j.value("windowOpacity", 1.0f);
         m_Settings.EnableWindowBlur = j.value("enableWindowBlur", false);
         m_Settings.HideIdentity = j.value("hideIdentity", false);
+        m_Settings.EnableDiscordRPC = j.value("enableDiscordRPC", false);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -61,6 +62,7 @@ void SettingsManager::Save() {
         j["windowOpacity"] = m_Settings.WindowOpacity;
         j["enableWindowBlur"] = m_Settings.EnableWindowBlur;
         j["hideIdentity"] = m_Settings.HideIdentity;
+        j["enableDiscordRPC"] = m_Settings.EnableDiscordRPC;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

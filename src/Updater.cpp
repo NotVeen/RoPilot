@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-std::string Updater::CURRENT_VERSION = "v1.0.3";
+std::string Updater::CURRENT_VERSION = "v1.0.4";
 
 // Simple helper for WinHTTP GET
 std::string GetHttpRaw(const std::wstring& domain, const std::wstring& path, const std::wstring& accept) {

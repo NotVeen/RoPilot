@@ -21,6 +21,7 @@ struct Settings {
     float WindowOpacity = 1.0f;
     bool EnableWindowBlur = false;
     bool HideIdentity = false;
+    bool EnableDiscordRPC = false;
 };
 
 class SettingsManager {

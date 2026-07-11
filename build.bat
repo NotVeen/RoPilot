@@ -18,7 +18,7 @@ if not exist "build" mkdir build
 
 rc.exe /fo build\app.res res\app.rc
 
-cl.exe /EHsc /MD /O2 /std:c++17 /DUNICODE /D_UNICODE /I vendor\webview2\include /I vendor src\main.cpp src\AccountManager.cpp src\SettingsManager.cpp src\Updater.cpp src\Launcher.cpp src\RobloxAPI.cpp src\BrowserLogin.cpp src\HandleCloser.cpp src\ActiveClientLock.cpp src\Optimizer.cpp build\app.res /link winhttp.lib ole32.lib advapi32.lib shell32.lib user32.lib gdi32.lib crypt32.lib psapi.lib vendor\WebView2Loader.dll.lib /SUBSYSTEM:WINDOWS /OUT:RoPilot.exe /pdb:build\RoPilot.pdb
+cl.exe /EHsc /MD /O2 /std:c++17 /DUNICODE /D_UNICODE /I vendor\webview2\include /I vendor src\main.cpp src\AccountManager.cpp src\SettingsManager.cpp src\Updater.cpp src\Launcher.cpp src\RobloxAPI.cpp src\BrowserLogin.cpp src\HandleCloser.cpp src\ActiveClientLock.cpp src\Optimizer.cpp src\DiscordRPC.cpp build\app.res /link winhttp.lib ole32.lib advapi32.lib shell32.lib user32.lib gdi32.lib crypt32.lib psapi.lib vendor\WebView2Loader.dll.lib /SUBSYSTEM:WINDOWS /OUT:RoPilot.exe /pdb:build\RoPilot.pdb
 
 if %errorlevel% neq 0 (
     echo Build failed!

@@ -25,7 +25,7 @@ constexpr const char* UI_BODY = R"HTML(
         <span
             ><strong style="font-weight: 700; font-size: 16px">RoPilot</strong
             ><span style="color: var(--text-muted); font-size: 14px; margin-left: 12px; font-weight: 500"
-                >v1.0.3 by NotVeen</span
+                >v1.0.4 by NotVeen</span
             ></span
         >
     </div>
@@ -981,6 +981,31 @@ constexpr const char* UI_BODY = R"HTML(
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="setting-auto-kill-exit" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div
+                    class="setting-item"
+                    style="padding: 12px 0px; border-top: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center"
+                >
+                    <div>
+                        <div
+                            class="setting-title"
+                            style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white"
+                        >
+                            <span data-i18n="lbl_discord_rpc">Discord Rich Presence</span>
+                        </div>
+                        <div
+                            class="setting-desc"
+                            style="font-size: 13px; color: var(--text-muted)"
+                            data-i18n="desc_discord_rpc"
+                        >
+                            Show your RoPilot activity on your Discord profile.
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-discord-rpc" />
                         <span class="slider"></span>
                     </label>
                 </div>

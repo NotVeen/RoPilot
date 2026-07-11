@@ -11,6 +11,7 @@
 #include "HandleCloser.h"
 #include "ActiveClientLock.h"
 #include "Optimizer.h"
+#include "DiscordRPC.h"
 #include "UI_Frontend.h"
 #include "SettingsManager.h"
 #include "Updater.h"
@@ -685,7 +686,19 @@ void ProcessWebMessage(const std::string& msg) {
             s.WindowOpacity = j.value("windowOpacity", s.WindowOpacity);
             s.EnableWindowBlur = j.value("enableWindowBlur", s.EnableWindowBlur);
         s.HideIdentity = j.value("hideIdentity", s.HideIdentity);
+            
+            bool oldDiscordRPC = s.EnableDiscordRPC;
+            s.EnableDiscordRPC = j.value("enableDiscordRPC", s.EnableDiscordRPC);
+            
             g_settingsManager.SetSettings(s);
+            
+            if (oldDiscordRPC != s.EnableDiscordRPC) {
+                if (s.EnableDiscordRPC) {
+                    DiscordRPC::Initialize("1327181056526143520");
+                } else {
+                    DiscordRPC::Shutdown();
+                }
+            }
             SetStartupRegistry(s.RunOnStartup);
             
             ApplyTransparencyMode(g_hWnd, s.EnableWindowBlur, s.WindowOpacity);
@@ -1064,6 +1077,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                 ActiveClientLock::UnlockClient();
             }
             
+            int activeAccounts = 0;
+            
             presenceTimer++;
             for (auto& acc : accounts) {
                 if (acc.Status == 2) {
@@ -1075,6 +1090,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                             if (GetExitCodeProcess(hProcess, &exitCode)) {
                                 if (exitCode == STILL_ACTIVE) {
                                     isProcessAlive = true;
+                                    activeAccounts++;
                                     
                                     AnalyticsState state = acc.Analytics;
                                     
@@ -1118,6 +1134,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                     }
                 }
             }
+            
+            DiscordRPC::UpdatePresence(activeAccounts);
             
             if (updated) {
                 PostMessage(g_hWnd, WM_APP + 2, 0, 0);
@@ -1307,6 +1325,7 @@ g_webview->NavigateToString(s2ws(html).c_str());
 
         Optimizer::Stop();
         ActiveClientLock::UnlockClient();
+        DiscordRPC::Shutdown();
         CoUninitialize();
         return (int)msg.wParam;
     } catch (const std::exception& e) {

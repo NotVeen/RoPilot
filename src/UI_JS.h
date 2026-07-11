@@ -150,6 +150,8 @@ const translations = {
         btn_add_cookie: "Add via Cookie",
         lbl_auto_kill: "Auto Kill on Exit",
         desc_auto_kill: "Automatically terminate all Roblox instances when RoPilot is fully closed",
+        lbl_discord_rpc: "Discord Rich Presence",
+        desc_discord_rpc: "Show your RoPilot activity on your Discord profile",
         desc_analytics: "Real-time statistics for your running Roblox instances",
         lbl_social: "Social",
         lbl_friends: "Friends",
@@ -318,6 +320,8 @@ const translations = {
         btn_add_cookie: "Tambahkan via Cookie",
         lbl_auto_kill: "Tutup Otomatis saat Keluar",
         desc_auto_kill: "Secara otomatis menutup semua klien Roblox saat RoPilot ditutup sepenuhnya",
+        lbl_discord_rpc: "Discord Rich Presence",
+        desc_discord_rpc: "Tampilkan aktivitas RoPilot kamu di profil Discord",
         desc_analytics: "Statistik waktu nyata untuk klien Roblox Anda yang sedang berjalan",
     },
 };
@@ -1426,6 +1430,7 @@ function saveSettings(silent = false) {
             hideIdentity: hideIdentityToggle ? hideIdentityToggle.checked : false,
             alwaysOnTop: alwaysOnTopToggle ? alwaysOnTopToggle.checked : false,
             autoKillOnExit: autoKillExitToggle ? autoKillExitToggle.checked : false,
+            enableDiscordRPC: discordRpcToggle ? discordRpcToggle.checked : false,
             hardwareAcceleration: hardwareAccelToggle ? hardwareAccelToggle.checked : true,
             resourceOptimizer: resourceOptToggle ? resourceOptToggle.checked : false,
             cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
@@ -1460,6 +1465,7 @@ let minimizeTrayToggle = document.getElementById("setting-minimize-tray");
 let hideIdentityToggle = document.getElementById("setting-hide-identity");
 let alwaysOnTopToggle = document.getElementById("setting-always-on-top");
 let autoKillExitToggle = document.getElementById("setting-auto-kill-exit");
+let discordRpcToggle = document.getElementById("setting-discord-rpc");
 let hardwareAccelToggle = document.getElementById("setting-hardware-accel");
 let resourceOptToggle = document.getElementById("setting-resource-opt");
 let cpuLimiterToggle = document.getElementById("setting-cpu-limiter-toggle");
@@ -1495,6 +1501,11 @@ if (alwaysOnTopToggle) {
 }
 if (autoKillExitToggle) {
     autoKillExitToggle.addEventListener("change", (e) => {
+        saveSettings();
+    });
+}
+if (discordRpcToggle) {
+    discordRpcToggle.addEventListener("change", (e) => {
         saveSettings();
     });
 }
@@ -1610,6 +1621,7 @@ if (window.chrome && window.chrome.webview) {
                 if (hideIdentityToggle) hideIdentityToggle.checked = msg.hideIdentity;
                 if (alwaysOnTopToggle) alwaysOnTopToggle.checked = msg.alwaysOnTop;
                 if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
+                if (discordRpcToggle) discordRpcToggle.checked = msg.enableDiscordRPC;
                 if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
                 if (typeof msg.sidebarCollapsed !== "undefined") {
                     let sb = document.getElementById("sidebar");

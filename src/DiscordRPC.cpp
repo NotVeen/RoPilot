@@ -1,0 +1,135 @@
+#include "DiscordRPC.h"
+#include <iostream>
+#include <chrono>
+#include "../vendor/json.hpp"
+
+using json = nlohmann::json;
+
+std::string DiscordRPC::m_ClientId;
+HANDLE DiscordRPC::m_Pipe = INVALID_HANDLE_VALUE;
+std::atomic<bool> DiscordRPC::m_IsRunning(false);
+std::thread DiscordRPC::m_ReconnectThread;
+std::mutex DiscordRPC::m_Mutex;
+int DiscordRPC::m_AccountCount = 0;
+int64_t DiscordRPC::m_StartTime = 0;
+
+void DiscordRPC::Initialize(const std::string& clientId) {
+    if (m_IsRunning) return;
+    
+    m_ClientId = clientId;
+    m_IsRunning = true;
+    m_StartTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    
+    m_ReconnectThread = std::thread(ReconnectLoop);
+}
+
+void DiscordRPC::Shutdown() {
+    m_IsRunning = false;
+    if (m_ReconnectThread.joinable()) {
+        m_ReconnectThread.join();
+    }
+    Disconnect();
+}
+
+void DiscordRPC::UpdatePresence(int accountCount) {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    m_AccountCount = accountCount;
+    
+    if (m_Pipe == INVALID_HANDLE_VALUE) return;
+    
+    json payload;
+    payload["cmd"] = "SET_ACTIVITY";
+    payload["args"]["pid"] = GetCurrentProcessId();
+    
+    json activity;
+    if (accountCount == 0) {
+        activity["state"] = "Idling";
+    } else {
+        activity["state"] = "Managing " + std::to_string(accountCount) + " Account" + (accountCount > 1 ? "s" : "");
+    }
+    activity["details"] = "RoPilot v1.0.4";
+    activity["timestamps"]["start"] = m_StartTime;
+    activity["assets"]["large_image"] = "icon";
+    activity["assets"]["large_text"] = "RoPilot";
+    
+    json button;
+    button["label"] = "Use RoPilot Now!";
+    button["url"] = "https://github.com/NotVeen/RoPilot/releases/latest";
+    activity["buttons"] = json::array({button});
+    
+    payload["args"]["activity"] = activity;
+    payload["nonce"] = "1";
+    
+    uint32_t op = 1;
+    std::string payloadStr = payload.dump();
+    uint32_t len = payloadStr.length();
+    
+    DWORD bytesWritten;
+    WriteFile(m_Pipe, &op, sizeof(op), &bytesWritten, nullptr);
+    WriteFile(m_Pipe, &len, sizeof(len), &bytesWritten, nullptr);
+    WriteFile(m_Pipe, payloadStr.c_str(), len, &bytesWritten, nullptr);
+}
+
+bool DiscordRPC::Connect() {
+    for (int i = 0; i < 10; ++i) {
+        std::string pipeName = "\\\\.\\pipe\\discord-ipc-" + std::to_string(i);
+        m_Pipe = CreateFileA(pipeName.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+        if (m_Pipe != INVALID_HANDLE_VALUE) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void DiscordRPC::Disconnect() {
+    if (m_Pipe != INVALID_HANDLE_VALUE) {
+        CloseHandle(m_Pipe);
+        m_Pipe = INVALID_HANDLE_VALUE;
+    }
+}
+
+bool DiscordRPC::SendHandshake() {
+    json payload;
+    payload["v"] = 1;
+    payload["client_id"] = m_ClientId;
+    std::string payloadStr = payload.dump();
+    
+    uint32_t op = 0;
+    uint32_t len = payloadStr.length();
+    
+    DWORD bytesWritten;
+    if (!WriteFile(m_Pipe, &op, sizeof(op), &bytesWritten, nullptr)) return false;
+    if (!WriteFile(m_Pipe, &len, sizeof(len), &bytesWritten, nullptr)) return false;
+    if (!WriteFile(m_Pipe, payloadStr.c_str(), len, &bytesWritten, nullptr)) return false;
+    
+    return true;
+}
+
+void DiscordRPC::ReconnectLoop() {
+    while (m_IsRunning) {
+        bool needsHandshake = false;
+        {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            if (m_Pipe == INVALID_HANDLE_VALUE) {
+                if (Connect()) {
+                    needsHandshake = true;
+                }
+            }
+        }
+        
+        if (needsHandshake) {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+            if (!SendHandshake()) {
+                Disconnect();
+            }
+        }
+        
+        // Update presence
+        UpdatePresence(m_AccountCount);
+        
+        // Wait 5 seconds
+        for (int i = 0; i < 50 && m_IsRunning; ++i) {
+            Sleep(100);
+        }
+    }
+}
