@@ -566,6 +566,9 @@ constexpr const char* UI_BODY = R"HTML(
                             <div class="dropdown-option" data-value="'Poppins', sans-serif">Poppins</div>
                             <div class="dropdown-option" data-value="'Roboto', sans-serif">Roboto</div>
                             <div class="dropdown-option" data-value="Arial, Helvetica, sans-serif">Arial</div>
+                            <div class="dropdown-option" data-value="'Geist', sans-serif">Geist</div>
+                            <div class="dropdown-option" data-value="'Verdana', sans-serif">Verdana</div>
+                            <div class="dropdown-option" data-value="'Helvetica', sans-serif">Helvetica</div>
                             <div class="dropdown-option" data-value="'Consolas', 'Courier New', monospace">
                                 Consolas
                             </div>

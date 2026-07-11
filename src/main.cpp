@@ -26,6 +26,7 @@
 #include <tlhelp32.h>
 #include <sstream>
 #include <shlobj.h>
+#include <shlwapi.h>
 
 bool IsProcessRunning(DWORD pid) {
     if (pid == 0) return false;
@@ -725,6 +726,12 @@ void ProcessWebMessage(const std::string& msg) {
                 WCHAR exePath[MAX_PATH];
                 GetModuleFileNameW(NULL, exePath, MAX_PATH);
                 psl->SetPath(exePath);
+                
+                WCHAR dirPath[MAX_PATH];
+                wcscpy_s(dirPath, exePath);
+                PathRemoveFileSpecW(dirPath);
+                psl->SetWorkingDirectory(dirPath);
+                
                 psl->SetDescription(L"RoPilot");
                 psl->SetIconLocation(exePath, 0);
 

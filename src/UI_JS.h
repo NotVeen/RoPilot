@@ -1778,8 +1778,8 @@ if (window.chrome && window.chrome.webview) {
             } else if (msg.action === "start_update") {
                 window.chrome.webview.postMessage(JSON.stringify({ action: "start_update" }));
             } else if (msg.action === "shortcut_success") {
-                if (typeof showToast === "function") {
-                    showToast(translations[currentLanguage].toast_shortcut_success, "success");
+                if (typeof showStatus === "function") {
+                    showStatus(translations[currentLanguage].toast_shortcut_success, false);
                 }
             } else if (msg.action === "account_overview_data") {
                 document.getElementById("utility-loading").style.display = "none";
