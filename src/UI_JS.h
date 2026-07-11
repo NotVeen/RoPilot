@@ -65,7 +65,7 @@ const translations = {
         lbl_cpu_limiter: "Background CPU Limiter",
         lbl_cpu_limit: "Background CPU Limit",
         lbl_no_active_instances: "No Active Instances",
-        desc_accounts_page: "Manage and monitor your connected Roblox accounts",
+        desc_accounts_page: "Manage your connected Roblox accounts",
         desc_settings: "Configure RoPilot preferences",
         desc_hardware_accel: "Use GPU to render the UI smoothly. Disable this to save GPU memory for Roblox.",
         lbl_game_launch_setup: "Game Launch Setup",
@@ -237,7 +237,7 @@ const translations = {
         lbl_cpu_limiter: "Pembatas CPU Latar Belakang",
         lbl_cpu_limit: "Batas CPU Latar Belakang",
         lbl_no_active_instances: "Tidak Ada Klien Aktif",
-        desc_accounts_page: "Kelola dan pantau akun Roblox Anda yang terhubung",
+        desc_accounts_page: "Kelola akun Roblox Anda yang terhubung",
         desc_settings: "Konfigurasi preferensi RoPilot",
         desc_hardware_accel:
             "Gunakan GPU untuk merender UI dengan mulus. Nonaktifkan ini untuk menghemat memori GPU bagi Roblox.",

@@ -167,7 +167,7 @@ constexpr const char* UI_BODY = R"HTML(
                         Manage Accounts
                     </h1>
                     <div class="page-subtitle" data-i18n="desc_accounts_page">
-                        Manage and monitor your connected Roblox accounts.
+                        Manage your connected Roblox accounts.
                     </div>
                 </div>
                 <div style="display: flex; gap: 16px; align-items: center">

@@ -1014,6 +1014,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     return 0;
 }
 
+HANDLE g_h773Lock = INVALID_HANDLE_VALUE;
+
+void Apply773Fix() {
+    char localAppData[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, localAppData))) {
+        std::string robloxPath = std::string(localAppData) + "\\Roblox";
+        std::string localStoragePath = robloxPath + "\\LocalStorage";
+        std::string cookiesPath = localStoragePath + "\\RobloxCookies.dat";
+        
+        CreateDirectoryA(robloxPath.c_str(), NULL);
+        CreateDirectoryA(localStoragePath.c_str(), NULL);
+        
+        g_h773Lock = CreateFileA(cookiesPath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    }
+}
+
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
     try {
         CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -1032,6 +1048,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         if (lpCmdLine && wcsstr(lpCmdLine, L"--updated") != nullptr) {
             g_showChangelog = true;
         }
+
+        Apply773Fix();
 
         Launcher::InitializeMultiInstance();
 
