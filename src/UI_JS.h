@@ -59,6 +59,14 @@ const translations = {
         lbl_lowest_graphics: "Lowest Graphics",
         desc_lowest_graphics:
             "Automatically sets graphics quality to level 1 for maximum performance. Sets to automatic when turned off.",
+        lbl_fflag_opt: "FFlag Optimization",
+        desc_fflag_opt:
+            "Applies custom Fast Flags when launching this account to improve performance.",
+        lbl_fflag_fps: "FPS Cap",
+        lbl_fflag_texture: "Texture",
+        lbl_fflag_shadows: "Shadows",
+        lbl_fflag_particles: "Particles",
+        lbl_fflag_distance: "Draw Distance",
         note_join_low_server: "* Note: This feature only works if you have filled in the Place ID field.",
         lbl_hardware_accel: "Hardware Acceleration (UI)",
         lbl_resource_opt: "Resource Optimizer",
@@ -146,7 +154,17 @@ const translations = {
         btn_launch: "Launch",
         lbl_launching: "Launching",
         lbl_none: "None",
-        desc_cpu_limiter_desc: "Throttles background instances to save CPU cycles",
+        lbl_gq: "Graphics Quality",
+        lbl_tq: "Texture Quality",
+        lbl_mips: "MipMaps",
+        lbl_dd: "Draw Distance",
+        lbl_gd: "Grass Distance",
+        lbl_mp: "Max Particles",
+        lbl_pfx: "PostFX",
+        lbl_light: "Lighting",
+        lbl_sky: "Sky",
+        desc_select_preset: "Select a preset to view its detailed configuration.",
+        desc_cpu_limiter_desc: "Limits background client speeds to save CPU cycles",
         btn_add_cookie: "Add via Cookie",
         lbl_auto_kill: "Auto Kill on Exit",
         desc_auto_kill: "Automatically terminate all Roblox instances when RoPilot is fully closed",
@@ -231,6 +249,16 @@ const translations = {
         lbl_lowest_graphics: "Grafik Terendah",
         desc_lowest_graphics:
             "Secara otomatis menyetel kualitas grafik ke tingkat 1 untuk performa maksimum. Akan kembali ke otomatis jika opsi ini dimatikan.",
+        lbl_fflag_opt: "Optimalisasi FFlag",
+        desc_fflag_opt:
+            "Menerapkan Fast Flags kustom saat meluncurkan akun ini untuk meningkatkan performa.",
+        lbl_fflag_fps: "Batas FPS",
+        lbl_fflag_texture: "Tekstur",
+        lbl_fflag_shadows: "Bayangan",
+        lbl_fflag_lighting: "Pencahayaan",
+        lbl_fflag_postfx: "Efek Visual",
+        lbl_fflag_particles: "Partikel",
+        lbl_fflag_distance: "Jarak Pandang",
         note_join_low_server: "* Catatan: Fitur ini hanya bekerja jika Anda telah mengisi kolom Place ID.",
         lbl_hardware_accel: "Akselerasi Perangkat Keras (UI)",
         lbl_resource_opt: "Pengoptimal Sumber Daya",
@@ -320,6 +348,16 @@ const translations = {
         btn_launch: "Luncurkan",
         lbl_launching: "Meluncurkan",
         lbl_none: "Tidak Ada",
+        lbl_gq: "Kualitas Grafis",
+        lbl_tq: "Kualitas Tekstur",
+        lbl_mips: "MipMaps",
+        lbl_dd: "Jarak Pandang",
+        lbl_gd: "Jarak Rumput",
+        lbl_mp: "Maks Partikel",
+        lbl_pfx: "Efek Visual",
+        lbl_light: "Pencahayaan",
+        lbl_sky: "Langit",
+        desc_select_preset: "Pilih preset untuk melihat konfigurasi detailnya.",
         desc_cpu_limiter_desc: "Membatasi kecepatan klien di latar belakang untuk menghemat siklus CPU",
         btn_add_cookie: "Tambahkan via Cookie",
         lbl_auto_kill: "Tutup Otomatis saat Keluar",
@@ -880,6 +918,7 @@ window.launchAccount = function (cookie, username, btnElement) {
             linkCode: psLink,
             joinLowServer: joinLowServer,
             lowestGraphics: acc && acc.LowestGraphics ? true : false,
+            fflagOptimization: acc && acc.FFlagOptimization ? acc.FFlagOptimization : "Default",
         }),
     );
 };
@@ -906,6 +945,9 @@ function saveGameSettings() {
     let lowestGraphicsCb = document.getElementById("setting-lowest-graphics");
     let lowestGraphics = lowestGraphicsCb ? lowestGraphicsCb.checked : false;
 
+    let fflagOptSel = document.getElementById("setting-fflag-optimization");
+    let fflagOpt = fflagOptSel ? fflagOptSel.value : "Default";
+
     if (placeId.length > 0 && !/^\d+$/.test(placeId)) return;
 
     if (psLink.length > 0) {
@@ -921,6 +963,7 @@ function saveGameSettings() {
         acc.PrivateServerLink = psLink;
         acc.JoinLowServer = joinLowServer;
         acc.LowestGraphics = lowestGraphics;
+        acc.FFlagOptimization = fflagOpt;
     }
 
     window.chrome.webview.postMessage(
@@ -931,6 +974,7 @@ function saveGameSettings() {
             psLink: psLink,
             joinLowServer: joinLowServer,
             lowestGraphics: lowestGraphics,
+            fflagOptimization: fflagOpt,
         }),
     );
 }
@@ -1537,6 +1581,117 @@ let lowestGraphicsCb = document.getElementById("setting-lowest-graphics");
 if (lowestGraphicsCb) {
     lowestGraphicsCb.addEventListener("change", function () {
         if (typeof saveGameSettings === "function") saveGameSettings();
+    });
+}
+
+let fflagDropdownSel = document.getElementById("fflag-dropdown-selected");
+let fflagDropdownOpts = document.getElementById("fflag-dropdown-options");
+let fflagDropdownText = document.getElementById("fflag-dropdown-text");
+let fflagInput = document.getElementById("setting-fflag-optimization");
+
+function updateFFlagDetailsBox(preset) {
+    let container = document.getElementById("fflag-details-box");
+    if (!container) return;
+    
+    let isId = document.getElementById("setting-language") && document.getElementById("setting-language").value === "id";
+    let lang = isId ? "id" : "en";
+    let dict = translations[lang] || translations["en"];
+    
+    let html = "";
+    
+    const createTag = (i18nKey, fallbackLabel, value) => {
+        let label = dict[i18nKey] || fallbackLabel;
+        return `<div style="background: var(--btn-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; font-size: 11px; display: flex; flex-direction: column; min-width: 100px;">
+            <div style="color: var(--text-muted); font-weight: 500; margin-bottom: 4px;" data-i18n="${i18nKey}">${label}</div>
+            <div style="color: var(--text-main); font-weight: 600;">${value}</div>
+        </div>`;
+    };
+
+    let val_level4 = isId ? "Level 4 (Menengah)" : "Level 4 (Medium)";
+    let val_level2 = isId ? "Level 2 (Rendah)" : "Level 2 (Low)";
+    let val_level1 = isId ? "Level 1 (Terendah)" : "Level 1 (Lowest)";
+    let val_disabled = isId ? "Dinonaktifkan" : "Disabled";
+    let val_enabled = isId ? "Diaktifkan" : "Enabled";
+    let val_reduced_shadows = isId ? "Dikurangi (150)" : "Reduced (150)";
+    let val_reduced_mips = isId ? "Dikurangi (Level 2)" : "Reduced (Level 2)";
+    let val_skipped_mips = isId ? "Dilewati (Level 8)" : "Skipped (Level 8)";
+    let val_0disabled = isId ? "0 (Dinonaktifkan)" : "0 (Disabled)";
+    let val_solidgray = isId ? "Abu-abu Solid" : "Solid Gray";
+
+    if (preset === "Medium") {
+        html += createTag("lbl_gq", "Graphics Quality", val_level4);
+        html += createTag("lbl_fflag_shadows", "Shadows", val_reduced_shadows);
+        html += createTag("lbl_tq", "Texture Quality", "Level 2");
+        html += createTag("lbl_mips", "MipMaps", "Normal");
+        html += createTag("lbl_gd", "Grass Distance", "100 Studs");
+        html += createTag("lbl_mp", "Max Particles", "500");
+        html += createTag("lbl_pfx", "PostFX", val_enabled);
+        html += createTag("lbl_light", "Lighting", "ShadowMap");
+    } else if (preset === "Low") {
+        html += createTag("lbl_gq", "Graphics Quality", val_level2);
+        html += createTag("lbl_fflag_shadows", "Shadows", val_disabled);
+        html += createTag("lbl_tq", "Texture Quality", "Level 1");
+        html += createTag("lbl_mips", "MipMaps", val_reduced_mips);
+        html += createTag("lbl_gd", "Grass Distance", "25 Studs");
+        html += createTag("lbl_mp", "Max Particles", "50");
+        html += createTag("lbl_pfx", "PostFX", val_disabled);
+        html += createTag("lbl_light", "Lighting", "Voxel");
+    } else if (preset === "Potato") {
+        html += createTag("lbl_gq", "Graphics Quality", val_level1);
+        html += createTag("lbl_fflag_shadows", "Shadows", val_disabled);
+        html += createTag("lbl_tq", "Texture Quality", "Level 0");
+        html += createTag("lbl_mips", "MipMaps", val_skipped_mips);
+        html += createTag("lbl_gd", "Grass Distance", val_0disabled);
+        html += createTag("lbl_mp", "Max Particles", val_0disabled);
+        html += createTag("lbl_pfx", "PostFX", val_disabled);
+        html += createTag("lbl_light", "Lighting", "Voxel");
+        html += createTag("lbl_sky", "Sky", val_solidgray);
+    } else {
+        html = "";
+    }
+    
+    container.innerHTML = html;
+    
+    let toggleBtn = document.getElementById("fflag-details-toggle");
+    if (toggleBtn) {
+        if (preset === "Default") {
+            toggleBtn.style.display = "none";
+            container.style.display = "none";
+        } else {
+            toggleBtn.style.display = "flex";
+        }
+    }
+}
+
+let fflagToggleBtn = document.getElementById("fflag-details-toggle");
+let fflagDetailsBox = document.getElementById("fflag-details-box");
+let fflagDetailsIcon = document.getElementById("fflag-details-icon");
+if (fflagToggleBtn && fflagDetailsBox && fflagDetailsIcon) {
+    fflagToggleBtn.addEventListener("click", () => {
+        let isVisible = fflagDetailsBox.style.display !== "none";
+        fflagDetailsBox.style.display = isVisible ? "none" : "grid";
+        fflagDetailsIcon.style.transform = isVisible ? "rotate(0deg)" : "rotate(180deg)";
+    });
+}
+
+if (fflagDropdownSel && fflagDropdownOpts && fflagInput) {
+    fflagDropdownSel.addEventListener("click", (e) => {
+        fflagDropdownOpts.classList.toggle("show");
+        e.stopPropagation();
+    });
+    document.addEventListener("click", () => {
+        fflagDropdownOpts.classList.remove("show");
+    });
+    fflagDropdownOpts.querySelectorAll(".dropdown-option").forEach((opt) => {
+        opt.addEventListener("click", (e) => {
+            let selectedValue = opt.getAttribute("data-value");
+            fflagDropdownText.textContent = selectedValue;
+            fflagInput.value = selectedValue;
+            updateFFlagDetailsBox(selectedValue);
+            if (typeof saveGameSettings === "function") saveGameSettings();
+            fflagDropdownOpts.classList.remove("show");
+            e.stopPropagation();
+        });
     });
 }
 
@@ -2512,6 +2667,20 @@ window.openUtilityModal = function (cookie, userId, avatarSrc, username) {
     let lowestGraphicsCb = document.getElementById("setting-lowest-graphics");
     if (lowestGraphicsCb && acc) {
         lowestGraphicsCb.checked = acc.LowestGraphics === true;
+    }
+
+    let fflagOptSel = document.getElementById("setting-fflag-optimization");
+    let fflagText = document.getElementById("fflag-dropdown-text");
+    if (fflagOptSel && fflagText && acc) {
+        let val = acc.FFlagOptimization || "Default";
+        fflagOptSel.value = val;
+        let opt = document.querySelector(`#fflag-dropdown-options .dropdown-option[data-value="${val}"]`);
+        if (opt) fflagText.textContent = val;
+        else fflagText.textContent = "Default";
+        
+        if (typeof updateFFlagDetailsBox === "function") {
+            updateFFlagDetailsBox(val);
+        }
     }
 
     currentUtilityTabIndex = 0;

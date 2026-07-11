@@ -137,7 +137,72 @@ namespace Launcher {
         }
     }
 
-    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics) {
+    void ApplyFFlags(const std::string& robloxPath, const std::string& fflagOpt) {
+        if (robloxPath.empty()) return;
+        try {
+            fs::path rp(robloxPath);
+            fs::path clientSettingsDir = rp.parent_path() / "ClientSettings";
+            if (!fs::exists(clientSettingsDir)) {
+                fs::create_directory(clientSettingsDir);
+            }
+            
+            fs::path settingsFile = clientSettingsDir / "ClientAppSettings.json";
+            std::string content = "{}";
+            
+            if (fflagOpt == "Medium") {
+                content = R"({
+  "DFIntDebugFRMQualityLevelOverride": "4",
+  "FIntRenderShadowIntensity": "150",
+  "DFFlagTextureQualityOverrideEnabled": "True",
+  "DFIntTextureQualityOverride": "2",
+  "FIntDebugTextureManagerSkipMips": "0",
+  "FIntFRMMaxGrassDistance": "100",
+  "DFIntMaxParticleSpriteCount": "500",
+  "FFlagDisablePostFx": "False",
+  "DFFlagDebugRenderForceTechnologyVoxel": "False"
+})";
+            } else if (fflagOpt == "Low") {
+                content = R"({
+  "DFIntDebugFRMQualityLevelOverride": "2",
+  "FIntRenderShadowIntensity": "0",
+  "DFFlagTextureQualityOverrideEnabled": "True",
+  "DFIntTextureQualityOverride": "1",
+  "FIntDebugTextureManagerSkipMips": "2",
+  "FIntFRMMaxGrassDistance": "25",
+  "FIntFRMMinGrassDistance": "25",
+  "DFIntMaxParticleSpriteCount": "50",
+  "FFlagDisablePostFx": "True",
+  "DFFlagDebugRenderForceTechnologyVoxel": "True"
+})";
+            } else if (fflagOpt == "Potato") {
+                content = R"({
+  "DFIntDebugFRMQualityLevelOverride": "1",
+  "FIntRenderShadowIntensity": "0",
+  "FFlagDebugDisableShadows": "True",
+  "DFFlagTextureQualityOverrideEnabled": "True",
+  "DFIntTextureQualityOverride": "0",
+  "DFIntTextureCompositorActiveJobs": "0",
+  "FIntDebugTextureManagerSkipMips": "8",
+  "FIntFRMMaxGrassDistance": "0",
+  "FIntFRMMinGrassDistance": "0",
+  "DFIntMaxParticleSpriteCount": "0",
+  "DFIntMaxParticleMeshCount": "0",
+  "FIntEmitterMaxSpawnedPerFrame": "0",
+  "FFlagDisablePostFx": "True",
+  "DFFlagDebugRenderForceTechnologyVoxel": "True",
+  "FFlagDebugSkyGray": "True"
+})";
+            }
+            
+            std::ofstream outFile(settingsFile, std::ios::trunc);
+            if (outFile.is_open()) {
+                outFile << content;
+                outFile.close();
+            }
+        } catch(...) {}
+    }
+
+    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics, const std::string& fflagOpt) {
         ApplyLowestGraphicsSettings(lowestGraphics);
         
         std::string robloxPath = FindRobloxExecutable();
@@ -145,6 +210,8 @@ namespace Launcher {
             outError = "Could not find RobloxPlayerBeta.exe! Please launch Roblox once.";
             return false;
         }
+
+        ApplyFFlags(robloxPath, fflagOpt);
 
         std::string csrf = RobloxAPI::GetCSRFToken(cookie);
         if (csrf.empty()) {

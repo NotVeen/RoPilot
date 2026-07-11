@@ -534,6 +534,7 @@ void ProcessWebMessage(const std::string& msg) {
             bool forceRejoin = j.value("forceRejoin", false);
             bool joinLowServer = j.value("joinLowServer", false);
             bool lowestGraphics = j.value("lowestGraphics", false);
+            std::string fflagOpt = j.value("fflagOptimization", "Default");
             
             bool alreadyRunning = false;
             DWORD existingPid = 0;
@@ -567,7 +568,7 @@ void ProcessWebMessage(const std::string& msg) {
             g_accountManager.UpdateAccountProcess(cookie, 1, 0);
             PostMessage(g_hWnd, WM_APP + 2, 0, 0);
 
-            std::thread([cookie, placeId, linkCode, username, joinLowServer, lowestGraphics]() {
+            std::thread([cookie, placeId, linkCode, username, joinLowServer, lowestGraphics, fflagOpt]() {
                 static std::mutex launchMutex;
                 std::lock_guard<std::mutex> lock(launchMutex);
                 
@@ -578,7 +579,7 @@ void ProcessWebMessage(const std::string& msg) {
                 
                 std::string launchError;
                 DWORD outPID = 0;
-                if (Launcher::LaunchAccount(cookie, placeId, linkCode, jobId, launchError, outPID, lowestGraphics)) {
+                if (Launcher::LaunchAccount(cookie, placeId, linkCode, jobId, launchError, outPID, lowestGraphics, fflagOpt)) {
                     g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
                     
                     std::lock_guard<std::mutex> toastLock(g_toastMutex);
@@ -602,7 +603,10 @@ void ProcessWebMessage(const std::string& msg) {
             std::string psLink = j.value("psLink", "");
             bool joinLowServer = j.value("joinLowServer", false);
             bool lowestGraphics = j.value("lowestGraphics", false);
-            g_accountManager.UpdateAccountGame(cookie, placeId, psLink, joinLowServer, lowestGraphics);
+            std::string fflagOpt = j.value("fflagOptimization", "Default");
+            std::thread([cookie, placeId, psLink, joinLowServer, lowestGraphics, fflagOpt]() {
+                g_accountManager.UpdateAccountGame(cookie, placeId, psLink, joinLowServer, lowestGraphics, fflagOpt);
+            }).detach();
         }
         else if (action == "close") {
             PostMessage(g_hWnd, WM_CLOSE, 0, 0);
@@ -874,6 +878,7 @@ void UpdateUI() {
         jAcc["PrivateServerLink"] = acc.PrivateServerLink;
         jAcc["JoinLowServer"] = acc.JoinLowServer;
         jAcc["LowestGraphics"] = acc.LowestGraphics;
+        jAcc["FFlagOptimization"] = acc.FFlagOptimization;
         
         jAcc["CpuUsage"] = acc.Analytics.cpuUsage;
         jAcc["RamUsage"] = acc.Analytics.ramUsageMB;
@@ -1380,6 +1385,7 @@ g_webview->NavigateToString(s2ws(html).c_str());
         Optimizer::Stop();
         ActiveClientLock::UnlockClient();
         DiscordRPC::Shutdown();
+        Launcher::ApplyFFlags(Launcher::FindRobloxExecutable(), "Default");
         CoUninitialize();
         return (int)msg.wParam;
     } catch (const std::exception& e) {

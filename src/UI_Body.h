@@ -2744,6 +2744,7 @@ constexpr const char* UI_BODY = R"HTML(
                         color: var(--text-main);
                         padding: 8px 48px 16px 48px;
                         margin-top: -24px;
+                        overflow-y: auto;
                     "
                 >
                     <div class="settings-category" style="margin-bottom: 24px">
@@ -2843,6 +2844,61 @@ constexpr const char* UI_BODY = R"HTML(
                                 <input type="checkbox" id="setting-lowest-graphics" />
                                 <span class="slider"></span>
                             </label>
+                        </div>
+                        <div
+                            class="setting-item"
+                            style="
+                                padding: 12px 0px 8px 0px;
+                                border-top: 1px solid var(--separator-color);
+                                margin-top: 8px;
+                            "
+                        >
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <div>
+                                    <div
+                                        class="setting-title"
+                                        style="
+                                            font-size: 13px;
+                                            font-weight: 500;
+                                            margin-bottom: 4px;
+                                            color: var(--text-main);
+                                        "
+                                        data-i18n="lbl_fflag_opt"
+                                    >
+                                        FFlag Optimization
+                                    </div>
+                                    <div class="setting-desc" style="font-size: 12px; color: var(--text-muted)">
+                                        <span data-i18n="desc_fflag_opt"
+                                            >Applies custom Fast Flags when launching this account to improve performance.</span
+                                        >
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <div class="custom-dropdown" id="fflag-dropdown-container">
+                                        <input type="hidden" id="setting-fflag-optimization" value="Default" />
+                                        <div class="dropdown-selected" id="fflag-dropdown-selected">
+                                            <span id="fflag-dropdown-text">Default</span>
+                                            <svg fill="#888" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M7 10l5 5 5-5z" />
+                                            </svg>
+                                        </div>
+                                        <div class="dropdown-options" id="fflag-dropdown-options">
+                                            <div class="dropdown-option" data-value="Default">Default</div>
+                                            <div class="dropdown-option" data-value="Medium">Medium</div>
+                                            <div class="dropdown-option" data-value="Low">Low</div>
+                                            <div class="dropdown-option" data-value="Potato">Potato</div>
+                                        </div>
+                                    </div>
+                                    <button id="fflag-details-toggle" style="background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='none'">
+                                        <svg id="fflag-details-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s;">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="fflag-details-box" style="margin-top: 12px; display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; width: 100%;">
+                                <div id="fflag-default-text" style="color: var(--text-muted); font-size: 12px; padding: 4px; grid-column: 1 / -1;" data-i18n="desc_select_preset">Select a preset to view its detailed configuration.</div>
+                            </div>
                         </div>
                     </div>
                 </div>

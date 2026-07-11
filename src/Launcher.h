@@ -9,8 +9,11 @@ namespace Launcher {
     // Checks if any Roblox instance is currently running
     bool IsAnyRobloxRunning();
 
+    void ApplyLowestGraphicsSettings(bool lowestGraphics);
+    void ApplyFFlags(const std::string& robloxPath, const std::string& fflagOpt);
+
     // Fetches the ticket and launches the game
-    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics = false);
+    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics = false, const std::string& fflagOpt = "Default");
 
     // Creates the Mutex to allow multiple instances (call once at app startup)
     void InitializeMultiInstance();

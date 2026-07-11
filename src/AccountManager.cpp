@@ -62,6 +62,7 @@ void AccountManager::Load() {
                     acc.PrivateServerLink = item.value("PrivateServerLink", "");
                     acc.JoinLowServer = item.value("JoinLowServer", false);
                     acc.LowestGraphics = item.value("LowestGraphics", false);
+                    acc.FFlagOptimization = item.value("FFlagOptimization", "Default");
                     m_Accounts.push_back(acc);
                 }
             }
@@ -107,6 +108,7 @@ void AccountManager::Save() {
         item["PrivateServerLink"] = acc.PrivateServerLink;
         item["JoinLowServer"] = acc.JoinLowServer;
         item["LowestGraphics"] = acc.LowestGraphics;
+        item["FFlagOptimization"] = acc.FFlagOptimization;
         accountsArray.push_back(item);
     }
     j["accounts"] = accountsArray;
@@ -259,17 +261,18 @@ void AccountManager::UpdateAccountInfo(const std::string& cookie, const RobloxAP
     }
 }
 
-void AccountManager::UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink, bool joinLowServer, bool lowestGraphics) {
+void AccountManager::UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink, bool joinLowServer, bool lowestGraphics, const std::string& fflagOpt) {
     bool changed = false;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         for (auto& acc : m_Accounts) {
             if (acc.Cookie == cookie) {
-                if (acc.PlaceId != placeId || acc.PrivateServerLink != psLink || acc.JoinLowServer != joinLowServer || acc.LowestGraphics != lowestGraphics) {
+                if (acc.PlaceId != placeId || acc.PrivateServerLink != psLink || acc.JoinLowServer != joinLowServer || acc.LowestGraphics != lowestGraphics || acc.FFlagOptimization != fflagOpt) {
                     acc.PlaceId = placeId;
                     acc.PrivateServerLink = psLink;
                     acc.JoinLowServer = joinLowServer;
                     acc.LowestGraphics = lowestGraphics;
+                    acc.FFlagOptimization = fflagOpt;
                     changed = true;
                 }
                 break;
