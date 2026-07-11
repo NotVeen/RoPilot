@@ -45,9 +45,9 @@ void DiscordRPC::UpdatePresence(int accountCount) {
     if (accountCount == 0) {
         activity["state"] = "Idling";
     } else {
-        activity["state"] = "Managing " + std::to_string(accountCount) + " Account" + (accountCount > 1 ? "s" : "");
+        activity["state"] = "Launched " + std::to_string(accountCount) + " Account!" + (accountCount > 1 ? "s" : "");
     }
-    activity["details"] = "Rich Features Multi-Instance Account Manager for Roblox";
+    activity["details"] = "Multi-Instance Account Manager for Roblox";
     activity["timestamps"]["start"] = m_StartTime;
     activity["assets"]["large_image"] = "ropilot_icon";
     activity["assets"]["large_text"] = "RoPilot";
