@@ -695,7 +695,7 @@ void ProcessWebMessage(const std::string& msg) {
             
             if (oldDiscordRPC != s.EnableDiscordRPC) {
                 if (s.EnableDiscordRPC) {
-                    DiscordRPC::Initialize("1327181056526143520");
+                    DiscordRPC::Initialize("1525423648452771942");
                 } else {
                     DiscordRPC::Shutdown();
                 }
@@ -1007,7 +1007,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
     g_accountManager.Load();
     
     if (g_settingsManager.GetSettings().EnableDiscordRPC) {
-        DiscordRPC::Initialize("1327181056526143520");
+        DiscordRPC::Initialize("1525423648452771942");
     }
 
     WNDCLASSEXW wcex = { sizeof(WNDCLASSEX) };
