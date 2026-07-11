@@ -1038,7 +1038,7 @@ constexpr const char* UI_BODY = R"HTML(
                               Create a RoPilot shortcut on your desktop for quick access
                           </div>
                       </div>
-                      <button class="btn-primary" id="btn-create-shortcut" data-i18n="btn_create_shortcut">
+                      <button class="btn-secondary" id="btn-create-shortcut" data-i18n="btn_create_shortcut">
                           Create Shortcut
                       </button>
                   </div>
