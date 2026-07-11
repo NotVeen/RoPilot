@@ -212,15 +212,24 @@ constexpr const char* UI_BODY = R"HTML(
                             </svg>
                         </button>
                         <button
+                            class="btn-icon"
+                            onclick="window.launchAllAccounts()"
+                            title="Launch All Accounts"
+                            style="border-radius: 50%"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </button>
+                        <button
                             class="btn-icon danger"
                             onclick="window.showKillAllPrompt(true)"
                             title="Kill All Instances"
                             style="border-radius: 50%"
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path
-                                    d="M19 6.41L17.59 5 L12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                                />
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="16" width="16">
+                                <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                                <line x1="12" y1="2" x2="12" y2="12"></line>
                             </svg>
                         </button>
                     </div>
@@ -286,15 +295,24 @@ constexpr const char* UI_BODY = R"HTML(
                         />
                     </div>
                     <button
+                        class="btn-icon"
+                        onclick="window.launchAllAccounts()"
+                        title="Launch All Accounts"
+                        style="border-radius: 50%"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </button>
+                    <button
                         class="btn-icon danger"
                         onclick="window.showKillAllPrompt(true)"
                         title="Kill All Instances"
                         style="border-radius: 50%"
                     >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M19 6.41L17.59 5 L12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                            />
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="16" width="16">
+                            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                            <line x1="12" y1="2" x2="12" y2="12"></line>
                         </svg>
                     </button>
                 </div>

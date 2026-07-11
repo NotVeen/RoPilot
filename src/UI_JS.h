@@ -581,7 +581,7 @@ window.renderAccounts = function (accounts) {
                                     <button class="btn-icon danger" onclick="window.removeAccount('${cookie}', '${username}')">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
-                                    ${acc.Status === 1 || acc.Status === 2 ? `<button class="btn-icon danger" onclick="window.killAccount('${cookie}', '${username}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 L12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>` : ""}
+                                    ${acc.Status === 1 || acc.Status === 2 ? `<button class="btn-icon danger" onclick="window.killAccount('${cookie}', '${username}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="16" width="16"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></button>` : ""}
                                 </div>
                             </div>`;
                 });
@@ -882,6 +882,15 @@ window.launchAccount = function (cookie, username, btnElement) {
             lowestGraphics: acc && acc.LowestGraphics ? true : false,
         }),
     );
+};
+
+window.launchAllAccounts = function () {
+    currentAccounts.forEach(acc => {
+        // Only launch if it is not already running or starting
+        if (acc.Status !== 1 && acc.Status !== 2) {
+            window.launchAccount(acc.Cookie, acc.Username, document.getElementById(`launch-${acc.Id || acc.UserId || acc.Cookie}`));
+        }
+    });
 };
 
 let gameIdEl = document.getElementById("global-game-id");
