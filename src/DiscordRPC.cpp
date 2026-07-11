@@ -64,10 +64,22 @@ void DiscordRPC::UpdatePresence(int accountCount) {
     std::string payloadStr = payload.dump();
     uint32_t len = payloadStr.length();
     
+    // Drain any pending messages from Discord
+    DWORD bytesAvail = 0;
+    while (PeekNamedPipe(m_Pipe, nullptr, 0, nullptr, &bytesAvail, nullptr) && bytesAvail > 0) {
+        char buf[1024];
+        DWORD bytesRead;
+        ReadFile(m_Pipe, buf, min(bytesAvail, (DWORD)sizeof(buf)), &bytesRead, nullptr);
+    }
+    
     DWORD bytesWritten;
-    WriteFile(m_Pipe, &op, sizeof(op), &bytesWritten, nullptr);
-    WriteFile(m_Pipe, &len, sizeof(len), &bytesWritten, nullptr);
-    WriteFile(m_Pipe, payloadStr.c_str(), len, &bytesWritten, nullptr);
+    if (!WriteFile(m_Pipe, &op, sizeof(op), &bytesWritten, nullptr) ||
+        !WriteFile(m_Pipe, &len, sizeof(len), &bytesWritten, nullptr) ||
+        !WriteFile(m_Pipe, payloadStr.c_str(), len, &bytesWritten, nullptr)) {
+        // Disconnect if write fails
+        CloseHandle(m_Pipe);
+        m_Pipe = INVALID_HANDLE_VALUE;
+    }
 }
 
 bool DiscordRPC::Connect() {
@@ -101,6 +113,19 @@ bool DiscordRPC::SendHandshake() {
     if (!WriteFile(m_Pipe, &op, sizeof(op), &bytesWritten, nullptr)) return false;
     if (!WriteFile(m_Pipe, &len, sizeof(len), &bytesWritten, nullptr)) return false;
     if (!WriteFile(m_Pipe, payloadStr.c_str(), len, &bytesWritten, nullptr)) return false;
+    
+    // Read the response to complete handshake
+    uint32_t readOp, readLen;
+    DWORD bytesRead;
+    if (ReadFile(m_Pipe, &readOp, sizeof(readOp), &bytesRead, nullptr) && bytesRead == sizeof(readOp)) {
+        if (ReadFile(m_Pipe, &readLen, sizeof(readLen), &bytesRead, nullptr) && bytesRead == sizeof(readLen)) {
+            if (readLen > 0 && readLen < 10000) { // arbitrary safe limit
+                char* buf = new char[readLen + 1];
+                ReadFile(m_Pipe, buf, readLen, &bytesRead, nullptr);
+                delete[] buf;
+            }
+        }
+    }
     
     return true;
 }

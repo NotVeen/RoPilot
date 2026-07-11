@@ -660,7 +660,8 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["sidebarCollapsed"] = s.SidebarCollapsed;
             jOut["windowOpacity"] = s.WindowOpacity;
             jOut["enableWindowBlur"] = s.EnableWindowBlur;
-        jOut["hideIdentity"] = s.HideIdentity;
+            jOut["hideIdentity"] = s.HideIdentity;
+            jOut["enableDiscordRPC"] = s.EnableDiscordRPC;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
         }
@@ -1004,6 +1005,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         Launcher::InitializeMultiInstance();
 
     g_accountManager.Load();
+    
+    if (g_settingsManager.GetSettings().EnableDiscordRPC) {
+        DiscordRPC::Initialize("1327181056526143520");
+    }
 
     WNDCLASSEXW wcex = { sizeof(WNDCLASSEX) };
     wcex.style = CS_HREDRAW | CS_VREDRAW;
