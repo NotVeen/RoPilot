@@ -26,6 +26,7 @@ struct Account {
     std::string PrivateServerLink = "";
     bool JoinLowServer = false;
     bool LowestGraphics = false;
+    bool AntiAFK = false;
     std::string FFlagOptimization = "Default";
     AnalyticsState Analytics;
 };
@@ -48,7 +49,7 @@ public:
     void UpdateAccountProcess(const std::string& cookie, int status, DWORD processId);
     void UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics);
     void UpdateAccountInfo(const std::string& cookie, const RobloxAPI::UserInfo& info);
-    void UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink, bool joinLowServer, bool lowestGraphics, const std::string& fflagOpt);
+    void UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink, bool joinLowServer, bool lowestGraphics, bool antiAfk, const std::string& fflagOpt);
 
 private:
     std::string m_FilePath;

@@ -591,6 +591,19 @@ void ProcessWebMessage(const std::string& msg) {
                 } else {
                     g_accountManager.UpdateAccountProcess(cookie, 0, 0);
                     std::lock_guard<std::mutex> toastLock(g_toastMutex);
+                    if (g_settingsManager.GetSettings().Language == "id") {
+                        if (launchError == "Could not find RobloxPlayerBeta.exe! Please launch Roblox once.") {
+                            launchError = "RobloxPlayerBeta.exe tidak ditemukan! Harap jalankan Roblox setidaknya sekali.";
+                        } else if (launchError == "RobloxPlayerBeta.dll was not found!") {
+                            launchError = "RobloxPlayerBeta.dll tidak ditemukan!";
+                        } else if (launchError == "Failed to get CSRF token.") {
+                            launchError = "Gagal mendapatkan token CSRF.";
+                        } else if (launchError == "Failed to get Auth Ticket.") {
+                            launchError = "Gagal mendapatkan Auth Ticket.";
+                        } else if (launchError == "Update timed out or Roblox failed to launch after update.") {
+                            launchError = "Waktu update habis atau Roblox gagal diluncurkan setelah update.";
+                        }
+                    }
                     g_toastQueue.push_back({launchError, true});
                     ERROR_LOG("Launch Error for " << cookie << ": " << launchError);
                 }
@@ -603,9 +616,10 @@ void ProcessWebMessage(const std::string& msg) {
             std::string psLink = j.value("psLink", "");
             bool joinLowServer = j.value("joinLowServer", false);
             bool lowestGraphics = j.value("lowestGraphics", false);
+            bool antiAfk = j.value("antiAfk", false);
             std::string fflagOpt = j.value("fflagOptimization", "Default");
-            std::thread([cookie, placeId, psLink, joinLowServer, lowestGraphics, fflagOpt]() {
-                g_accountManager.UpdateAccountGame(cookie, placeId, psLink, joinLowServer, lowestGraphics, fflagOpt);
+            std::thread([cookie, placeId, psLink, joinLowServer, lowestGraphics, antiAfk, fflagOpt]() {
+                g_accountManager.UpdateAccountGame(cookie, placeId, psLink, joinLowServer, lowestGraphics, antiAfk, fflagOpt);
             }).detach();
         }
         else if (action == "close") {
@@ -878,6 +892,7 @@ void UpdateUI() {
         jAcc["PrivateServerLink"] = acc.PrivateServerLink;
         jAcc["JoinLowServer"] = acc.JoinLowServer;
         jAcc["LowestGraphics"] = acc.LowestGraphics;
+        jAcc["AntiAFK"] = acc.AntiAFK;
         jAcc["FFlagOptimization"] = acc.FFlagOptimization;
         
         jAcc["CpuUsage"] = acc.Analytics.cpuUsage;
@@ -1224,9 +1239,109 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             if (anyChanged && g_running) {
                 PostMessage(g_hWnd, WM_APP + 2, 0, 0);
             }
-            for (int i = 0; i < 30; ++i) {
+            for (int i = 0; i < 300; ++i) {
                 if (!g_running) break;
                 Sleep(1000);
+            }
+        }
+    }).detach();
+
+    // Anti-AFK Thread
+    std::thread([]() {
+        struct EnumData {
+            DWORD processId;
+            HWND hwnd;
+        };
+        
+        while (g_running) {
+            for (int i = 0; i < 300; ++i) {
+                if (!g_running) return;
+                Sleep(1000);
+            }
+            
+            auto accounts = g_accountManager.GetAccounts();
+            for (const auto& acc : accounts) {
+                if (acc.AntiAFK && acc.ProcessId != 0 && acc.Status == 2) {
+                    std::string jobId;
+                    int presenceType = 0;
+                    bool presenceSuccess = RobloxAPI::GetPresence(acc.Cookie, std::to_string(acc.Info.UserId), jobId, presenceType);
+                    if (!presenceSuccess || presenceType != 2) { 
+                        continue; 
+                    }
+
+                    EnumData data = { acc.ProcessId, NULL };
+                    EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+                        EnumData* d = (EnumData*)lParam;
+                        DWORD pid = 0;
+                        GetWindowThreadProcessId(hwnd, &pid);
+                        if (pid == d->processId) {
+                            char className[256];
+                            GetClassNameA(hwnd, className, sizeof(className));
+                            if (std::string(className) == "WINDOWSCLIENT") {
+                                d->hwnd = hwnd;
+                                return FALSE;
+                            }
+                        }
+                        return TRUE;
+                    }, (LPARAM)&data);
+                    
+                    if (data.hwnd != NULL) {
+                        HWND originalFg = GetForegroundWindow();
+                        bool wasMinimized = IsIconic(data.hwnd);
+                        
+                        if (wasMinimized) {
+                            ShowWindow(data.hwnd, SW_RESTORE);
+                            Sleep(80);
+                        }
+
+                        // Force Active
+                        DWORD fgThread = GetWindowThreadProcessId(originalFg, NULL);
+                        DWORD myThread = GetCurrentThreadId();
+                        
+                        if (fgThread != myThread) {
+                            AttachThreadInput(myThread, fgThread, TRUE);
+                            SetForegroundWindow(data.hwnd);
+                            AttachThreadInput(myThread, fgThread, FALSE);
+                        } else {
+                            SetForegroundWindow(data.hwnd);
+                        }
+                        
+                        Sleep(80);
+
+                        INPUT inputs[2] = {0};
+                        
+                        inputs[0].type = INPUT_KEYBOARD;
+                        inputs[0].ki.wVk = VK_SPACE;
+                        inputs[0].ki.wScan = MapVirtualKey(VK_SPACE, MAPVK_VK_TO_VSC);
+                        inputs[0].ki.dwFlags = KEYEVENTF_SCANCODE;
+
+                        inputs[1].type = INPUT_KEYBOARD;
+                        inputs[1].ki.wVk = VK_SPACE;
+                        inputs[1].ki.wScan = MapVirtualKey(VK_SPACE, MAPVK_VK_TO_VSC);
+                        inputs[1].ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+
+                        SendInput(1, inputs, sizeof(INPUT));
+                        Sleep(50);
+                        SendInput(1, inputs + 1, sizeof(INPUT));
+                        
+                        Sleep(120);
+
+                        if (originalFg != NULL && originalFg != data.hwnd) {
+                            fgThread = GetWindowThreadProcessId(originalFg, NULL);
+                            if (fgThread != myThread) {
+                                AttachThreadInput(myThread, fgThread, TRUE);
+                                SetForegroundWindow(originalFg);
+                                AttachThreadInput(myThread, fgThread, FALSE);
+                            } else {
+                                SetForegroundWindow(originalFg);
+                            }
+                        }
+
+                        if (wasMinimized) {
+                            ShowWindow(data.hwnd, SW_MINIMIZE);
+                        }
+                    }
+                }
             }
         }
     }).detach();

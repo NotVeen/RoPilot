@@ -55,13 +55,14 @@ const translations = {
         lbl_account_settings: "Account Settings",
         lbl_join_low_server: "Join Low Server",
         desc_join_low_server:
-            "Automatically finds and joins a public server with the lowest player count and best ping.",
+            "Automatically finds and joins a public server with the lowest player count and best ping",
         lbl_lowest_graphics: "Lowest Graphics",
-        desc_lowest_graphics:
-            "Automatically sets graphics quality to level 1 for maximum performance. Sets to automatic when turned off.",
+        desc_lowest_graphics: "Automatically sets graphics quality to level 1 for maximum performance. Sets to automatic when turned off",
+        lbl_anti_afk: "Anti-AFK",
+        desc_anti_afk: "Simulates a jump every few minutes in the background to prevent AFK kick",
         lbl_fflag_opt: "FFlag Optimization",
         desc_fflag_opt:
-            "Applies custom Fast Flags when launching this account to improve performance.",
+            "Applies custom Fast Flags when launching this account to improve performance",
         lbl_fflag_fps: "FPS Cap",
         lbl_fflag_texture: "Texture",
         lbl_fflag_shadows: "Shadows",
@@ -245,13 +246,14 @@ const translations = {
         lbl_account_settings: "Pengaturan Akun",
         lbl_join_low_server: "Bergabung ke Server Sepi",
         desc_join_low_server:
-            "Secara otomatis mencari dan bergabung ke server publik dengan pemain paling sedikit dan ping terbaik.",
+            "Secara otomatis mencari dan bergabung ke server publik dengan pemain paling sedikit dan ping terbaik",
         lbl_lowest_graphics: "Grafik Terendah",
-        desc_lowest_graphics:
-            "Secara otomatis menyetel kualitas grafik ke tingkat 1 untuk performa maksimum. Akan kembali ke otomatis jika opsi ini dimatikan.",
+        desc_lowest_graphics: "Secara otomatis menyetel kualitas grafik ke tingkat 1 untuk performa maksimum. Akan kembali ke otomatis jika opsi ini dimatikan",
+        lbl_anti_afk: "Anti-AFK",
+        desc_anti_afk: "Mensimulasikan loncatan setiap beberapa menit di latar belakang untuk mencegah kick AFK",
         lbl_fflag_opt: "Optimalisasi FFlag",
         desc_fflag_opt:
-            "Menerapkan Fast Flags kustom saat meluncurkan akun ini untuk meningkatkan performa.",
+            "Menerapkan Fast Flags kustom saat meluncurkan akun ini untuk meningkatkan performa",
         lbl_fflag_fps: "Batas FPS",
         lbl_fflag_texture: "Tekstur",
         lbl_fflag_shadows: "Bayangan",
@@ -945,6 +947,9 @@ function saveGameSettings() {
     let lowestGraphicsCb = document.getElementById("setting-lowest-graphics");
     let lowestGraphics = lowestGraphicsCb ? lowestGraphicsCb.checked : false;
 
+    let antiAfkCb = document.getElementById("setting-anti-afk");
+    let antiAfk = antiAfkCb ? antiAfkCb.checked : false;
+
     let fflagOptSel = document.getElementById("setting-fflag-optimization");
     let fflagOpt = fflagOptSel ? fflagOptSel.value : "Default";
 
@@ -963,6 +968,7 @@ function saveGameSettings() {
         acc.PrivateServerLink = psLink;
         acc.JoinLowServer = joinLowServer;
         acc.LowestGraphics = lowestGraphics;
+        acc.AntiAFK = antiAfk;
         acc.FFlagOptimization = fflagOpt;
     }
 
@@ -974,6 +980,7 @@ function saveGameSettings() {
             psLink: psLink,
             joinLowServer: joinLowServer,
             lowestGraphics: lowestGraphics,
+            antiAfk: antiAfk,
             fflagOptimization: fflagOpt,
         }),
     );
@@ -1580,6 +1587,13 @@ if (joinLowServerCb) {
 let lowestGraphicsCb = document.getElementById("setting-lowest-graphics");
 if (lowestGraphicsCb) {
     lowestGraphicsCb.addEventListener("change", function () {
+        if (typeof saveGameSettings === "function") saveGameSettings();
+    });
+}
+
+let antiAfkCb = document.getElementById("setting-anti-afk");
+if (antiAfkCb) {
+    antiAfkCb.addEventListener("change", function () {
         if (typeof saveGameSettings === "function") saveGameSettings();
     });
 }
@@ -2665,9 +2679,10 @@ window.openUtilityModal = function (cookie, userId, avatarSrc, username) {
     }
 
     let lowestGraphicsCb = document.getElementById("setting-lowest-graphics");
-    if (lowestGraphicsCb && acc) {
-        lowestGraphicsCb.checked = acc.LowestGraphics === true;
-    }
+    if (lowestGraphicsCb) lowestGraphicsCb.checked = acc.LowestGraphics;
+
+    let antiAfkCb = document.getElementById("setting-anti-afk");
+    if (antiAfkCb) antiAfkCb.checked = acc.AntiAFK;
 
     let fflagOptSel = document.getElementById("setting-fflag-optimization");
     let fflagText = document.getElementById("fflag-dropdown-text");

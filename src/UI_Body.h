@@ -1851,6 +1851,7 @@ constexpr const char* UI_BODY = R"HTML(
                         flex-grow: 1;
                         padding: 32px 48px;
                         overflow-y: auto;
+                        scrollbar-gutter: stable;
                         display: flex;
                         flex-direction: column;
                         position: relative;
@@ -2352,7 +2353,7 @@ constexpr const char* UI_BODY = R"HTML(
                     <div
                         id="utility-outfits"
                         class="utility-page"
-                        style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto"
+                        style="display: none; flex-direction: column; height: 100%; padding: 0; overflow-y: auto; scrollbar-gutter: stable;"
                     >
                         <!-- Top section: Current Avatar Display -->
                         <div
@@ -2490,6 +2491,7 @@ constexpr const char* UI_BODY = R"HTML(
                             color: var(--text-main);
                             padding: 8px 16px 16px 16px;
                             overflow-y: auto;
+                            scrollbar-gutter: stable;
                         "
                     >
                         <div
@@ -2745,6 +2747,7 @@ constexpr const char* UI_BODY = R"HTML(
                         padding: 8px 48px 16px 48px;
                         margin-top: -24px;
                         overflow-y: auto;
+                        scrollbar-gutter: stable;
                     "
                 >
                     <div class="settings-category" style="margin-bottom: 24px">
@@ -2793,7 +2796,7 @@ constexpr const char* UI_BODY = R"HTML(
                                 <div class="setting-desc" style="font-size: 12px; color: var(--text-muted)">
                                     <span data-i18n="desc_join_low_server"
                                         >Automatically finds and joins a public server with the lowest player count and
-                                        best ping.</span
+                                        best ping</span
                                     >
                                     <div
                                         style="margin-top: 6px; font-style: italic; color: var(--accent-color)"
@@ -2836,12 +2839,47 @@ constexpr const char* UI_BODY = R"HTML(
                                 <div class="setting-desc" style="font-size: 12px; color: var(--text-muted)">
                                     <span data-i18n="desc_lowest_graphics"
                                         >Automatically sets graphics quality to level 1 for maximum performance. Sets to
-                                        automatic when turned off.</span
+                                        automatic when turned off</span
                                     >
                                 </div>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="setting-lowest-graphics" />
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div
+                            class="setting-item"
+                            style="
+                                padding: 12px 0px 8px 0px;
+                                border-top: 1px solid var(--separator-color);
+                                margin-top: 8px;
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                            "
+                        >
+                            <div>
+                                <div
+                                    class="setting-title"
+                                    style="
+                                        font-size: 13px;
+                                        font-weight: 500;
+                                        margin-bottom: 4px;
+                                        color: var(--text-main);
+                                    "
+                                    data-i18n="lbl_anti_afk"
+                                >
+                                    Anti-AFK
+                                </div>
+                                <div class="setting-desc" style="font-size: 12px; color: var(--text-muted)">
+                                    <span data-i18n="desc_anti_afk"
+                                        >Simulates a jump every few minutes in the background to prevent AFK kick</span
+                                    >
+                                </div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="setting-anti-afk" />
                                 <span class="slider"></span>
                             </label>
                         </div>

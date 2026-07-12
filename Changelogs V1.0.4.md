@@ -6,3 +6,4 @@
 - **Launch All Button**: Added a quick Launch All button to launch all of your accounts at once.
 - **Error 773 Teleport Bypass**: RoPilot now silently patches the dreaded Error 773, allowing you to teleport seamlessly across games using multiple accounts without interference!
 - **Fast Flag Optimization**: Added a powerful new setting to the Utilities modal allowing you to inject Fast Flags (`ClientAppSettings.json`) uniquely for each account. Choose from presets like Medium, Low, or Potato to individually limit graphics and disable shadows/particles per instance (Some fastflags may not work though).
+- **Anti-AFK System**: Prevent the 20-minute idle disconnection error with the new Anti-AFK toggle. When enabled, RoPilot automatically simulates a jump (Spacebar) in the background every 5 minutes for that specific account.

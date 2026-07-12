@@ -326,7 +326,8 @@ namespace RobloxAPI {
 
 
     bool GetPresence(const std::string& cookie, const std::string& userId, std::string& outJobId, int& outPresenceType) {
-        std::string headers = "Content-Type: application/json\r\n";
+        std::string csrf = GetCSRFToken(cookie);
+        std::string headers = "x-csrf-token: " + csrf + "\r\nContent-Type: application/json\r\n";
         std::string body = "{\"userIds\": [" + userId + "]}";
         std::string outHeaders;
         std::string response = HttpRequest(L"POST", L"presence.roblox.com", L"/v1/presence/users", cookie, headers, body, &outHeaders);

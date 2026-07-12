@@ -211,6 +211,12 @@ namespace Launcher {
             return false;
         }
 
+        std::filesystem::path dllPath = std::filesystem::path(robloxPath).parent_path() / "RobloxPlayerBeta.dll";
+        if (!std::filesystem::exists(dllPath)) {
+            outError = "RobloxPlayerBeta.dll was not found!";
+            return false;
+        }
+
         ApplyFFlags(robloxPath, fflagOpt);
 
         std::string csrf = RobloxAPI::GetCSRFToken(cookie);
