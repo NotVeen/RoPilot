@@ -235,7 +235,43 @@ constexpr const char* UI_BODY = R"HTML(
                     </div>
                 </div>
             </div>
-
+            
+            <div class="group-container" style="margin-bottom: 24px;">
+                <div class="group-header" style="cursor: default;">
+                    <div class="group-header-left">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                            <path d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.438 4.438 0 0 0 2.94 2.94 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"></path>
+                        </svg>
+                        <h3 data-i18n="lbl_global_launch_setup">Global Launch Setup</h3>
+                    </div>
+                </div>
+                <div class="group-content-wrapper" style="height: auto;">
+                    <div class="group-content">
+                        <div class="global-launch-inner" style="padding: 16px; display: block;">
+                            <div style="display: flex; gap: 16px;">
+                                <div style="flex: 1; margin-bottom: 4px; position: relative; padding-bottom: 16px">
+                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500" data-i18n="lbl_game_id">Place ID</label>
+                                    <input type="text" id="global-accounts-game-id" class="settings-input" placeholder="e.g. 123456789" style="width: 100%; box-sizing: border-box; transition: border-color 0.2s" autocomplete="off" spellcheck="false" oninput="window.validateGlobalAccountsGameLaunchInputs()">
+                                    <div id="error-global-accounts-game-id" style="position: absolute; bottom: 0; left: 0; font-size: 11px; color: #ef4444; display: none;"></div>
+                                </div>
+                                <div style="flex: 1.5; margin-bottom: 4px; position: relative; padding-bottom: 16px">
+                                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500" data-i18n="lbl_private_server_link">Private Server Link</label>
+                                    <input type="text" id="global-accounts-ps-link" class="settings-input" placeholder="https://www.roblox.com/games/... or share?code=..." style="width: 100%; box-sizing: border-box; transition: border-color 0.2s" autocomplete="off" spellcheck="false" oninput="window.validateGlobalAccountsGameLaunchInputs()">
+                                    <div id="error-global-accounts-ps-link" style="position: absolute; bottom: 0; left: 0; font-size: 11px; color: #ef4444; display: none;"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin: 4px 0 0 0; color: var(--text-muted); align-items: flex-start; width: 100%;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="flex-shrink: 0; margin-top: 2px;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                <p style="margin: 0; font-size: 12px; line-height: 1.4; text-align: justify; flex: 1;" data-i18n="lbl_global_launch_desc">When filled, clicking "Launch" on any account will automatically launch them into this specific game/server. Note: Place ID / Link set on individual accounts will override this global setting.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="accounts-wrapper" id="accounts-grid">
                 <!-- Accounts will be injected here -->
                 <div class="empty-state">

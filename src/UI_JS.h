@@ -79,11 +79,15 @@ const translations = {
         desc_settings: "Configure RoPilot preferences",
         desc_hardware_accel: "Use GPU to render the UI smoothly. Disable this to save GPU memory for Roblox.",
         lbl_game_launch_setup: "Game Launch Setup",
-        lbl_game_id: "Place ID / Game ID",
+        lbl_game_id: "Place ID",
         lbl_private_server_link: "Private Server Link",
         msg_mismatch_place_id: "Mismatch: The Private Server link does not match the Place ID.",
         lbl_game_launch_desc:
             'When filled, clicking "Launch" on any account card will automatically launch them into this specific game/server.',
+        lbl_global_launch_setup: "Global Launch Setup",
+        lbl_global_launch_desc: 'When filled, clicking "Launch" on any account will automatically launch them into this specific game/server. Note: Place ID / Link set on individual accounts will override this global setting.',
+        toast_skipped_accounts: "Some accounts were skipped because they don't have a Place ID/Private Server Link setup.",
+        toast_global_placeid_empty: "You need to fill in the Place ID/Private Server Link globally or individually first!",
         lbl_recent_games: "Recent Games",
         lbl_roblox_experience: "Roblox Experience",
         desc_resource_opt: "Prioritize focused window and limit CPU/RAM usage of background instances",
@@ -199,11 +203,15 @@ const translations = {
         lbl_run_background: "Jalankan di Latar Belakang",
         desc_background: "Biarkan RoPilot berjalan di latar belakang saat jendela ditutup",
         lbl_game_launch_setup: "Pengaturan Peluncuran Game",
-        lbl_game_id: "ID Place / ID Game",
+        lbl_game_id: "ID Place",
         lbl_private_server_link: "Tautan Server Pribadi",
         msg_mismatch_place_id: "Tidak cocok: Tautan Server Pribadi tidak sesuai dengan ID Tempat.",
         lbl_game_launch_desc:
             'Jika diisi, menekan "Launch" pada kartu akun akan secara otomatis meluncurkannya ke dalam game/server khusus ini.',
+        lbl_global_launch_setup: "Pengaturan Peluncuran Global",
+        lbl_global_launch_desc: 'Jika diisi, menekan "Launch" pada akun manapun akan secara otomatis meluncurkannya ke dalam game/server khusus ini. Catatan: Place ID / Link yang diatur pada masing-masing akun akan menimpa pengaturan global ini.',
+        toast_skipped_accounts: "Beberapa akun dilewati karena tidak memiliki pengaturan Place ID/Private Server Link.",
+        toast_global_placeid_empty: "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu",
         lbl_recent_games: "Game yang Terakhir Dimainkan",
         lbl_roblox_experience: "Pengalaman Roblox",
         lbl_auto_updates: "Pembaruan Otomatis",
@@ -917,6 +925,24 @@ window.launchAccount = function (cookie, username, btnElement) {
     let acc = currentAccounts.find((a) => a.Cookie === cookie);
     let gameId = acc && acc.PlaceId ? acc.PlaceId : "";
     let psLink = acc && acc.PrivateServerLink ? acc.PrivateServerLink : "";
+    
+    let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
+    let globalPsLinkInput = document.getElementById("global-accounts-ps-link");
+    let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
+    let globalPsLink = globalPsLinkInput ? globalPsLinkInput.value.trim() : "";
+    
+    if (!gameId) {
+        if (globalGameId) {
+            gameId = globalGameId;
+            psLink = globalPsLink;
+        } else {
+            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_global_placeid_empty || "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu", true);
+            if (acc) acc.Status = 0;
+            window.renderAccounts(currentAccounts);
+            return;
+        }
+    }
+
     let userId = acc ? acc.Id || acc.UserId : "";
     let joinLowServer = acc ? acc.JoinLowServer || false : false;
 
@@ -934,12 +960,30 @@ window.launchAccount = function (cookie, username, btnElement) {
 };
 
 window.launchAllAccounts = function () {
+    let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
+    let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
+    let skippedAny = false;
+    let launchedAny = false;
+
     currentAccounts.forEach(acc => {
         // Only launch if it is not already running or starting
         if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
+            if (!acc.PlaceId && !globalGameId) {
+                skippedAny = true;
+                return;
+            }
+            launchedAny = true;
             window.launchAccount(acc.Cookie, acc.Username, document.getElementById(`launch-${acc.Id || acc.UserId || acc.Cookie}`));
         }
     });
+
+    if (skippedAny) {
+        if (!launchedAny) {
+            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_global_placeid_empty || "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu", true);
+        } else {
+            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_skipped_accounts || "Beberapa akun dilewati karena tidak memiliki pengaturan Place ID/Private Server Link.", true);
+        }
+    }
 };
 
 let gameIdEl = document.getElementById("global-game-id");
@@ -1823,6 +1867,14 @@ if (window.chrome && window.chrome.webview) {
                 if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                 if (discordRpcToggle) discordRpcToggle.checked = msg.enableDiscordRPC;
                 if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
+                let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
+                let globalPsLinkInput = document.getElementById("global-accounts-ps-link");
+                if (globalPlaceIdInput && typeof msg.globalPlaceId !== "undefined") {
+                    globalPlaceIdInput.value = msg.globalPlaceId;
+                }
+                if (globalPsLinkInput && typeof msg.globalPrivateServerLink !== "undefined") {
+                    globalPsLinkInput.value = msg.globalPrivateServerLink;
+                }
                 if (typeof msg.sidebarCollapsed !== "undefined") {
                     let sb = document.getElementById("sidebar");
                     if (sb) {
@@ -2607,6 +2659,86 @@ window.doValidateGameLaunchInputs = function () {
         }
     } else {
         updateState(psLinkInput, errorPsLink, "", "none");
+    }
+};
+
+let validateGlobalAccountsGameLaunchTimer = null;
+window.validateGlobalAccountsGameLaunchInputs = function () {
+    if (validateGlobalAccountsGameLaunchTimer) clearTimeout(validateGlobalAccountsGameLaunchTimer);
+    validateGlobalAccountsGameLaunchTimer = setTimeout(window.doValidateGlobalAccountsGameLaunchInputs, 150);
+};
+
+window.doValidateGlobalAccountsGameLaunchInputs = function () {
+    let placeIdInput = document.getElementById("global-accounts-game-id");
+    let psLinkInput = document.getElementById("global-accounts-ps-link");
+    let errorGameId = document.getElementById("error-global-accounts-game-id");
+    let errorPsLink = document.getElementById("error-global-accounts-ps-link");
+    let isId = document.getElementById("setting-language") && document.getElementById("setting-language").value === "id";
+
+    if (!placeIdInput || !psLinkInput) return;
+
+    let placeId = placeIdInput.value.trim();
+    let psLink = psLinkInput.value.trim();
+
+    const updateState = (input, errorDiv, color, display, errorMsg = "") => {
+        if (
+            input.style.borderColor !== color &&
+            !(color === "#ef4444" && input.style.borderColor === "rgb(239, 68, 68)") &&
+            !(color === "#10b981" && input.style.borderColor === "rgb(16, 185, 129)")
+        ) {
+            input.style.borderColor = color;
+        }
+        if (errorDiv) {
+            if (errorDiv.style.display !== display) {
+                errorDiv.style.display = display;
+            }
+            if (display === "block" && errorDiv.innerText !== errorMsg) {
+                errorDiv.innerText = errorMsg;
+            }
+        }
+    };
+
+    if (placeId.length > 0) {
+        if (!/^\d+$/.test(placeId)) {
+            updateState(placeIdInput, errorGameId, "#ef4444", "block", isId ? "Place ID hanya boleh berisi angka." : "Place ID must contain only numbers.");
+        } else {
+            updateState(placeIdInput, errorGameId, "#10b981", "none");
+        }
+    } else {
+        updateState(placeIdInput, errorGameId, "", "none");
+    }
+
+    if (psLink.length > 0) {
+        let isValidLink = (psLink.includes("roblox.com/games/") && psLink.includes("privateServerLinkCode=")) || (psLink.includes("roblox.com/share") && psLink.includes("code="));
+        if (!isValidLink) {
+            updateState(psLinkInput, errorPsLink, "#ef4444", "block", isId ? "Format Tautan Server Pribadi tidak valid." : "Invalid Private Server Link format.");
+        } else {
+            updateState(psLinkInput, errorPsLink, "#10b981", "none");
+            let match = psLink.match(/games\/(\d+)/i);
+            if (match) {
+                let linkId = match[1];
+                if (placeId.length === 0) {
+                    placeIdInput.value = linkId;
+                    placeId = linkId;
+                } else if (placeId !== linkId) {
+                    updateState(placeIdInput, errorGameId, "#ef4444", "block", isId ? "Tidak cocok: Tautan tidak sesuai dengan ID Tempat." : "Mismatch: The Private Server link does not match the Place ID.");
+                    return;
+                }
+            }
+        }
+    } else {
+        updateState(psLinkInput, errorPsLink, "", "none");
+    }
+
+    if (errorGameId && errorGameId.style.display === "block") return;
+    if (errorPsLink && errorPsLink.style.display === "block") return;
+
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(JSON.stringify({
+            action: "save_global_launch",
+            placeId: placeIdInput.value.trim(),
+            psLink: psLinkInput.value.trim()
+        }));
     }
 };
 

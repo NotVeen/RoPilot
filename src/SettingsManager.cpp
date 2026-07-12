@@ -35,6 +35,8 @@ void SettingsManager::Load() {
         m_Settings.EnableWindowBlur = j.value("enableWindowBlur", false);
         m_Settings.HideIdentity = j.value("hideIdentity", false);
         m_Settings.EnableDiscordRPC = j.value("enableDiscordRPC", false);
+        m_Settings.GlobalPlaceId = j.value("globalPlaceId", "");
+        m_Settings.GlobalPrivateServerLink = j.value("globalPrivateServerLink", "");
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -63,6 +65,8 @@ void SettingsManager::Save() {
         j["enableWindowBlur"] = m_Settings.EnableWindowBlur;
         j["hideIdentity"] = m_Settings.HideIdentity;
         j["enableDiscordRPC"] = m_Settings.EnableDiscordRPC;
+        j["globalPlaceId"] = m_Settings.GlobalPlaceId;
+        j["globalPrivateServerLink"] = m_Settings.GlobalPrivateServerLink;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

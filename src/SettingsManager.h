@@ -22,6 +22,8 @@ struct Settings {
     bool EnableWindowBlur = false;
     bool HideIdentity = false;
     bool EnableDiscordRPC = false;
+    std::string GlobalPlaceId = "";
+    std::string GlobalPrivateServerLink = "";
 };
 
 class SettingsManager {

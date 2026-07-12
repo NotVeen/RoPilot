@@ -1,9 +1,10 @@
 # RoPilot v1.0.4 Changelog
 
 ## New Features & Improvements
-- **Discord Rich Presence**: Added native Discord RPC integration to showcase your RoPilot activity on Discord. You can toggle this feature from the General Settings. It includes a smart "Use RoPilot Now!" button that links directly to the latest GitHub release.
-- **Desktop Shortcut**: Added a quick and easy way to create a RoPilot shortcut directly on your desktop via the General Settings menu.
-- **Launch All Button**: Added a quick Launch All button to launch all of your accounts at once.
-- **Error 773 Teleport Bypass**: RoPilot now silently patches the dreaded Error 773, allowing you to teleport seamlessly across games using multiple accounts without interference!
-- **Fast Flag Optimization**: Added a powerful new setting to the Utilities modal allowing you to inject Fast Flags (`ClientAppSettings.json`) uniquely for each account. Choose from presets like Medium, Low, or Potato to individually limit graphics and disable shadows/particles per instance (Some fastflags may not work though).
-- **Anti-AFK System**: Prevent the 20-minute idle disconnection error with the new Anti-AFK toggle. When enabled, RoPilot automatically simulates a jump (Spacebar) in the background every 5 minutes for that specific account.
+- **Discord Rich Presence**: Showcase your RoPilot activity on Discord with a smart "Use RoPilot Now!" button. You can toggle this feature from the General Settings
+- **Desktop Shortcut**: Easily create a RoPilot desktop shortcut via the General Settings menu
+- **Launch All Button**: Launch all your accounts simultaneously with a single click
+- **Error 773 Teleport Bypass**: Silently patches Error 773 to allow seamless cross-game teleports using multiple accounts
+- **Fast Flag Optimization**: Apply custom Fast Flag presets (`ClientAppSettings.json`) per account to optimize graphics and performance
+- **Anti-AFK System**: Simulates a background jump every 5 minutes per account to prevent the 20-minute idle disconnection
+- **Launch Behavior Update**: Launching to the homepage is disabled to prevent cross-device errors. Setting a Place ID or Private Server Link (globally or individually) is now mandatory to launch accounts

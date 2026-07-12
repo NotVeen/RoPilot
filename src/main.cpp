@@ -682,8 +682,18 @@ void ProcessWebMessage(const std::string& msg) {
             jOut["enableWindowBlur"] = s.EnableWindowBlur;
             jOut["hideIdentity"] = s.HideIdentity;
             jOut["enableDiscordRPC"] = s.EnableDiscordRPC;
+            jOut["globalPlaceId"] = s.GlobalPlaceId;
+            jOut["globalPrivateServerLink"] = s.GlobalPrivateServerLink;
             std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
             g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
+        }
+        else if (action == "save_global_launch") {
+            std::string placeId = j.value("placeId", "");
+            std::string psLink = j.value("psLink", "");
+            Settings s = g_settingsManager.GetSettings();
+            s.GlobalPlaceId = placeId;
+            s.GlobalPrivateServerLink = psLink;
+            g_settingsManager.SetSettings(s);
         }
         else if (action == "save_settings") {
             Settings s = g_settingsManager.GetSettings();
