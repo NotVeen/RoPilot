@@ -9,6 +9,7 @@ const translations = {
         lbl_display_name: "Display Name",
         lbl_user_id: "User ID",
         lbl_account_age: "Account Age",
+        lbl_ingame: "In Game",
         lbl_change_display_name: "Change Display Name",
         desc_change_display_name: "Must be 3-20 characters long (letters, numbers, or underscores only).",
         desc_display_name_warning: "Your Display Name can only be changed once every 7 days.",
@@ -210,8 +211,9 @@ const translations = {
         lbl_fetching_details: "Mengambil rincian akun",
         lbl_account_overview: "Ringkasan Akun",
         lbl_display_name: "Nama Tampilan",
-        lbl_user_id: "ID User",
+        lbl_user_id: "User ID",
         lbl_account_age: "Umur Akun",
+        lbl_ingame: "In Game",
         lbl_change_display_name: "Ubah Nama Tampilan",
         desc_change_display_name: "Nama harus terdiri dari 3-20 karakter (hanya huruf, angka, atau garis bawah).",
         desc_display_name_warning: "Display Name hanya dapat diubah satu kali setiap 7 hari.",
@@ -547,17 +549,23 @@ window.renderAccounts = function (accounts) {
                     let statusText = "Offline";
                     let statusValueClass = "";
 
-                    if (acc.Status === 2) {
+                    if (acc.Status === 3) {
                         statusColorClass = "online";
-                        statusText = "Online";
+                        statusText =
+                            translations[document.getElementById("setting-language")?.value || "en"]?.lbl_ingame ||
+                            "In Game";
                         statusValueClass = "green";
+                    } else if (acc.Status === 2) {
+                        statusColorClass = "ingame";
+                        statusText = "Online";
+                        statusValueClass = "blue";
                     } else if (acc.Status === 1) {
-                        statusColorClass = "online";
+                        statusColorClass = "ingame";
                         statusText =
                             translations[document.getElementById("setting-language")?.value || "en"]?.lbl_launching ||
                             "Launching";
-                        statusValueClass = "green";
-                    } else if (acc.Status === 3) {
+                        statusValueClass = "blue";
+                    } else if (acc.Status === 4) {
                         statusColorClass = "danger";
                         statusText =
                             translations[document.getElementById("setting-language")?.value || "en"]?.lbl_invalid ||
@@ -607,7 +615,7 @@ window.renderAccounts = function (accounts) {
                                 <div class="card-actions">
 
                                     ${
-                                        acc.Status === 3
+                                        acc.Status === 4
                                             ? `<button class="btn-launch btn-relogin" onclick="event.stopPropagation(); document.getElementById('btn-add-account').click()">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
                                             <span data-i18n="btn_relogin">Re-Login</span>
@@ -621,7 +629,7 @@ window.renderAccounts = function (accounts) {
                                     <button class="btn-icon danger" onclick="window.removeAccount('${cookie}', '${username}')">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                     </button>
-                                    ${acc.Status === 1 || acc.Status === 2 ? `<button class="btn-icon danger" onclick="window.killAccount('${cookie}', '${username}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="16" width="16"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></button>` : ""}
+                                    ${acc.Status === 1 || acc.Status === 2 || acc.Status === 3 ? `<button class="btn-icon danger" onclick="window.killAccount('${cookie}', '${username}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="16" width="16"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></button>` : ""}
                                 </div>
                             </div>`;
                 });
@@ -659,7 +667,7 @@ window.renderAccounts = function (accounts) {
         // Render Analytics Page
         let analyticsGrid = document.getElementById("analytics-grid");
         if (analyticsGrid) {
-            let activeAccs = accounts.filter((a) => a.Status === 1 || a.Status === 2);
+            let activeAccs = accounts.filter((a) => a.Status === 1 || a.Status === 2 || a.Status === 3);
             if (currentAnalyticsSearchTerm) {
                 activeAccs = activeAccs.filter((acc) => {
                     let usernameMatch = acc.Username && acc.Username.toLowerCase().includes(currentAnalyticsSearchTerm);
@@ -928,7 +936,7 @@ window.launchAccount = function (cookie, username, btnElement) {
 window.launchAllAccounts = function () {
     currentAccounts.forEach(acc => {
         // Only launch if it is not already running or starting
-        if (acc.Status !== 1 && acc.Status !== 2) {
+        if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
             window.launchAccount(acc.Cookie, acc.Username, document.getElementById(`launch-${acc.Id || acc.UserId || acc.Cookie}`));
         }
     });

@@ -1154,8 +1154,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             int activeAccounts = 0;
             
             presenceTimer++;
+            bool checkPresence = (presenceTimer % 15 == 0);
+            
             for (auto& acc : accounts) {
-                if (acc.Status == 2) {
+                if (acc.Status == 2 || acc.Status == 3) {
                     bool isProcessAlive = false;
                     if (acc.ProcessId != 0) {
                         DWORD exitCode = 0;
@@ -1195,6 +1197,23 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                         }
                                     }
                                     g_accountManager.UpdateAccountAnalytics(acc.Cookie, state);
+                                    
+                                    if (checkPresence) {
+                                        std::string jobId;
+                                        int presenceType = 0;
+                                        if (RobloxAPI::GetPresence(acc.Cookie, std::to_string(acc.Info.UserId), jobId, presenceType)) {
+                                            if (presenceType == 2) {
+                                                if (acc.Status != 3) {
+                                                    g_accountManager.UpdateAccountProcess(acc.Cookie, 3, acc.ProcessId);
+                                                }
+                                            } else {
+                                                if (acc.Status != 2) {
+                                                    g_accountManager.UpdateAccountProcess(acc.Cookie, 2, acc.ProcessId);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
                                     updated = true;
                                 }
                             }
@@ -1226,8 +1245,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                 auto info = RobloxAPI::GetUserInfo(acc.Cookie);
                 if (info.UserId == 0) {
                     // Invalid cookie detected
-                    if (acc.Status != 3) {
-                        g_accountManager.UpdateAccountProcess(acc.Cookie, 3, 0);
+                    if (acc.Status != 4) {
+                        g_accountManager.UpdateAccountProcess(acc.Cookie, 4, 0);
                         anyChanged = true;
                     }
                 } else if (info.ThumbnailUrl != acc.Info.ThumbnailUrl || info.Username != acc.Info.Username || info.DisplayName != acc.Info.DisplayName) {
@@ -1261,14 +1280,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
             
             auto accounts = g_accountManager.GetAccounts();
             for (const auto& acc : accounts) {
-                if (acc.AntiAFK && acc.ProcessId != 0 && acc.Status == 2) {
-                    std::string jobId;
-                    int presenceType = 0;
-                    bool presenceSuccess = RobloxAPI::GetPresence(acc.Cookie, std::to_string(acc.Info.UserId), jobId, presenceType);
-                    if (!presenceSuccess || presenceType != 2) { 
-                        continue; 
-                    }
-
+                if (acc.AntiAFK && acc.ProcessId != 0 && acc.Status == 3) {
                     EnumData data = { acc.ProcessId, NULL };
                     EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
                         EnumData* d = (EnumData*)lParam;

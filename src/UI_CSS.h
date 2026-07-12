@@ -119,6 +119,7 @@ constexpr const char* UI_CSS = R"CSS(
     --text-muted: #888888;
     --text-green: #4ade80;
     --text-yellow: #facc15;
+    --text-blue: #60a5fa;
     --btn-bg: #222222;
     --btn-hover: #333333;
     --btn-danger: #3b1313;
@@ -344,8 +345,14 @@ body .add-menu-item:hover {
 [data-theme="light"] .stat-value.green {
     color: #16a34a !important;
 }
+[data-theme="light"] .stat-value.blue {
+    color: #2563eb !important;
+}
 [data-theme="light"] .status-dot.online {
     background-color: #16a34a !important;
+}
+[data-theme="light"] .status-dot.ingame {
+    background-color: #2563eb !important;
 }
 
 [data-theme="light"] .avatar {
@@ -766,6 +773,9 @@ input {
 .status-dot.online {
     background-color: var(--text-green);
 }
+.status-dot.ingame {
+    background-color: var(--text-blue);
+}
 .status-dot.offline {
     background-color: var(--text-muted);
 }
@@ -821,6 +831,9 @@ input {
 
 .stat-value.green {
     color: var(--text-green);
+}
+.stat-value.blue {
+    color: var(--text-blue);
 }
 .stat-value.yellow {
     color: var(--text-yellow);

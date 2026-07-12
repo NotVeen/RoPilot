@@ -18,7 +18,7 @@ struct AnalyticsState {
 struct Account {
     std::string Cookie;
     RobloxAPI::UserInfo Info;
-    int Status = 0; // 0 = Offline, 1 = Launching, 2 = Online
+    int Status = 0; // 0 = Offline, 1 = Launching, 2 = Online, 3 = In Game, 4 = Invalid Cookie
     std::string JobId = "";
     DWORD ProcessId = 0;
     std::string Group = "Ungrouped";
