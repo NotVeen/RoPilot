@@ -555,15 +555,25 @@ input {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    padding: 6px 0;
+    padding: 6px;
     min-width: 160px;
     z-index: 1000;
-    display: none;
     flex-direction: column;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+    display: flex;
 }
-.context-menu.show { display: flex; }
+.context-menu.show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
 .context-menu-item {
-    padding: 8px 16px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -572,22 +582,58 @@ input {
     font-size: 13px;
     position: relative;
     justify-content: space-between;
+    border-radius: 6px;
+    transition: background 0.1s;
 }
 .context-menu-item:hover { background: var(--btn-hover); }
 .context-sub-menu {
     position: absolute;
-    left: 100%;
+    left: calc(100% + 8px);
     top: 0;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    padding: 6px 0;
+    padding: 6px;
     min-width: 160px;
-    display: none;
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
     flex-direction: column;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
+    display: flex;
 }
-.context-menu-item.has-sub:hover .context-sub-menu { display: flex; }
+.context-menu-item.has-sub:hover .context-sub-menu {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.context-menu-item.has-sub::before, .context-menu-item.has-sub::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 16px;
+}
+.context-menu-item.has-sub::before {
+    left: -12px;
+}
+.context-menu-item.has-sub::after {
+    right: -12px;
+}
+.context-menu.align-left .context-sub-menu {
+    left: auto;
+    right: calc(100% + 8px);
+}
+.context-menu.align-bottom .context-sub-menu {
+    top: auto;
+    bottom: -6px;
+}
 [data-theme="light"] .context-menu, [data-theme="light"] .context-sub-menu {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }

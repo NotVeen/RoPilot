@@ -3655,9 +3655,24 @@ document.addEventListener("click", () => {
     if (ctxMenu) ctxMenu.classList.remove("show");
 });
 
+document.addEventListener("scroll", (e) => {
+    let ctxMenu = document.getElementById("account-context-menu");
+    if (ctxMenu && ctxMenu.classList.contains("show")) {
+        let isInsideMenu = e.target && e.target.classList && 
+            (e.target.classList.contains("context-menu") || e.target.classList.contains("context-sub-menu"));
+        if (!isInsideMenu) {
+            ctxMenu.classList.remove("show");
+        }
+    }
+}, true);
+
 document.addEventListener("contextmenu", (e) => {
     let card = e.target.closest(".card");
-    if (!card) return;
+    if (!card) {
+        let ctxMenu = document.getElementById("account-context-menu");
+        if (ctxMenu) ctxMenu.classList.remove("show");
+        return;
+    }
         e.preventDefault();
         
         window.currentContextCookie = card.getAttribute("data-cookie");
@@ -3673,6 +3688,9 @@ document.addEventListener("contextmenu", (e) => {
             ungroupBtn.style.display = "flex";
         }
 
+        let lang = document.getElementById("setting-language")?.value || "en";
+        let dict = translations[lang] || translations["en"];
+
         let subMenu = document.getElementById("ctx-move-sub");
         subMenu.innerHTML = `
             <div class="context-menu-item" onclick="handleCtxCreateGroup()">
@@ -3683,7 +3701,7 @@ document.addEventListener("contextmenu", (e) => {
             </div>
         `;
         
-        currentGroups.forEach(g => {
+        [...new Set(currentGroups)].forEach(g => {
             let div = document.createElement("div");
             div.className = "context-menu-item";
             div.innerHTML = `<div style="display:flex; align-items:center; gap:12px;"><span style="margin-left: 26px;">${g}</span></div>`;
@@ -3702,6 +3720,18 @@ document.addEventListener("contextmenu", (e) => {
         if (left + rect.width > window.innerWidth) left = window.innerWidth - rect.width - 10;
         if (top + rect.height > window.innerHeight) top = window.innerHeight - rect.height - 10;
         
+        if (left + rect.width + 160 > window.innerWidth) {
+            ctxMenu.classList.add("align-left");
+        } else {
+            ctxMenu.classList.remove("align-left");
+        }
+
+        if (top + 250 > window.innerHeight) {
+            ctxMenu.classList.add("align-bottom");
+        } else {
+            ctxMenu.classList.remove("align-bottom");
+        }
+
         ctxMenu.style.left = left + "px";
         ctxMenu.style.top = top + "px";
         ctxMenu.classList.add("show");
@@ -3709,14 +3739,18 @@ document.addEventListener("contextmenu", (e) => {
 
 window.handleCtxLaunch = function() {
     if (window.currentContextCookie) {
-        window.chrome.webview.postMessage(JSON.stringify({ action: "launch", cookie: window.currentContextCookie }));
+        let acc = currentAccounts.find(a => a.Cookie === window.currentContextCookie);
+        let username = acc ? acc.Username : "";
+        window.launchAccount(window.currentContextCookie, username, null);
     }
+    document.getElementById("account-context-menu")?.classList.remove("show");
 };
 
 window.handleCtxKill = function() {
     if (window.currentContextCookie) {
         window.chrome.webview.postMessage(JSON.stringify({ action: "kill", cookie: window.currentContextCookie }));
     }
+    document.getElementById("account-context-menu")?.classList.remove("show");
 };
 
 window.handleCtxUngroup = function() {
@@ -3727,6 +3761,7 @@ window.handleCtxUngroup = function() {
             syncLayout();
         }
     }
+    document.getElementById("account-context-menu")?.classList.remove("show");
 };
 
 window.handleCtxMove = function(groupName) {
@@ -3744,5 +3779,6 @@ window.handleCtxMove = function(groupName) {
 window.handleCtxCreateGroup = function() {
     window.pendingCtxGroupMove = window.currentContextCookie;
     window.createGroup();
+    document.getElementById("account-context-menu")?.classList.remove("show");
 };
 )JS";

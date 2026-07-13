@@ -1444,6 +1444,7 @@ constexpr const char* UI_BODY = R"HTML(
                     <input
                         type="text"
                         id="group-name-input"
+                        maxlength="24"
                         placeholder="e.g. Main Accounts"
                         style="
                             width: 100%;
@@ -3634,6 +3635,7 @@ constexpr const char* UI_BODY = R"HTML(
                 <input
                     type="text"
                     id="rename-group-name-input"
+                    maxlength="24"
                     placeholder="New Group Name"
                     style="
                         width: 100%;
@@ -4332,7 +4334,7 @@ constexpr const char* UI_BODY = R"HTML(
                 <span data-i18n="ctx_kill">Terminate</span>
             </div>
         </div>
-        <div class="context-menu-item has-sub" id="ctx-move">
+        <div class="context-menu-item has-sub" id="ctx-move" onclick="event.stopPropagation()">
             <div style="display:flex; align-items:center; gap:12px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
                 <span data-i18n="ctx_move">Move</span>
