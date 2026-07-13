@@ -12,6 +12,7 @@
 #include <regex>
 #include <fstream>
 #include <sstream>
+#include <mutex>
 #include "ActiveClientLock.h"
 #include "AccountManager.h"
 
@@ -23,6 +24,7 @@ namespace Launcher {
 
     HANDLE g_hMutex = NULL;
     HANDLE g_hEvent = NULL;
+    std::mutex g_launchMutex;
 
     struct EnumData {
         DWORD dwProcessId;
@@ -203,6 +205,7 @@ namespace Launcher {
     }
 
     bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics, const std::string& fflagOpt) {
+        std::lock_guard<std::mutex> lock(g_launchMutex);
         ApplyLowestGraphicsSettings(lowestGraphics);
         
         std::string robloxPath = FindRobloxExecutable();

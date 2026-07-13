@@ -726,6 +726,7 @@ input {
 .accounts-wrapper {
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .card {
@@ -1086,6 +1087,54 @@ input {
     gap: 16px;
     min-height: 20px;
     transition: background 0.2s;
+}
+
+body.is-dragging-card #ungrouped-grid.is-empty {
+    height: 60px !important;
+    min-height: 60px !important;
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    background: var(--bg-main);
+    display: block !important;
+    overflow: hidden;
+    position: relative;
+}
+body.is-dragging-card #ungrouped-grid.is-empty::after {
+    content: attr(data-drop-text);
+    color: var(--text-secondary);
+    font-weight: 500;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 2;
+}
+body.is-dragging-card #ungrouped-grid.is-empty .card {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    opacity: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1;
+}
+
+.sortable-ghost {
+    opacity: 0.2 !important;
+    background-color: var(--bg-hover) !important;
+    border: 2px dashed var(--border-color) !important;
+    border-radius: 12px !important;
+}
+.sortable-drag {
+    cursor: grabbing !important;
+    opacity: 1 !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+    background-color: var(--bg-card) !important;
 }
 
 .group-container.collapsed .group-header {
@@ -1676,7 +1725,8 @@ html:not([data-theme="light"]) .social-item:hover {
 #kill-modal.show,
 #remove-modal.show,
 #kill-all-modal.show,
-#unfriend-modal.show {
+#unfriend-modal.show,
+#kill-group-modal.show {
     opacity: 1 !important;
     pointer-events: auto !important;
 }
@@ -1687,7 +1737,8 @@ html:not([data-theme="light"]) .social-item:hover {
 #kill-modal.show #kill-modal-content,
 #remove-modal.show #remove-modal-content,
 #kill-all-modal.show #kill-all-modal-content,
-#unfriend-modal.show #unfriend-modal-content {
+#unfriend-modal.show #unfriend-modal-content,
+#kill-group-modal.show .modal-content {
     transform: scale(1) !important;
 }
 

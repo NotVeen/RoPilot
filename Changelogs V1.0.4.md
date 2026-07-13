@@ -1,10 +1,17 @@
 # RoPilot v1.0.4 Changelog
 
 ## New Features & Improvements
-- **Discord Rich Presence**: Showcase your RoPilot activity on Discord with a smart "Use RoPilot Now!" button. You can toggle this feature from the General Settings
+- **Discord Rich Presence**: Showcase your RoPilot activity on Discord with Discord Rich Presence
 - **Desktop Shortcut**: Easily create a RoPilot desktop shortcut via the General Settings menu
-- **Launch All Button**: Launch all your accounts simultaneously with a single click
+- **Launch All Button**: Launch all your accounts or accounts in a group simultaneously with a single click
 - **Error 773 Teleport Bypass**: Silently patches Error 773 to allow seamless cross-game teleports using multiple accounts
 - **Fast Flag Optimization**: Apply custom Fast Flag presets (`ClientAppSettings.json`) per account to optimize graphics and performance
 - **Anti-AFK System**: Simulates a background jump every 5 minutes per account to prevent the 20-minute idle disconnection
 - **Launch Behavior Update**: Launching to the homepage is disabled to prevent cross-device errors. Setting a Place ID or Private Server Link (globally or individually) is now mandatory to launch accounts
+
+## Bug Fixes
+- **Cross-Group Kill Instance**: Fixed a race condition issue where launching multiple accounts concurrently caused Roblox to merge into a single bootstrapper parent process, which resulted in terminating accounts from other groups when a specific group was killed
+
+## To Do List
+- Context Menu
+- Decrypt password  

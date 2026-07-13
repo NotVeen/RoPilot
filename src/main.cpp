@@ -879,6 +879,32 @@ void ProcessWebMessage(const std::string& msg) {
                 }
             }
         }
+        else if (action == "kill_group") {
+            std::string targetGroup = j.value("group", "");
+            int killed = 0;
+            std::string killedNames = "";
+            
+            for (auto& acc : g_accountManager.GetAccounts()) {
+                if (acc.Group == targetGroup && acc.ProcessId != 0) {
+                    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, acc.ProcessId);
+                    if (hProcess) {
+                        TerminateProcess(hProcess, 0);
+                        CloseHandle(hProcess);
+                        g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
+                        killed++;
+                        if (!killedNames.empty()) killedNames += ", ";
+                        killedNames += acc.Info.Username;
+                    }
+                }
+            }
+            
+            if (killed > 0) {
+                UpdateUI();
+                SendStatusMessage(targetGroup + " group instances killed.", false);
+            } else {
+                SendStatusMessage("No active instance found.", true);
+            }
+        }
     } catch (...) {}
 }
 
@@ -972,7 +998,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         }
         return 0;
     }
-
 
     case WM_SIZE: {
         RECT bounds;
@@ -1372,7 +1397,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         LOG("Failed to create window");
         return FALSE;
     }
-
 
     ShowWindow(g_hWnd, nCmdShow);
     UpdateWindow(g_hWnd);

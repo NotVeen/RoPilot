@@ -40,6 +40,7 @@ const translations = {
         desc_font: "Change the global application font",
         lbl_language: "Language",
         desc_language: "Change the display language",
+        lbl_drop_ungroup: "Drop here to ungroup",
         placeholder_search: "Search settings..",
         nav_analytics: "Analytics",
         lbl_no_accounts: "No Accounts Found",
@@ -98,6 +99,8 @@ const translations = {
         btn_yes: "Yes",
         desc_empty_accounts: 'Click the "Add Account" button to add your Roblox account',
         lbl_kill_all_instances: "Kill All Instances",
+        lbl_kill_group_instances: "Kill Group Instances",
+        desc_kill_group_instances: "Are you sure you want to terminate all active Roblox instances in group {group}?",
         desc_kill_all_instances:
             "Are you sure you want to terminate all currently running Roblox instances? All active games will be closed immediately.",
         lbl_running_instances: "Running Instances Detected",
@@ -147,6 +150,8 @@ const translations = {
         toast_already_run: " is already running!",
         toast_multi_added: " account(s) added successfully!",
         toast_multi_failed: " failed",
+        toast_group_killed_pre: "",
+        toast_group_killed_post: " group instances killed.",
         lbl_downloading_update: "Downloading Update",
         desc_preparing_download: "Preparing download...",
         btn_install_now: "Install Now",
@@ -239,6 +244,7 @@ const translations = {
         desc_font: "Ubah font utama aplikasi",
         lbl_language: "Bahasa",
         desc_language: "Ubah bahasa tampilan",
+        lbl_drop_ungroup: "Lepaskan disini untuk ungroup",
         placeholder_search: "Cari pengaturan..",
         nav_analytics: "Analitik",
         lbl_no_accounts: "Tidak Ada Akun Ditemukan",
@@ -289,6 +295,8 @@ const translations = {
         btn_yes: "Ya",
         desc_empty_accounts: 'Klik tombol "Tambah Akun" untuk menambahkan akun Roblox Anda',
         lbl_kill_all_instances: "Tutup Semua Klien",
+        lbl_kill_group_instances: "Tutup Klien Grup",
+        desc_kill_group_instances: "Apakah Anda yakin ingin menutup semua klien Roblox yang sedang berjalan di grup {group}?",
         desc_kill_all_instances:
             "Apakah Anda yakin ingin menutup semua klien Roblox yang sedang berjalan? Semua permainan aktif akan langsung ditutup.",
         lbl_running_instances: "Klien Berjalan Terdeteksi",
@@ -347,6 +355,8 @@ const translations = {
         toast_already_run: " sudah berjalan!",
         toast_multi_added: " akun berhasil ditambahkan!",
         toast_multi_failed: " gagal",
+        toast_group_killed_pre: "Klien grup ",
+        toast_group_killed_post: " berhasil ditutup.",
         lbl_downloading_update: "Mengunduh Pembaruan",
         desc_preparing_download: "Menyiapkan unduhan...",
         btn_install_now: "Instal Sekarang",
@@ -510,25 +520,49 @@ window.renderAccounts = function (accounts) {
         } else {
             let groups = {};
             currentGroups.forEach((g) => {
-                groups[g] = [];
+                if (g && g !== "Ungrouped") groups[g] = [];
             });
+
+            let ungroupedAccounts = [];
             filtered.forEach((acc) => {
-                let groupName = acc.Group || "Ungrouped";
-                if (!groups[groupName]) groups[groupName] = [];
-                groups[groupName].push(acc);
+                let groupName = acc.Group || "";
+                if (groupName === "Ungrouped") groupName = "";
+                
+                if (groupName === "") {
+                    ungroupedAccounts.push(acc);
+                } else {
+                    if (!groups[groupName]) groups[groupName] = [];
+                    groups[groupName].push(acc);
+                }
             });
 
-            html = "";
-            for (let groupName in groups) {
-                let groupAccounts = groups[groupName];
-                if (isSearching && groupAccounts.length === 0) continue;
+            let renderBlocks = [];
+            if (ungroupedAccounts.length > 0 || !isSearching) {
+                renderBlocks.push({ name: "", accounts: ungroupedAccounts });
+            }
+            for (let g in groups) {
+                if (isSearching && groups[g].length === 0) continue;
+                renderBlocks.push({ name: g, accounts: groups[g] });
+            }
 
-                let isCollapsed = collapsedGroups.has(groupName);
-                if (isSearching && groupAccounts.length > 0) {
-                    isCollapsed = false;
-                }
+            let ungroupedHtml = "";
+            let groupsHtml = "";
 
-                html += `
+            renderBlocks.forEach(block => {
+                let groupName = block.name;
+                let groupAccounts = block.accounts;
+                let blockHtml = "";
+
+                if (groupName === "") {
+                    let pb = groupAccounts.length > 0 ? 16 : 0;
+                    let emptyClass = groupAccounts.length === 0 ? "is-empty" : "";
+                    let dropText = translations[document.getElementById("setting-language")?.value || "en"]?.lbl_drop_ungroup || "Drop here to ungroup";
+                    blockHtml += `<div id="ungrouped-grid" class="group-content-inner ${emptyClass}" data-drop-text="${dropText}" style="min-height: 0px; padding: 0; padding-bottom: ${pb}px;">`;
+                } else {
+                    let isCollapsed = collapsedGroups.has(groupName);
+                    if (isSearching && groupAccounts.length > 0) isCollapsed = false;
+
+                    blockHtml += `
                         <div class="group-container ${isCollapsed ? "collapsed" : ""}" data-group="${escapeHtml(groupName)}">
                             <div class="group-header" onclick="window.toggleGroup(this.parentElement, '${escapeHtml(groupName)}')">
                                 <div class="group-header-left">
@@ -537,20 +571,17 @@ window.renderAccounts = function (accounts) {
                                     <span class="group-badge">${groupAccounts.length}</span>
                                 </div>
                                 <div class="group-actions">
-                                    ${
-                                        groupName !== "Ungrouped"
-                                            ? `
-                                        <button class="btn-icon" onclick="event.stopPropagation(); window.renameGroup('${escapeHtml(groupName)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="16 3 21 8 8 21 3 21 3 16 16 3"></polygon></svg></button>
-                                        <button class="btn-icon danger" onclick="event.stopPropagation(); window.deleteGroup('${escapeHtml(groupName)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                                    `
-                                            : ""
-                                    }
+                                    <button class="btn-icon" onclick="event.stopPropagation(); window.launchGroupAccounts('${escapeHtml(groupName)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></button>
+                                    <button class="btn-icon danger" onclick="event.stopPropagation(); window.showKillGroupPrompt('${escapeHtml(groupName)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="14" width="14"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></button>
+                                    <button class="btn-icon" onclick="event.stopPropagation(); window.renameGroup('${escapeHtml(groupName)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="16 3 21 8 8 21 3 21 3 16 16 3"></polygon></svg></button>
+                                    <button class="btn-icon danger" onclick="event.stopPropagation(); window.deleteGroup('${escapeHtml(groupName)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                                 </div>
                             </div>
                             <div class="group-content-wrapper">
                                 <div class="group-content">
                                     <div class="group-content-inner">
                         `;
+                }
 
                 groupAccounts.forEach((acc) => {
                     let statusColorClass = "offline";
@@ -593,7 +624,7 @@ window.renderAccounts = function (accounts) {
                     let userId = escapeHtml(acc.Id || acc.UserId || "0");
                     let cookie = escapeHtml(acc.Cookie);
 
-                    html += `
+                    blockHtml += `
                                                         <div class="card" data-userid="${userId}" data-cookie="${cookie}">
                                 <button class="btn-utility" onclick="event.stopPropagation(); openUtilityModal('${cookie}', '${userId}', '${avatarSrc}', '${escapeHtml(acc.Username)}')" title="Utility">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
@@ -641,34 +672,72 @@ window.renderAccounts = function (accounts) {
                                 </div>
                             </div>`;
                 });
-                html += `
+
+                if (groupName === "") {
+                    blockHtml += `</div>`;
+                    ungroupedHtml = blockHtml;
+                } else {
+                    blockHtml += `
                                     </div>
                                 </div>
                             </div>
                         </div>`;
-            }
+                    groupsHtml += blockHtml;
+                }
+            });
+            
+            html = ungroupedHtml + `<div id="accounts-groups-grid">${groupsHtml}</div>`;
         } // close else block
 
         accountsGrid.innerHTML = html;
 
         if (window.groupSortable) window.groupSortable.destroy();
-        window.groupSortable = new Sortable(accountsGrid, {
-            animation: 150,
-            handle: ".group-header",
-            onEnd: function () {
-                syncLayoutFromDOM();
-            },
-        });
+        let groupsGridEl = document.getElementById("accounts-groups-grid");
+        if (groupsGridEl) {
+            window.groupSortable = new Sortable(groupsGridEl, {
+                animation: 150,
+                handle: ".group-header",
+                onEnd: function () {
+                    syncLayoutFromDOM();
+                },
+            });
+        }
+
+        if (window.cardSortables) {
+            window.cardSortables.forEach(s => s.destroy());
+        }
+        window.cardSortables = [];
 
         document.querySelectorAll(".group-content-inner").forEach((el) => {
-            new Sortable(el, {
+            window.cardSortables.push(new Sortable(el, {
                 group: "shared",
                 animation: 150,
                 delay: 150,
                 delayOnTouchOnly: true,
+                forceFallback: true,
+                fallbackOnBody: true,
+                fallbackClass: "sortable-drag",
+                ghostClass: "sortable-ghost",
+                onStart: function () {
+                    document.body.classList.add('is-dragging-card');
+                },
                 onEnd: function () {
+                    document.body.classList.remove('is-dragging-card');
                     syncLayoutFromDOM();
                 },
+            }));
+        });
+
+        document.querySelectorAll(".group-header").forEach((header) => {
+            header.addEventListener("mouseenter", function (e) {
+                if (!document.body.classList.contains("is-dragging-card")) return;
+                let container = this.parentElement;
+                if (container && container.classList.contains("collapsed")) {
+                    let groupName = container.getAttribute("data-group");
+                    if (groupName) {
+                        window.toggleGroup(container, groupName);
+                    }
+                }
             });
         });
 
@@ -850,23 +919,34 @@ function syncLayoutFromDOM() {
     let newGroups = [];
     let newAccounts = [];
 
-    document.querySelectorAll(".group-container").forEach((groupEl) => {
-        let groupName = groupEl.getAttribute("data-group");
-        if (groupName !== "Ungrouped") newGroups.push(groupName);
+    let groupsGrid = document.getElementById("accounts-groups-grid");
+    if (groupsGrid) {
+        groupsGrid.querySelectorAll(".group-container").forEach((groupEl) => {
+            let groupName = groupEl.getAttribute("data-group");
+            if (!groupName || groupName === "Ungrouped") return;
+            newGroups.push(groupName);
 
-        groupEl.querySelectorAll(".card").forEach((cardEl) => {
+            groupEl.querySelectorAll(".card").forEach((cardEl) => {
+                let cookie = cardEl.getAttribute("data-cookie");
+                let acc = currentAccounts.find((a) => a.Cookie === cookie);
+                if (acc) {
+                    acc.Group = groupName;
+                    newAccounts.push(acc);
+                }
+            });
+        });
+    }
+
+    let ungroupedGrid = document.getElementById("ungrouped-grid");
+    if (ungroupedGrid) {
+        ungroupedGrid.querySelectorAll(".card").forEach((cardEl) => {
             let cookie = cardEl.getAttribute("data-cookie");
             let acc = currentAccounts.find((a) => a.Cookie === cookie);
             if (acc) {
-                acc.Group = groupName;
+                acc.Group = "";
                 newAccounts.push(acc);
             }
         });
-    });
-
-    // Ensure Ungrouped exists at the start
-    if (!newGroups.includes("Ungrouped")) {
-        newGroups.unshift("Ungrouped");
     }
 
     currentGroups = newGroups;
@@ -984,6 +1064,97 @@ window.launchAllAccounts = function () {
             window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_skipped_accounts || "Beberapa akun dilewati karena tidak memiliki pengaturan Place ID/Private Server Link.", true);
         }
     }
+};
+
+window.launchGroupAccounts = function(groupName) {
+    let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
+    let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
+    let skippedAny = false;
+    let launchedAny = false;
+
+    currentAccounts.forEach(acc => {
+        if (acc.Group === groupName) {
+            if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
+                if (!acc.PlaceId && !globalGameId) {
+                    skippedAny = true;
+                    return;
+                }
+                launchedAny = true;
+                window.launchAccount(acc.Cookie, acc.Username, document.getElementById(`launch-${acc.Id || acc.UserId || acc.Cookie}`));
+            }
+        }
+    });
+
+    if (skippedAny) {
+        if (!launchedAny) {
+            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_global_placeid_empty || "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu", true);
+        } else {
+            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_skipped_accounts || "Beberapa akun dilewati karena tidak memiliki pengaturan Place ID/Private Server Link.", true);
+        }
+    }
+};
+
+window.killGroupAccounts = function(groupName) {
+    let targetGroup = String(groupName).trim();
+    window.chrome.webview.postMessage(JSON.stringify({ action: "kill_group", group: targetGroup }));
+};
+
+window.showKillGroupPrompt = function(groupName) {
+    let modal = document.getElementById("kill-group-modal");
+    if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "kill-group-modal";
+        modal.className = "modal";
+        modal.style.cssText = "position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);";
+        modal.innerHTML = `
+            <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
+                <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ff5252; display: flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                        <span id="kill-group-title">Kill Group Instances</span>
+                    </h2>
+                    <button class="btn-icon" onclick="document.getElementById('kill-group-modal').classList.remove('show')" style="margin: -8px">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div style="padding: 20px">
+                    <p style="color: var(--text-muted); margin-bottom: 0; font-size: 14px">
+                        <span id="kill-group-desc-pre"></span><strong id="kill-group-name-display" style="color: var(--text-main); font-weight: 600"></strong><span id="kill-group-desc-post"></span>
+                    </p>
+                    <input type="hidden" id="kill-group-name" />
+                </div>
+                <div class="modal-footer" style="padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px">
+                    <button class="btn-secondary" id="btn-cancel-kill-group" onclick="document.getElementById('kill-group-modal').classList.remove('show')" style="padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;">No</button>
+                    <button class="btn-primary" id="btn-confirm-kill-group" style="padding: 8px 16px; background: #ff5252; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 500;">Yes</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById("btn-confirm-kill-group").addEventListener("click", () => {
+            let gName = document.getElementById("kill-group-name").value;
+            window.killGroupAccounts(gName);
+            document.getElementById("kill-group-modal").classList.remove("show");
+        });
+    }
+
+    let gNameDisplay = groupName === "" ? "Ungrouped" : groupName;
+    document.getElementById("kill-group-name-display").textContent = gNameDisplay;
+    document.getElementById("kill-group-name").value = groupName;
+    
+    let lang = document.getElementById("setting-language")?.value || "en";
+    let dict = translations[lang] || translations["en"];
+    document.getElementById("kill-group-title").textContent = dict.lbl_kill_group_instances || "Kill Group Instances";
+    
+    let descTemplate = dict.desc_kill_group_instances || "Are you sure you want to terminate all active Roblox instances in group {group}?";
+    let parts = descTemplate.split("{group}");
+    document.getElementById("kill-group-desc-pre").textContent = parts[0] || "";
+    document.getElementById("kill-group-desc-post").textContent = parts[1] || "";
+    
+    document.getElementById("btn-cancel-kill-group").textContent = dict.btn_no || "No";
+    document.getElementById("btn-confirm-kill-group").textContent = dict.btn_yes || "Yes";
+    
+    setTimeout(() => { modal.classList.add("show"); }, 10);
 };
 
 let gameIdEl = document.getElementById("global-game-id");
@@ -1164,6 +1335,11 @@ function applyLanguage(lang) {
             }
         }
     });
+
+    let ungroupedGrid = document.getElementById("ungrouped-grid");
+    if (ungroupedGrid && dict["lbl_drop_ungroup"]) {
+        ungroupedGrid.setAttribute("data-drop-text", dict["lbl_drop_ungroup"]);
+    }
 }
 
 function switchPage(activeNav, activePage) {
@@ -1309,7 +1485,7 @@ if (btnConfirmDeleteGroup) {
         let groupName = document.getElementById("delete-group-name").value;
 
         currentAccounts.forEach((acc) => {
-            if (acc.Group === groupName) acc.Group = "Ungrouped";
+            if (acc.Group === groupName) acc.Group = "";
         });
 
         let idx = currentGroups.indexOf(groupName);
@@ -1367,7 +1543,10 @@ window.showStatus = function (msg, isError) {
         else if (msg === "Instance killed.") translatedMsg = dict.toast_inst_killed || msg;
         else if (msg === "Failed to kill instance (process not found?).") translatedMsg = dict.toast_fail_kill || msg;
         else if (msg === "No active instance found.") translatedMsg = dict.toast_no_active || msg;
-        else {
+        else if (msg.endsWith(" group instances killed.")) {
+            let gName = msg.replace(" group instances killed.", "");
+            translatedMsg = (dict.toast_group_killed_pre || "") + gName + (dict.toast_group_killed_post || " group instances killed.");
+        } else {
             let multiAddedMatch = msg.match(/^(\d+) account\(s\) added successfully!(?: \((\d+) failed\))?$/);
             if (multiAddedMatch) {
                 translatedMsg = multiAddedMatch[1] + (dict.toast_multi_added || " account(s) added successfully!");
