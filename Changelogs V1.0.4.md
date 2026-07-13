@@ -1,6 +1,7 @@
 # RoPilot v1.0.4 Changelog
 
 ## New Features & Improvements
+- **Master Password Security**: Secure your `accounts.json` with a mandatory master password using military-grade AES-GCM encryption. RoPilot now requires a master password to be set up on first launch to ensure your accounts data remains encrypted and safe.
 - **Discord Rich Presence**: Showcase your RoPilot activity on Discord with Discord Rich Presence
 - **Desktop Shortcut**: Easily create a RoPilot desktop shortcut via the General Settings menu
 - **Launch All Button**: Launch all your accounts or accounts in a group simultaneously with a single click
@@ -9,6 +10,3 @@
 - **Anti-AFK System**: Simulates a background jump every 5 minutes per account to prevent the 20-minute idle disconnection
 - **Launch Behavior Update**: Launching to the homepage is disabled to prevent cross-device errors. Setting a Place ID or Private Server Link (globally or individually) is now mandatory to launch accounts
 - **Account Context Menu**: Right-click on any account card to quickly Launch, Kill, Move, or Ungroup accounts
-
-## To Do List
-- Decrypt password  

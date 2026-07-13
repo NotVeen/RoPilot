@@ -1,4 +1,5 @@
 #include "AccountManager.h"
+#include "Crypto.h"
 #include "../vendor/json.hpp"
 #include <filesystem>
 #include <fstream>
@@ -12,8 +13,13 @@ AccountManager::AccountManager(const std::string& filePath) : m_FilePath(filePat
     Load();
 }
 
-void AccountManager::Load() {
+void AccountManager::Load(const std::string& password, const std::string& salt) {
     std::lock_guard<std::mutex> lock(m_mutex);
+    m_LoadFailed = false;
+    if (!password.empty() && !salt.empty()) {
+        m_Password = password;
+        m_Salt = salt;
+    }
     m_Accounts.clear();
     std::ifstream file(m_FilePath, std::ios::binary);
     if (!file.is_open()) return;
@@ -22,17 +28,33 @@ void AccountManager::Load() {
         std::vector<BYTE> buffer((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         if (buffer.empty()) return;
 
-        DATA_BLOB DataIn;
-        DATA_BLOB DataOut;
-        DataIn.pbData = buffer.data();
-        DataIn.cbData = (DWORD)buffer.size();
-
         std::string jsonStr;
+        bool decrypted = false;
 
-        if (CryptUnprotectData(&DataIn, NULL, NULL, NULL, NULL, 0, &DataOut)) {
-            jsonStr = std::string((char*)DataOut.pbData, DataOut.cbData);
-            LocalFree(DataOut.pbData);
-        } else {
+        if (!password.empty() && !salt.empty()) {
+            try {
+                std::string ciphertext((char*)buffer.data(), buffer.size());
+                jsonStr = Crypto::DecryptAES(ciphertext, password, salt);
+                decrypted = true;
+            } catch (...) {
+                decrypted = false;
+            }
+        }
+
+        if (!decrypted) {
+            DATA_BLOB DataIn;
+            DATA_BLOB DataOut;
+            DataIn.pbData = buffer.data();
+            DataIn.cbData = (DWORD)buffer.size();
+
+            if (CryptUnprotectData(&DataIn, NULL, NULL, NULL, NULL, 0, &DataOut)) {
+                jsonStr = std::string((char*)DataOut.pbData, DataOut.cbData);
+                LocalFree(DataOut.pbData);
+                decrypted = true;
+            }
+        }
+
+        if (!decrypted) {
             throw std::runtime_error("Decryption failed");
         }
 
@@ -80,13 +102,28 @@ void AccountManager::Load() {
         if (std::filesystem::exists(m_FilePath + ".bak")) {
             try {
                 std::filesystem::copy(m_FilePath + ".bak", m_FilePath, std::filesystem::copy_options::overwrite_existing);
-                Load();
-            } catch (...) {}
+                // Do not call Load() recursively to avoid infinite loop on corrupted backups
+                m_LoadFailed = true;
+            } catch (...) {
+                m_LoadFailed = true;
+            }
+        } else {
+            m_LoadFailed = true;
         }
     }
 }
 
-void AccountManager::Save() {
+void AccountManager::Save(const std::string& password, const std::string& salt) {
+    if (m_LoadFailed) return;
+    
+    if (!password.empty() && !salt.empty()) {
+        m_Password = password;
+        m_Salt = salt;
+    }
+    
+    std::string usePwd = m_Password;
+    std::string useSalt = m_Salt;
+
     std::vector<Account> accsCopy;
     std::vector<std::string> groupsCopy;
     {
@@ -123,21 +160,35 @@ void AccountManager::Save() {
 
     std::string jsonStr = j.dump(4);
 
-    DATA_BLOB DataIn;
-    DATA_BLOB DataOut;
-    DataIn.pbData = (BYTE*)jsonStr.c_str();
-    DataIn.cbData = (DWORD)jsonStr.length();
+    if (!usePwd.empty() && !useSalt.empty()) {
+        try {
+            std::string encrypted = Crypto::EncryptAES(jsonStr, usePwd, useSalt);
+            std::ofstream file(m_FilePath, std::ios::binary);
+            if (file.is_open()) {
+                file.write(encrypted.c_str(), encrypted.size());
+                file.close();
+                try {
+                    std::filesystem::copy(m_FilePath, m_FilePath + ".bak", std::filesystem::copy_options::overwrite_existing);
+                } catch (...) {}
+            }
+        } catch (...) {}
+    } else {
+        DATA_BLOB DataIn;
+        DATA_BLOB DataOut;
+        DataIn.pbData = (BYTE*)jsonStr.c_str();
+        DataIn.cbData = (DWORD)jsonStr.length();
 
-    if (CryptProtectData(&DataIn, L"RoPilot Encrypted Accounts", NULL, NULL, NULL, 0, &DataOut)) {
-        std::ofstream file(m_FilePath, std::ios::binary);
-        if (file.is_open()) {
-            file.write((char*)DataOut.pbData, DataOut.cbData);
-            file.close();
-            try {
-                std::filesystem::copy(m_FilePath, m_FilePath + ".bak", std::filesystem::copy_options::overwrite_existing);
-            } catch (...) {}
+        if (CryptProtectData(&DataIn, L"RoPilot Encrypted Accounts", NULL, NULL, NULL, 0, &DataOut)) {
+            std::ofstream file(m_FilePath, std::ios::binary);
+            if (file.is_open()) {
+                file.write((char*)DataOut.pbData, DataOut.cbData);
+                file.close();
+                try {
+                    std::filesystem::copy(m_FilePath, m_FilePath + ".bak", std::filesystem::copy_options::overwrite_existing);
+                } catch (...) {}
+            }
+            LocalFree(DataOut.pbData);
         }
-        LocalFree(DataOut.pbData);
     }
 }
 

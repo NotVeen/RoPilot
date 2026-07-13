@@ -14,6 +14,7 @@
 #include "DiscordRPC.h"
 #include "UI_Frontend.h"
 #include "SettingsManager.h"
+#include "Crypto.h"
 #include "Updater.h"
 #include <json.hpp>
 #include <iostream>
@@ -94,6 +95,8 @@ bool g_hasShownTrayNotification = false;
 
 AccountManager g_accountManager;
 SettingsManager g_settingsManager;
+std::string g_currentMasterPassword = "";
+std::string g_currentMasterSalt = "";
 std::string g_pendingUpdateUrl = "";
 HWND g_hWnd = NULL;
 ComPtr<ICoreWebView2Controller> g_webviewController;
@@ -181,6 +184,7 @@ std::string ws2s(const std::wstring& w) {
 }
 
 void SendStatusMessage(const std::string& msg, bool isError = false);
+void SendSettingsData();
 void UpdateUI();
 
 uint64_t FileTimeToUInt64(const FILETIME& ft) {
@@ -660,32 +664,7 @@ void ProcessWebMessage(const std::string& msg) {
             SendStatusMessage("Account removed.", false);
         }
         else if (action == "get_settings") {
-            Settings s = g_settingsManager.GetSettings();
-            json jOut;
-            jOut["action"] = "settings_data";
-            jOut["autoUpdate"] = s.AutoUpdate;
-            jOut["runOnStartup"] = s.RunOnStartup;
-            jOut["minimizeToTrayOnClose"] = s.MinimizeToTrayOnClose;
-            jOut["alwaysOnTop"] = s.AlwaysOnTop;
-            jOut["autoKillOnExit"] = s.AutoKillOnExit;
-            jOut["hardwareAcceleration"] = s.HardwareAcceleration;
-            jOut["resourceOptimizer"] = s.ResourceOptimizer;
-            jOut["cpuLimiter"] = s.CpuLimiter;
-            jOut["backgroundCpuLimit"] = s.BackgroundCpuLimit;
-            jOut["lightMode"] = s.LightMode;
-            jOut["accentColor"] = s.AccentColor;
-            jOut["fontFamily"] = s.FontFamily;
-            jOut["language"] = s.Language;
-            jOut["uiScale"] = s.UiScale;
-            jOut["sidebarCollapsed"] = s.SidebarCollapsed;
-            jOut["windowOpacity"] = s.WindowOpacity;
-            jOut["enableWindowBlur"] = s.EnableWindowBlur;
-            jOut["hideIdentity"] = s.HideIdentity;
-            jOut["enableDiscordRPC"] = s.EnableDiscordRPC;
-            jOut["globalPlaceId"] = s.GlobalPlaceId;
-            jOut["globalPrivateServerLink"] = s.GlobalPrivateServerLink;
-            std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
-            g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
+            SendSettingsData();
         }
         else if (action == "save_global_launch") {
             std::string placeId = j.value("placeId", "");
@@ -742,6 +721,68 @@ void ProcessWebMessage(const std::string& msg) {
                 SendStatusMessage("Hardware Acceleration changed. Restart RoPilot to apply.", false);
             } else if (!silent) {
                 SendStatusMessage("Settings saved successfully.", false);
+            }
+        }
+        else if (action == "create_master_password") {
+            std::string password = j.value("password", "");
+            if (!password.empty()) {
+                Settings s = g_settingsManager.GetSettings();
+                s.HasMasterPassword = true;
+                s.MasterPasswordSalt = Crypto::GenerateSalt();
+                s.MasterPasswordHash = Crypto::HashPassword(password, s.MasterPasswordSalt);
+                g_settingsManager.SetSettings(s);
+                
+                g_currentMasterPassword = password;
+                g_currentMasterSalt = s.MasterPasswordSalt;
+                g_accountManager.Save(g_currentMasterPassword, g_currentMasterSalt);
+                UpdateUI();
+                SendSettingsData();
+            }
+        }
+        else if (action == "verify_master_password") {
+            std::string password = j.value("password", "");
+            Settings s = g_settingsManager.GetSettings();
+            if (s.HasMasterPassword) {
+                std::string hash = Crypto::HashPassword(password, s.MasterPasswordSalt);
+                if (hash == s.MasterPasswordHash) {
+                    g_currentMasterPassword = password;
+                    g_currentMasterSalt = s.MasterPasswordSalt;
+                    try {
+                        g_accountManager.Load(g_currentMasterPassword, g_currentMasterSalt);
+                        g_webview->ExecuteScript(L"window.masterPasswordVerified();", nullptr);
+                        UpdateUI();
+                    } catch (...) {
+                        g_webview->ExecuteScript(L"window.showStatus('Failed to decrypt data.', true);", nullptr);
+                    }
+                } else {
+                    g_webview->ExecuteScript(L"window.showStatus('Incorrect password.', true);", nullptr);
+                }
+            } else {
+                g_accountManager.Load();
+                g_webview->ExecuteScript(L"window.masterPasswordVerified();", nullptr);
+                UpdateUI();
+            }
+        }
+        else if (action == "change_master_password") {
+            std::string oldPassword = j.value("oldPassword", "");
+            std::string newPassword = j.value("newPassword", "");
+            Settings s = g_settingsManager.GetSettings();
+            if (s.HasMasterPassword) {
+                std::string hash = Crypto::HashPassword(oldPassword, s.MasterPasswordSalt);
+                if (hash == s.MasterPasswordHash) {
+                    s.MasterPasswordSalt = Crypto::GenerateSalt();
+                    s.MasterPasswordHash = Crypto::HashPassword(newPassword, s.MasterPasswordSalt);
+                    g_settingsManager.SetSettings(s);
+                    
+                    g_currentMasterPassword = newPassword;
+                    g_currentMasterSalt = s.MasterPasswordSalt;
+                    
+                    g_accountManager.Save(g_currentMasterPassword, g_currentMasterSalt);
+                    SendSettingsData();
+                    g_webview->ExecuteScript(L"window.showStatus('Master password updated.', false);", nullptr);
+                } else {
+                    g_webview->ExecuteScript(L"window.showStatus('Incorrect old password.', true);", nullptr);
+                }
             }
         }
         else if (action == "preview_opacity") {
@@ -906,6 +947,37 @@ void ProcessWebMessage(const std::string& msg) {
             }
         }
     } catch (...) {}
+}
+
+void SendSettingsData() {
+    if (!g_webview) return;
+    Settings s = g_settingsManager.GetSettings();
+    json jOut;
+    jOut["action"] = "settings_data";
+    jOut["autoUpdate"] = s.AutoUpdate;
+    jOut["runOnStartup"] = s.RunOnStartup;
+    jOut["minimizeToTrayOnClose"] = s.MinimizeToTrayOnClose;
+    jOut["alwaysOnTop"] = s.AlwaysOnTop;
+    jOut["autoKillOnExit"] = s.AutoKillOnExit;
+    jOut["hardwareAcceleration"] = s.HardwareAcceleration;
+    jOut["resourceOptimizer"] = s.ResourceOptimizer;
+    jOut["cpuLimiter"] = s.CpuLimiter;
+    jOut["backgroundCpuLimit"] = s.BackgroundCpuLimit;
+    jOut["lightMode"] = s.LightMode;
+    jOut["accentColor"] = s.AccentColor;
+    jOut["fontFamily"] = s.FontFamily;
+    jOut["language"] = s.Language;
+    jOut["uiScale"] = s.UiScale;
+    jOut["sidebarCollapsed"] = s.SidebarCollapsed;
+    jOut["windowOpacity"] = s.WindowOpacity;
+    jOut["enableWindowBlur"] = s.EnableWindowBlur;
+    jOut["hideIdentity"] = s.HideIdentity;
+    jOut["enableDiscordRPC"] = s.EnableDiscordRPC;
+    jOut["globalPlaceId"] = s.GlobalPlaceId;
+    jOut["globalPrivateServerLink"] = s.GlobalPrivateServerLink;
+    jOut["hasMasterPassword"] = s.HasMasterPassword;
+    std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
+    g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
 }
 
 void UpdateUI() {

@@ -1,6 +1,19 @@
 #pragma once
 
 constexpr const char* UI_JS = R"JS(
+function getContrastYIQ(hexcolor) {
+    if (!hexcolor) return "#ffffff";
+    hexcolor = hexcolor.replace("#", "");
+    if (hexcolor.length === 3) {
+        hexcolor = hexcolor[0]+hexcolor[0]+hexcolor[1]+hexcolor[1]+hexcolor[2]+hexcolor[2];
+    }
+    let r = parseInt(hexcolor.substr(0, 2), 16);
+    let g = parseInt(hexcolor.substr(2, 2), 16);
+    let b = parseInt(hexcolor.substr(4, 2), 16);
+    let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? "#111111" : "#ffffff";
+}
+
 const translations = {
     en: {
         nav_accounts: "Accounts",
@@ -138,6 +151,29 @@ const translations = {
         toast_placeid_empty: "Place ID cannot be empty when using a Private Server Link!",
         toast_browser_cancel: "Browser login cancelled or failed.",
         toast_fail_add_accounts: "Failed to add accounts. Invalid or expired cookies?",
+        toast_mp_empty: "Please enter a master password.",
+        toast_mp_mismatch: "Passwords do not match.",
+        toast_mp_success: "Master password set successfully.",
+        toast_mp_incorrect: "Incorrect password.",
+        lbl_security: "Security",
+        lbl_master_password: "Change Master Password",
+        desc_master_password: "Change your master password",
+        btn_set_password: "Set Password",
+        btn_change_password: "Change Password",
+        lbl_unlock_ropilot: "Unlock RoPilot",
+        desc_unlock_ropilot: "Enter your master password to decrypt your accounts.",
+        btn_unlock: "Unlock",
+        lbl_set_master_password: "Set Your Master Password",
+        desc_set_master_password: "Secure your accounts with a master password. This password will encrypt your local data",
+        btn_save: "Save",
+        placeholder_master_password: "Master Password",
+        placeholder_confirm_password: "Confirm Password",
+        placeholder_current_password: "Current Password",
+        placeholder_new_password: "New Password",
+        placeholder_confirm_new_password: "Confirm New Password",
+        lbl_change_master_password: "Change Master Password",
+        btn_change: "Change",
+        btn_cancel: "Cancel",
         toast_all_term: "All Roblox instances terminated.",
         toast_no_inst: "No instance is running.",
         toast_acc_removed: "Account removed.",
@@ -153,11 +189,11 @@ const translations = {
         toast_group_killed_pre: "",
         toast_group_killed_post: " group instances killed.",
         lbl_downloading_update: "Downloading Update",
-        desc_preparing_download: "Preparing download...",
+        desc_preparing_download: "Preparing download",
         btn_install_now: "Install Now",
         btn_skip_now: "Skip for Now",
         lbl_whats_new: "What's New in RoPilot",
-        lbl_installing_update: "Installing Update...",
+        lbl_installing_update: "Installing Update",
         desc_restarting: "Please wait while RoPilot restarts.",
         lbl_ropilot: "RoPilot",
         lbl_is_now_available: "is now available!",
@@ -347,7 +383,30 @@ const translations = {
         toast_fail_add_cookie: "Gagal menambahkan akun. Cookie tidak valid?",
         toast_placeid_empty: "Place ID tidak boleh kosong ketika menggunakan Link Private Server!",
         toast_browser_cancel: "Login via browser dibatalkan atau gagal.",
-        toast_fail_add_accounts: "Gagal menambahkan akun. Cookie tidak valid atau kedaluwarsa?",
+        toast_fail_add_accounts: "Gagal menambahkan akun. Cookie tidak valid atau kadaluarsa?",
+        toast_mp_empty: "Harap masukkan master password.",
+        toast_mp_mismatch: "Password tidak cocok.",
+        toast_mp_success: "Master password berhasil diatur.",
+        toast_mp_incorrect: "Password salah.",
+        lbl_security: "Keamanan",
+        lbl_master_password: "Ubah Master Password",
+        desc_master_password: "Ubah master password Anda",
+        btn_set_password: "Atur Password",
+        btn_change_password: "Ubah Password",
+        lbl_unlock_ropilot: "Buka Kunci RoPilot",
+        desc_unlock_ropilot: "Masukkan master password Anda untuk mendekripsi akun.",
+        btn_unlock: "Buka Kunci",
+        lbl_set_master_password: "Buat Master Password Anda",
+        desc_set_master_password: "Amankan akun Anda dengan master password. Password ini akan mengenkripsi data lokal Anda",
+        btn_save: "Simpan",
+        placeholder_master_password: "Master Password",
+        placeholder_confirm_password: "Konfirmasi Password",
+        placeholder_current_password: "Password Saat Ini",
+        placeholder_new_password: "Password Baru",
+        placeholder_confirm_new_password: "Konfirmasi Password Baru",
+        lbl_change_master_password: "Ubah Master Password",
+        btn_change: "Ubah",
+        btn_cancel: "Batal",
         toast_all_term: "Semua klien Roblox telah ditutup.",
         toast_no_inst: "Tidak ada klien yang berjalan.",
         toast_acc_removed: "Akun dihapus.",
@@ -363,11 +422,11 @@ const translations = {
         toast_group_killed_pre: "Klien grup ",
         toast_group_killed_post: " berhasil ditutup.",
         lbl_downloading_update: "Mengunduh Pembaruan",
-        desc_preparing_download: "Menyiapkan unduhan...",
+        desc_preparing_download: "Menyiapkan unduhan",
         btn_install_now: "Instal Sekarang",
         btn_skip_now: "Lewati Dulu",
         lbl_whats_new: "Apa yang Baru di RoPilot",
-        lbl_installing_update: "Menginstal Pembaruan...",
+        lbl_installing_update: "Menginstal Pembaruan",
         desc_restarting: "Harap tunggu sementara RoPilot dimulai ulang.",
         lbl_ropilot: "RoPilot",
         lbl_is_now_available: "kini telah tersedia!",
@@ -804,7 +863,7 @@ window.renderAccounts = function (accounts) {
                                         </div>
                                         <div class="user-info">
                                             <span class="username">${document.getElementById("setting-hide-identity") && document.getElementById("setting-hide-identity").checked ? "******" : escapeHtml(acc.Username)}</span>
-                                            <span class="userid">PID: ${acc.ProcessId || "Loading..."}</span>
+                                            <span class="userid">PID: ${acc.ProcessId || "Loading"}</span>
                                         </div>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -1341,7 +1400,7 @@ function applyLanguage(lang) {
     document.querySelectorAll("[data-i18n]").forEach((el) => {
         const key = el.getAttribute("data-i18n");
         if (dict[key]) {
-            if (el.tagName === "INPUT" && el.type === "text") {
+            if (el.tagName === "INPUT") {
                 el.placeholder = dict[key];
             } else {
                 el.textContent = dict[key];
@@ -1559,6 +1618,7 @@ window.showStatus = function (msg, isError) {
             translatedMsg = dict.toast_hw_accel || msg;
         else if (msg === "Settings saved successfully.") translatedMsg = dict.toast_settings_saved || msg;
         else if (msg === "Instance killed.") translatedMsg = dict.toast_inst_killed || msg;
+        else if (msg === "Incorrect password.") translatedMsg = dict.toast_mp_incorrect || msg;
         else if (msg === "Failed to kill instance (process not found?).") translatedMsg = dict.toast_fail_kill || msg;
         else if (msg === "No active instance found.") translatedMsg = dict.toast_no_active || msg;
         else if (msg.endsWith(" group instances killed.")) {
@@ -1665,9 +1725,11 @@ let fontFamilyInput = document.getElementById("setting-font-family");
 
 if (accentColorInput) {
     accentColorInput.addEventListener("input", (e) => {
-        document.documentElement.style.setProperty("--accent-color", e.target.value);
-        document.documentElement.style.setProperty("--accent-tint-hover", e.target.value + "26");
-        document.documentElement.style.setProperty("--accent-tint-active", e.target.value + "40");
+        let hex = e.target.value;
+        document.documentElement.style.setProperty("--accent-color", hex);
+        document.documentElement.style.setProperty("--accent-text", getContrastYIQ(hex));
+        document.documentElement.style.setProperty("--accent-tint-hover", hex + "26");
+        document.documentElement.style.setProperty("--accent-tint-active", hex + "40");
     });
     accentColorInput.addEventListener("change", (e) => {
         accentColorInput.dataset.reset = "false";
@@ -2092,12 +2154,16 @@ if (window.chrome && window.chrome.webview) {
                         accentColorInput.value = msg.accentColor;
                         accentColorInput.dataset.reset = "false";
                         document.documentElement.style.setProperty("--accent-color", msg.accentColor);
+                        document.documentElement.style.setProperty("--toggle-color", msg.accentColor);
+                        document.documentElement.style.setProperty("--accent-text", getContrastYIQ(msg.accentColor));
                         document.documentElement.style.setProperty("--accent-tint-hover", msg.accentColor + "26");
                         document.documentElement.style.setProperty("--accent-tint-active", msg.accentColor + "40");
                     } else {
                         accentColorInput.value = "#ffffff";
                         accentColorInput.dataset.reset = "true";
                         document.documentElement.style.removeProperty("--accent-color");
+                        document.documentElement.style.removeProperty("--toggle-color");
+                        document.documentElement.style.removeProperty("--accent-text");
                         document.documentElement.style.removeProperty("--accent-tint-hover");
                         document.documentElement.style.removeProperty("--accent-tint-active");
                     }
@@ -2168,6 +2234,40 @@ if (window.chrome && window.chrome.webview) {
                     } else {
                         document.body.classList.remove("blur-enabled");
                         document.documentElement.classList.remove("blur-enabled");
+                    }
+                }
+                
+                let btnChangePassword = document.getElementById("btn-change-master-password");
+                if (btnChangePassword) {
+                    let lang = document.getElementById("setting-language")?.value || "en";
+                    if (msg.hasMasterPassword) {
+                        btnChangePassword.style.display = "block";
+                        
+                        if (!window.isMasterPasswordVerified && !window.masterPasswordFadingOut) {
+                            document.getElementById("master-password-overlay").style.display = "flex";
+                            document.getElementById("mp-title").setAttribute("data-i18n", "lbl_unlock_ropilot");
+                            document.getElementById("mp-title").innerText = translations[lang]?.lbl_unlock_ropilot || "Unlock RoPilot";
+                            document.getElementById("mp-subtitle").setAttribute("data-i18n", "desc_unlock_ropilot");
+                            document.getElementById("mp-subtitle").innerText = translations[lang]?.desc_unlock_ropilot || "Enter your master password to decrypt your accounts.";
+                            document.getElementById("btn-mp-submit").setAttribute("data-i18n", "btn_unlock");
+                            document.getElementById("btn-mp-submit").innerText = translations[lang]?.btn_unlock || "Unlock";
+                            document.getElementById("mp-confirm-group").style.display = "none";
+                            window.masterPasswordMode = "unlock";
+                        }
+                    } else {
+                        btnChangePassword.style.display = "none";
+                        
+                        if (!window.isMasterPasswordVerified) {
+                            document.getElementById("master-password-overlay").style.display = "flex";
+                            document.getElementById("mp-title").setAttribute("data-i18n", "lbl_set_master_password");
+                            document.getElementById("mp-title").innerText = translations[lang]?.lbl_set_master_password || "Set Your Master Password";
+                            document.getElementById("mp-subtitle").setAttribute("data-i18n", "desc_set_master_password");
+                            document.getElementById("mp-subtitle").innerText = translations[lang]?.desc_set_master_password || "Secure your accounts with a master password. This password will encrypt your local data";
+                            document.getElementById("btn-mp-submit").setAttribute("data-i18n", "btn_save");
+                            document.getElementById("btn-mp-submit").innerText = translations[lang]?.btn_save || "Save";
+                            document.getElementById("mp-confirm-group").style.display = "block";
+                            window.masterPasswordMode = "setup";
+                        }
                     }
                 }
             } else if (msg.action === "update_available") {
@@ -2267,7 +2367,7 @@ if (window.chrome && window.chrome.webview) {
                     if (title)
                         title.textContent =
                             translations[document.getElementById("setting-language")?.value || "en"]
-                                ?.lbl_installing_update || "Installing Update...";
+                                ?.lbl_installing_update || "Installing Update";
                     if (desc)
                         desc.textContent =
                             translations[document.getElementById("setting-language")?.value || "en"]?.desc_restarting ||
@@ -2703,7 +2803,7 @@ window.promptWearOutfit = function (id, name, imageUrl) {
 window.submitWearOutfit = function () {
     document.getElementById("wear-outfit-modal").classList.remove("show");
     let btn = document.getElementById("btn-confirm-wear");
-    btn.innerText = "Wearing...";
+    btn.innerText = "Wearing";
     btn.disabled = true;
 
     window.chrome.webview.postMessage({
@@ -3236,7 +3336,7 @@ function renderFriendsList() {
                             <img draggable="false" id="friend-img-${f.id}" src="${f.avatarSrc ? f.avatarSrc : `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E`}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: var(--bg-hover);">
                         </div>
                         <div style="display: flex; flex-direction: column; min-width: 0;">
-                            <div id="friend-name-${f.id}" style="color: var(--text-main); font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${f.displayName || f.name || "Loading..."} <span style="color: var(--text-muted); font-weight: 400; font-size: 14px;">(@${f.name || f.id})</span></div>
+                            <div id="friend-name-${f.id}" style="color: var(--text-main); font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${f.displayName || f.name || "Loading"} <span style="color: var(--text-muted); font-weight: 400; font-size: 14px;">(@${f.name || f.id})</span></div>
                             <div style="color: var(--text-muted); font-size: 13px;">ID: ${f.id}</div>
                         </div>
                     </div>
@@ -3338,7 +3438,7 @@ document.getElementById("btn-confirm-unfriend").addEventListener("click", () => 
     let btn = document.getElementById("btn-confirm-unfriend");
     let isId =
         document.getElementById("setting-language") && document.getElementById("setting-language").value === "id";
-    btn.innerText = isId ? "Menghapus..." : "Removing...";
+    btn.innerText = isId ? "Menghapus" : "Removing";
     btn.style.pointerEvents = "none";
 
     window.chrome.webview.postMessage(
@@ -3367,7 +3467,7 @@ window.executeBulkUnfriend = function () {
     }
 
     let btn = document.getElementById("btn-execute-bulk");
-    btn.innerText = isId ? "Menghapus..." : "Removing...";
+    btn.innerText = isId ? "Menghapus" : "Removing";
     btn.style.pointerEvents = "none";
     document.getElementById("btn-cancel-bulk").style.pointerEvents = "none";
 
@@ -3779,9 +3879,136 @@ window.handleCtxMove = function(groupName) {
     if (ctxMenu) ctxMenu.classList.remove("show");
 };
 
+window.masterPasswordMode = "setup";
+window.isMasterPasswordVerified = false;
+
+window.masterPasswordVerified = function() {
+    window.isMasterPasswordVerified = true;
+    window.masterPasswordFadingOut = true;
+    
+    let mainCont = document.getElementById("mp-main-container");
+    let loadCont = document.getElementById("mp-loading-container");
+    let overlay = document.getElementById("master-password-overlay");
+    
+    if (mainCont && loadCont && overlay) {
+        mainCont.style.transition = "opacity 0.3s ease";
+        mainCont.style.opacity = "0";
+        setTimeout(() => {
+            mainCont.style.display = "none";
+            loadCont.style.display = "flex";
+            loadCont.style.opacity = "0";
+            loadCont.style.transition = "opacity 0.3s ease";
+            void loadCont.offsetWidth; // force reflow
+            loadCont.style.opacity = "1";
+        }, 300);
+        
+        setTimeout(() => {
+            overlay.style.transition = "opacity 0.4s ease";
+            overlay.style.opacity = "0";
+            setTimeout(() => {
+                overlay.style.display = "none";
+                overlay.style.opacity = "1";
+                mainCont.style.display = "block";
+                mainCont.style.opacity = "1";
+                loadCont.style.display = "none";
+                window.masterPasswordFadingOut = false;
+            }, 400);
+        }, 1200);
+    } else {
+        if (overlay) overlay.style.display = "none";
+    }
+};
+
+document.getElementById("mp-input-toggle")?.addEventListener("click", () => {
+    let inp = document.getElementById("mp-input");
+    inp.type = inp.type === "password" ? "text" : "password";
+});
+
+document.getElementById("mp-confirm-input-toggle")?.addEventListener("click", () => {
+    let inp = document.getElementById("mp-confirm-input");
+    inp.type = inp.type === "password" ? "text" : "password";
+});
+document.getElementById("btn-mp-submit")?.addEventListener("click", () => {
+    let pwd = document.getElementById("mp-input").value;
+    if (window.masterPasswordMode === "setup") {
+        if (pwd === "") {
+            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_mp_empty || "Please enter a master password.", true);
+            return;
+        }
+        let confirm = document.getElementById("mp-confirm-input").value;
+        if (pwd !== confirm) {
+            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_mp_mismatch || "Passwords do not match.", true);
+            return;
+        }
+        window.chrome.webview.postMessage(JSON.stringify({ action: "create_master_password", password: pwd }));
+        window.masterPasswordVerified();
+        window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_mp_success || "Master password set successfully.", false);
+    } else {
+        window.chrome.webview.postMessage(JSON.stringify({ action: "verify_master_password", password: pwd }));
+    }
+});
+
+document.getElementById("btn-change-master-password")?.addEventListener("click", () => {
+    let cpModal = document.getElementById("change-password-modal");
+    if (cpModal) {
+        document.getElementById("cp-old-input").value = "";
+        document.getElementById("cp-new-input").value = "";
+        document.getElementById("cp-confirm-input").value = "";
+        cpModal.classList.add("show");
+    }
+});
+
+document.getElementById("cp-old-toggle")?.addEventListener("click", () => {
+    let inp = document.getElementById("cp-old-input");
+    if (inp) inp.type = inp.type === "password" ? "text" : "password";
+});
+
+document.getElementById("cp-new-toggle")?.addEventListener("click", () => {
+    let inp = document.getElementById("cp-new-input");
+    if (inp) inp.type = inp.type === "password" ? "text" : "password";
+});
+
+document.getElementById("cp-confirm-toggle")?.addEventListener("click", () => {
+    let inp = document.getElementById("cp-confirm-input");
+    if (inp) inp.type = inp.type === "password" ? "text" : "password";
+});
+
+document.getElementById("btn-cp-submit")?.addEventListener("click", () => {
+    let oldPwd = document.getElementById("cp-old-input").value;
+    let newPwd = document.getElementById("cp-new-input").value;
+    let confirm = document.getElementById("cp-confirm-input").value;
+    let lang = document.getElementById("setting-language")?.value || "en";
+    
+    if (!oldPwd || !newPwd) {
+        window.showStatus(translations[lang]?.toast_mp_empty || "Please fill out all fields", true);
+        return;
+    }
+    if (newPwd !== confirm) {
+        window.showStatus(translations[lang]?.toast_mp_mismatch || "New passwords do not match", true);
+        return;
+    }
+    window.chrome.webview.postMessage(JSON.stringify({ action: "change_master_password", oldPassword: oldPwd, newPassword: newPwd }));
+    document.getElementById("change-password-modal").classList.remove("show");
+});
+
 window.handleCtxCreateGroup = function() {
     window.pendingCtxGroupMove = window.currentContextCookie;
     window.createGroup();
     document.getElementById("account-context-menu")?.classList.remove("show");
 };
+
+document.addEventListener("keydown", (e) => {
+    let overlay = document.getElementById("master-password-overlay");
+    if (e.key === "Enter" && overlay && overlay.style.display !== "none") {
+        let pwd = document.getElementById("mp-input")?.value;
+        if (window.masterPasswordMode === "setup") {
+            let confirm = document.getElementById("mp-confirm-input")?.value;
+            if (pwd && confirm) {
+                document.getElementById("btn-mp-submit")?.click();
+            }
+        } else {
+            document.getElementById("btn-mp-submit")?.click();
+        }
+    }
+});
 )JS";

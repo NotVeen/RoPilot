@@ -9,6 +9,23 @@ constexpr const char* UI_CSS = R"CSS(
         background-position: -200% 0;
     }
 }
+@keyframes mpContainerFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(0px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-20px);
+    }
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.spinner {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
 /* CSS Reset & Variables */
 .custom-dropdown {
     position: relative;
@@ -316,8 +333,8 @@ body .add-menu-item:hover {
     color: var(--text-main);
 }
 .btn-primary {
-    background-color: var(--accent-color, transparent);
-    color: var(--text-main);
+    background-color: var(--accent-color, #ffffff);
+    color: var(--accent-text, #111111);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     font-weight: 500;
@@ -326,7 +343,7 @@ body .add-menu-item:hover {
     transition: background 0.2s;
 }
 .btn-primary:hover {
-    background-color: var(--accent-color, var(--bg-hover));
+    background-color: var(--accent-color, #e5e5e5);
 }
 .btn-primary.danger {
     background-color: transparent;
@@ -1266,7 +1283,7 @@ body.is-dragging-card #ungrouped-grid.is-empty .card {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    z-index: 9999;
+    z-index: 999999;
     pointer-events: none;
 }
 
@@ -1318,7 +1335,7 @@ body.is-dragging-card #ungrouped-grid.is-empty .card {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #2d2d3a;
+    background-color: var(--border-color);
     transition: 0.3s;
     border-radius: 24px;
 }
@@ -1334,7 +1351,7 @@ body.is-dragging-card #ungrouped-grid.is-empty .card {
     border-radius: 50%;
 }
 input:checked + .slider {
-    background-color: var(--accent-color, var(--text-green));
+    background-color: var(--toggle-color, var(--text-green));
 }
 input:checked + .slider:before {
     transform: translateX(20px);
@@ -1820,7 +1837,8 @@ html:not([data-theme="light"]) .social-item:hover {
 #remove-modal.show,
 #kill-all-modal.show,
 #unfriend-modal.show,
-#kill-group-modal.show {
+#kill-group-modal.show,
+#change-password-modal.show {
     opacity: 1 !important;
     pointer-events: auto !important;
 }
@@ -1832,7 +1850,8 @@ html:not([data-theme="light"]) .social-item:hover {
 #remove-modal.show #remove-modal-content,
 #kill-all-modal.show #kill-all-modal-content,
 #unfriend-modal.show #unfriend-modal-content,
-#kill-group-modal.show .modal-content {
+#kill-group-modal.show .modal-content,
+#change-password-modal.show #change-password-modal-content {
     transform: scale(1) !important;
 }
 
@@ -1867,5 +1886,123 @@ input[type="range"]:focus {
 }
 .modal-footer {
     border-top: 1px solid var(--border-color);
+}
+
+#master-password-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #0a0a0a;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme="light"] #master-password-overlay {
+    background: #f3f4f6;
+}
+
+.mp-container {
+    width: 400px;
+    text-align: left;
+    transform: translateY(-20px);
+    animation: mpContainerFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mp-container h2 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.mp-container p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+#btn-mp-submit {
+    font-weight: 700;
+}
+
+.mp-container .input-group {
+    margin-bottom: 15px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.mp-container .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.mp-container .input-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+.mp-container .input-toggle:hover {
+    color: var(--text-main);
+}
+
+.mp-container input, .ropilot-swal .swal2-input {
+    width: 100%;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-size: 14px;
+    padding: 12px 44px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+[data-theme="light"] .mp-container input, [data-theme="light"] .ropilot-swal .swal2-input {
+    background: var(--bg-hover);
+}
+
+.mp-container input:focus, .ropilot-swal .swal2-input:focus {
+    border-color: #555;
+}
+
+[data-theme="light"] .mp-container input:focus, [data-theme="light"] .ropilot-swal .swal2-input:focus {
+    border-color: #9ca3af;
+}
+
+.ropilot-swal .swal2-input {
+    margin: 10px 0;
+    max-width: 100%;
+    display: flex;
+}
+
+.mp-container button {
+    width: 100%;
 }
 )CSS";

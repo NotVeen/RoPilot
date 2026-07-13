@@ -35,8 +35,8 @@ class AccountManager {
 public:
     AccountManager(const std::string& filePath = "accounts.json");
     
-    void Load();
-    void Save();
+    void Load(const std::string& password = "", const std::string& salt = "");
+    void Save(const std::string& password = "", const std::string& salt = "");
 
     bool AddAccount(const std::string& cookie);
     void RemoveAccount(const std::string& cookie);
@@ -56,4 +56,7 @@ private:
     std::vector<Account> m_Accounts;
     std::vector<std::string> m_Groups;
     std::mutex m_mutex;
+    std::string m_Password;
+    std::string m_Salt;
+    bool m_LoadFailed = false;
 };

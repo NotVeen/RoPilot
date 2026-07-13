@@ -24,6 +24,9 @@ struct Settings {
     bool EnableDiscordRPC = false;
     std::string GlobalPlaceId = "";
     std::string GlobalPrivateServerLink = "";
+    bool HasMasterPassword = false;
+    std::string MasterPasswordHash = "";
+    std::string MasterPasswordSalt = "";
 };
 
 class SettingsManager {

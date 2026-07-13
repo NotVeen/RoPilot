@@ -19,6 +19,7 @@ inline const std::string GetUIHtml() {
 <body>
 )HTML" + UI_BODY + R"HTML(
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
 )HTML" + UI_JS + R"HTML(
     </script>

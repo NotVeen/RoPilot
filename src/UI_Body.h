@@ -59,6 +59,50 @@ constexpr const char* UI_BODY = R"HTML(
     </div>
 </div>
 
+<div id="master-password-overlay" style="display: flex;">
+    <div class="mp-container" id="mp-main-container">
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color, var(--text-main))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+        </div>
+        <h2 id="mp-title" data-i18n="lbl_unlock_ropilot">Unlock RoPilot</h2>
+        <p id="mp-subtitle" data-i18n="desc_unlock_ropilot">Enter your master password to decrypt your accounts.</p>
+        <div class="input-group">
+            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input type="password" id="mp-input" placeholder="Master Password" data-i18n="placeholder_master_password" />
+            <button class="input-toggle" id="mp-input-toggle" tabindex="-1">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
+        </div>
+        <div class="input-group" id="mp-confirm-group" style="display: none;">
+            <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+            </svg>
+            <input type="password" id="mp-confirm-input" placeholder="Confirm Password" data-i18n="placeholder_confirm_password" />
+            <button class="input-toggle" id="mp-confirm-input-toggle" tabindex="-1">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
+        </div>
+        <button class="btn btn-primary" id="btn-mp-submit" data-i18n="btn_unlock">Unlock</button>
+    </div>
+    <div id="mp-loading-container" style="display: none; align-items: center; justify-content: center; text-align: center;">
+        <svg class="spinner" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-main)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+        </svg>
+    </div>
+</div>
+
 <div class="app-container">
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
@@ -728,7 +772,7 @@ constexpr const char* UI_BODY = R"HTML(
                             max="1.2"
                             step="0.2"
                             value="1.0"
-                            style="flex-grow: 1; accent-color: var(--accent-color)"
+                            style="flex-grow: 1; accent-color: var(--accent-color, #10b981)"
                         />
                         <span
                             id="ui-scale-val"
@@ -777,7 +821,7 @@ constexpr const char* UI_BODY = R"HTML(
                             max="1.0"
                             step="0.05"
                             value="1.0"
-                            style="flex-grow: 1; accent-color: var(--accent-color)"
+                            style="flex-grow: 1; accent-color: var(--accent-color, #10b981)"
                         />
                         <span
                             id="window-opacity-val"
@@ -825,6 +869,7 @@ constexpr const char* UI_BODY = R"HTML(
                 </div>
             </div>
 
+
             <div id="settings-container" class="settings-category" style="margin-bottom: 12px">
                 <div
                     class="setting-group"
@@ -847,10 +892,9 @@ constexpr const char* UI_BODY = R"HTML(
                         stroke-linejoin="round"
                         style="color: var(--text-muted)"
                     >
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path
-                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-                        ></path>
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
                     </svg>
                     <h3
                         style="
@@ -1263,6 +1307,74 @@ constexpr const char* UI_BODY = R"HTML(
                             value="2"
                             style="width: 100%; cursor: pointer"
                         />
+                    </div>
+                </div>
+                <div
+                    class="setting-group"
+                    style="
+                        padding: 16px 0px 8px 0px;
+                        border-bottom: 1px solid var(--border-color);
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    "
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        style="color: var(--text-muted)"
+                    >
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <h3
+                        style="
+                            margin: 0;
+                            font-size: 14px;
+                            font-weight: 600;
+                            text-transform: uppercase;
+                            letter-spacing: 0.05em;
+                            color: var(--text-muted);
+                        "
+                        data-i18n="lbl_security"
+                    >
+                        Security
+                    </h3>
+                </div>
+
+                <div
+                    class="setting-item"
+                    style="
+                        padding: 12px 0px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 24px;
+                    "
+                >
+                    <div>
+                        <div
+                            class="setting-title"
+                            style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white"
+                            data-i18n="lbl_master_password"
+                        >
+                            Master Password
+                        </div>
+                        <div
+                            class="setting-desc"
+                            style="font-size: 13px; color: var(--text-muted)"
+                            data-i18n="desc_master_password"
+                        >
+                            Secure your accounts database with a master password.
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" id="btn-change-master-password" style="display: none;" data-i18n="btn_change_password">Change Password</button>
                     </div>
                 </div>
             </div>
@@ -2845,7 +2957,7 @@ constexpr const char* UI_BODY = R"HTML(
                                         best ping</span
                                     >
                                     <div
-                                        style="margin-top: 6px; font-style: italic; color: var(--accent-color)"
+                                        style="margin-top: 6px; font-style: italic; color: var(--accent-color, var(--text-main))"
                                         data-i18n="note_join_low_server"
                                     >
                                         * Note: This feature only works if you have filled in the Place ID field.
@@ -4349,6 +4461,69 @@ constexpr const char* UI_BODY = R"HTML(
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2zm9 10h-6v-2h6v2z"/></svg>
                 <span data-i18n="ctx_ungroup">Ungroup</span>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="change-password-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+    <div id="change-password-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
+        <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center">
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span data-i18n="btn_change_password">Change Password</span>
+            </h2>
+            <button class="btn-icon" onclick="document.getElementById('change-password-modal').classList.remove('show')" style="margin: -8px">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="mp-container" style="padding: 20px; margin: 0; width: 100%; transform: none; animation: none;">
+            <div class="input-group" style="margin-bottom: 12px;">
+                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input type="password" id="cp-old-input" placeholder="Old Password" data-i18n="placeholder_current_password" />
+                <button class="input-toggle" id="cp-old-toggle" tabindex="-1">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group" style="margin-bottom: 12px;">
+                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                </svg>
+                <input type="password" id="cp-new-input" placeholder="New Password" data-i18n="placeholder_new_password" />
+                <button class="input-toggle" id="cp-new-toggle" tabindex="-1">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                </svg>
+                <input type="password" id="cp-confirm-input" placeholder="Confirm Password" data-i18n="placeholder_confirm_new_password" />
+                <button class="input-toggle" id="cp-confirm-toggle" tabindex="-1">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 16px 20px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color);">
+            <button class="btn-secondary" onclick="document.getElementById('change-password-modal').classList.remove('show')" style="padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;" data-i18n="btn_cancel">Cancel</button>
+            <button class="btn-primary" id="btn-cp-submit" style="padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <span data-i18n="btn_save" style="font-weight: bold;">Save</span>
+            </button>
         </div>
     </div>
 </div>

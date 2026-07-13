@@ -37,6 +37,9 @@ void SettingsManager::Load() {
         m_Settings.EnableDiscordRPC = j.value("enableDiscordRPC", false);
         m_Settings.GlobalPlaceId = j.value("globalPlaceId", "");
         m_Settings.GlobalPrivateServerLink = j.value("globalPrivateServerLink", "");
+        m_Settings.HasMasterPassword = j.value("hasMasterPassword", false);
+        m_Settings.MasterPasswordHash = j.value("masterPasswordHash", "");
+        m_Settings.MasterPasswordSalt = j.value("masterPasswordSalt", "");
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -67,6 +70,9 @@ void SettingsManager::Save() {
         j["enableDiscordRPC"] = m_Settings.EnableDiscordRPC;
         j["globalPlaceId"] = m_Settings.GlobalPlaceId;
         j["globalPrivateServerLink"] = m_Settings.GlobalPrivateServerLink;
+        j["hasMasterPassword"] = m_Settings.HasMasterPassword;
+        j["masterPasswordHash"] = m_Settings.MasterPasswordHash;
+        j["masterPasswordSalt"] = m_Settings.MasterPasswordSalt;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {
