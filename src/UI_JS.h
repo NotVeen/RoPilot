@@ -193,6 +193,11 @@ const translations = {
         lbl_remove: "Remove",
         lbl_unfriend_title: "Remove Friend",
         desc_unfriend: "Are you sure you want to remove this friend?",
+        ctx_launch: "Launch",
+        ctx_kill: "Terminate",
+        ctx_move: "Move",
+        ctx_ungroup: "Ungroup",
+        ctx_create_group: "Create New Group",
     },
     id: {
         nav_accounts: "Akun",
@@ -391,6 +396,11 @@ const translations = {
         btn_create_shortcut: "Buat Pintasan",
         toast_shortcut_success: "Pintasan desktop berhasil dibuat!",
         desc_analytics: "Statistik waktu nyata untuk klien Roblox Anda yang sedang berjalan",
+        ctx_launch: "Luncurkan",
+        ctx_kill: "Hentikan",
+        ctx_move: "Pindahkan",
+        ctx_ungroup: "Keluarkan dari Grup",
+        ctx_create_group: "Buat Grup Baru",
     },
 };
 let accountsGrid = document.getElementById("accounts-grid");
@@ -1428,8 +1438,13 @@ if (btnConfirmGroup) {
         if (name !== "") {
             if (!currentGroups.includes(name)) {
                 currentGroups.push(name);
-                syncLayout();
             }
+            if (window.pendingCtxGroupMove) {
+                let acc = currentAccounts.find(a => a.Cookie === window.pendingCtxGroupMove);
+                if (acc) acc.Group = name;
+                window.pendingCtxGroupMove = null;
+            }
+            syncLayout();
         }
         let modal = document.getElementById("group-modal");
         if (modal) modal.classList.remove("show");
@@ -3630,4 +3645,104 @@ if (recentGamesContainer && btnScrollLeft && btnScrollRight) {
     });
     checkScrollBtns.observe(recentGamesContainer);
 }
+
+// --- Context Menu Logic ---
+window.currentContextCookie = null;
+window.pendingCtxGroupMove = null;
+
+document.addEventListener("click", () => {
+    let ctxMenu = document.getElementById("account-context-menu");
+    if (ctxMenu) ctxMenu.classList.remove("show");
+});
+
+document.addEventListener("contextmenu", (e) => {
+    let card = e.target.closest(".card");
+    if (!card) return;
+        e.preventDefault();
+        
+        window.currentContextCookie = card.getAttribute("data-cookie");
+        let acc = currentAccounts.find(a => a.Cookie === window.currentContextCookie);
+        if (!acc) return;
+
+        let ctxMenu = document.getElementById("account-context-menu");
+        let ungroupBtn = document.getElementById("ctx-ungroup");
+        
+        if (!acc.Group || acc.Group === "Ungrouped" || acc.Group === "") {
+            ungroupBtn.style.display = "none";
+        } else {
+            ungroupBtn.style.display = "flex";
+        }
+
+        let subMenu = document.getElementById("ctx-move-sub");
+        subMenu.innerHTML = `
+            <div class="context-menu-item" onclick="handleCtxCreateGroup()">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2zm9 10h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/></svg>
+                    <span data-i18n="ctx_create_group">${dict.ctx_create_group || "Create New Group"}</span>
+                </div>
+            </div>
+        `;
+        
+        currentGroups.forEach(g => {
+            let div = document.createElement("div");
+            div.className = "context-menu-item";
+            div.innerHTML = `<div style="display:flex; align-items:center; gap:12px;"><span style="margin-left: 26px;">${g}</span></div>`;
+            div.onclick = (event) => {
+                event.stopPropagation();
+                handleCtxMove(g);
+            };
+            subMenu.appendChild(div);
+        });
+
+        ctxMenu.style.display = "flex";
+        let rect = ctxMenu.getBoundingClientRect();
+        
+        let left = e.clientX;
+        let top = e.clientY;
+        if (left + rect.width > window.innerWidth) left = window.innerWidth - rect.width - 10;
+        if (top + rect.height > window.innerHeight) top = window.innerHeight - rect.height - 10;
+        
+        ctxMenu.style.left = left + "px";
+        ctxMenu.style.top = top + "px";
+        ctxMenu.classList.add("show");
+    });
+
+window.handleCtxLaunch = function() {
+    if (window.currentContextCookie) {
+        window.chrome.webview.postMessage(JSON.stringify({ action: "launch", cookie: window.currentContextCookie }));
+    }
+};
+
+window.handleCtxKill = function() {
+    if (window.currentContextCookie) {
+        window.chrome.webview.postMessage(JSON.stringify({ action: "kill", cookie: window.currentContextCookie }));
+    }
+};
+
+window.handleCtxUngroup = function() {
+    if (window.currentContextCookie) {
+        let acc = currentAccounts.find(a => a.Cookie === window.currentContextCookie);
+        if (acc) {
+            acc.Group = "";
+            syncLayout();
+        }
+    }
+};
+
+window.handleCtxMove = function(groupName) {
+    if (window.currentContextCookie) {
+        let acc = currentAccounts.find(a => a.Cookie === window.currentContextCookie);
+        if (acc) {
+            acc.Group = groupName;
+            syncLayout();
+        }
+    }
+    let ctxMenu = document.getElementById("account-context-menu");
+    if (ctxMenu) ctxMenu.classList.remove("show");
+};
+
+window.handleCtxCreateGroup = function() {
+    window.pendingCtxGroupMove = window.currentContextCookie;
+    window.createGroup();
+};
 )JS";

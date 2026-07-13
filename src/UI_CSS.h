@@ -544,6 +544,54 @@ input {
     color: #fff;
 }
 
+.hamburger-btn.danger {
+    color: #ff5252;
+}
+
+/* Context Menu */
+.context-menu {
+    position: fixed;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    padding: 6px 0;
+    min-width: 160px;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+}
+.context-menu.show { display: flex; }
+.context-menu-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    color: var(--text-main);
+    font-size: 13px;
+    position: relative;
+    justify-content: space-between;
+}
+.context-menu-item:hover { background: var(--btn-hover); }
+.context-sub-menu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    padding: 6px 0;
+    min-width: 160px;
+    display: none;
+    flex-direction: column;
+}
+.context-menu-item.has-sub:hover .context-sub-menu { display: flex; }
+[data-theme="light"] .context-menu, [data-theme="light"] .context-sub-menu {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
 .nav-item {
     display: flex;
     align-items: center;

@@ -4317,5 +4317,37 @@ constexpr const char* UI_BODY = R"HTML(
 
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container"></div>
+    
+    <!-- Account Context Menu -->
+    <div class="context-menu" id="account-context-menu">
+        <div class="context-menu-item" id="ctx-launch" onclick="handleCtxLaunch()">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span data-i18n="ctx_launch">Launch</span>
+            </div>
+        </div>
+        <div class="context-menu-item" id="ctx-kill" onclick="handleCtxKill()">
+            <div style="display:flex; align-items:center; gap:12px; color: #ff5252;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+                <span data-i18n="ctx_kill">Terminate</span>
+            </div>
+        </div>
+        <div class="context-menu-item has-sub" id="ctx-move">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                <span data-i18n="ctx_move">Move</span>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-right" style="margin-left: 8px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            <div class="context-sub-menu" id="ctx-move-sub">
+                <!-- populated dynamically -->
+            </div>
+        </div>
+        <div class="context-menu-item" id="ctx-ungroup" onclick="handleCtxUngroup()">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2zm9 10h-6v-2h6v2z"/></svg>
+                <span data-i18n="ctx_ungroup">Ungroup</span>
+            </div>
+        </div>
+    </div>
 </div>
 )HTML";
