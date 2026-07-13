@@ -707,6 +707,8 @@ window.renderAccounts = function (accounts) {
             window.groupSortable = new Sortable(groupsGridEl, {
                 animation: 150,
                 handle: ".group-header",
+                scroll: true,
+                bubbleScroll: true,
                 onEnd: function () {
                     syncLayoutFromDOM();
                 },
@@ -725,9 +727,10 @@ window.renderAccounts = function (accounts) {
                 delay: 150,
                 delayOnTouchOnly: true,
                 forceFallback: true,
-                fallbackOnBody: true,
                 fallbackClass: "sortable-drag",
                 ghostClass: "sortable-ghost",
+                scroll: true,
+                bubbleScroll: true,
                 onStart: function () {
                     document.body.classList.add('is-dragging-card');
                 },
