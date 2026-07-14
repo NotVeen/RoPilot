@@ -1892,10 +1892,10 @@ input[type="range"]:focus {
 
 #master-password-overlay {
     position: fixed;
-    top: 0;
+    top: 48px;
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - 48px);
     background: #0a0a0a;
     z-index: 99999;
     display: flex;

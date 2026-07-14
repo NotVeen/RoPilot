@@ -4547,7 +4547,7 @@ constexpr const char* UI_BODY = R"HTML(
                 <input type="text" id="hard-reset-input" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main);" />
             </div>
         </div>
-        <div class="modal-footer" style="padding: 16px 20px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+        <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
             <button class="btn-secondary" onclick="document.getElementById('hard-reset-modal').classList.remove('show')" style="padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;" data-i18n="btn_cancel">Cancel</button>
             <button id="btn-confirm-hard-reset" style="padding: 8px 16px; background: #ef4444; border: none; border-radius: 12px; color: white; cursor: not-allowed; font-weight: 500; opacity: 0.5;" disabled data-i18n="btn_delete_everything">Delete Everything</button>
         </div>
