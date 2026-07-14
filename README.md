@@ -44,6 +44,19 @@ If you're a developer and want to compile this yourself:
 2. Open the Developer Command Prompt.
 3. Run the `build.bat` script to compile the executable.
 
+## VirusTotal & False Positives
+You can view the latest VirusTotal scan for the executable here: **[VirusTotal Scan Results](https://www.virustotal.com/gui/file/832cd335e6caa462b8e88ba942974cbb94ba35d716b4127380b74f44b846526f)**
+
+Some antivirus software (especially those using AI/Machine Learning heuristics) might flag RoPilot as suspicious. These are **False Positives** that occur because:
+1. RoPilot is a newly compiled, unsigned executable.
+2. It interacts with other processes natively to bypass the Roblox single-client limit and optimize background performance (features like Handle Closer and Resource Optimizer).
+3. It uses local encryption algorithms (DPAPI and AES-GCM) to securely store your accounts data.
+
+Because this project is 100% open-source, you can freely review the code and compile it yourself to ensure your safety.
+
+## Credits
+This project was heavily inspired by the original [Roblox Account Manager (RAM)](https://github.com/ic3w0lf22/Roblox-Account-Manager/). Huge thanks to ic3w0lf22 and contributors for the inspiration!
+
 ## Contact & Support
 If you run into any weird bugs, have suggestions, or just want to chat about the project, feel free to reach out to me!
 
