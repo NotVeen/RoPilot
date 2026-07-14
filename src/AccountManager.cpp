@@ -337,3 +337,15 @@ void AccountManager::UpdateAccountGame(const std::string& cookie, const std::str
         Save();
     }
 }
+
+void AccountManager::HardReset() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_Accounts.clear();
+    m_Groups.clear();
+    m_Password = "";
+    m_Salt = "";
+    m_LoadFailed = false;
+    std::error_code ec;
+    std::filesystem::remove(m_FilePath, ec);
+    std::filesystem::remove(m_FilePath + ".bak", ec);
+}

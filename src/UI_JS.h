@@ -234,6 +234,11 @@ const translations = {
         ctx_move: "Move",
         ctx_ungroup: "Ungroup",
         ctx_create_group: "Create New Group",
+        lbl_forgot_password: "Forgot Password?",
+        lbl_hard_reset_title: "Hard Reset",
+        desc_hard_reset_warning: "Are you sure? This will PERMANENTLY DELETE all your accounts and settings. This action cannot be undone.",
+        desc_type_reset_to_confirm: "Type \"RESET\" to confirm:",
+        btn_delete_everything: "Delete Everything",
     },
     id: {
         nav_accounts: "Akun",
@@ -458,8 +463,13 @@ const translations = {
         ctx_launch: "Luncurkan",
         ctx_kill: "Hentikan",
         ctx_move: "Pindahkan",
-        ctx_ungroup: "Keluarkan dari Grup",
+        ctx_ungroup: "Pisahkan",
         ctx_create_group: "Buat Grup Baru",
+        lbl_forgot_password: "Lupa Password?",
+        lbl_hard_reset_title: "Reset Pabrik (Hard Reset)",
+        desc_hard_reset_warning: "Apakah Anda yakin? Tindakan ini akan MENGHAPUS SEMUA akun dan pengaturan Anda secara permanen. Tindakan ini tidak dapat dibatalkan.",
+        desc_type_reset_to_confirm: "Ketik \"RESET\" untuk mengonfirmasi:",
+        btn_delete_everything: "Hapus Semuanya",
     },
 };
 let accountsGrid = document.getElementById("accounts-grid");
@@ -2240,8 +2250,10 @@ if (window.chrome && window.chrome.webview) {
                 let btnChangePassword = document.getElementById("btn-change-master-password");
                 if (btnChangePassword) {
                     let lang = document.getElementById("setting-language")?.value || "en";
+                    let fp = document.getElementById("mp-forgot-password");
                     if (msg.hasMasterPassword) {
                         btnChangePassword.style.display = "block";
+                        if (fp) fp.style.display = "block";
                         
                         if (!window.isMasterPasswordVerified && !window.masterPasswordFadingOut) {
                             document.getElementById("master-password-overlay").style.display = "flex";
@@ -2256,8 +2268,17 @@ if (window.chrome && window.chrome.webview) {
                         }
                     } else {
                         btnChangePassword.style.display = "none";
+                        if (fp) fp.style.display = "none";
                         
                         if (!window.isMasterPasswordVerified) {
+                            if (window.masterPasswordMode !== "setup") {
+                                let c = document.getElementById("mp-main-container");
+                                if (c) {
+                                    c.style.animation = "none";
+                                    c.offsetHeight;
+                                    c.style.animation = null;
+                                }
+                            }
                             document.getElementById("master-password-overlay").style.display = "flex";
                             document.getElementById("mp-title").setAttribute("data-i18n", "lbl_set_master_password");
                             document.getElementById("mp-title").innerText = translations[lang]?.lbl_set_master_password || "Set Your Master Password";
@@ -3989,6 +4010,33 @@ document.getElementById("btn-cp-submit")?.addEventListener("click", () => {
     }
     window.chrome.webview.postMessage(JSON.stringify({ action: "change_master_password", oldPassword: oldPwd, newPassword: newPwd }));
     document.getElementById("change-password-modal").classList.remove("show");
+});
+
+document.getElementById("hard-reset-input")?.addEventListener("input", (e) => {
+    let btn = document.getElementById("btn-confirm-hard-reset");
+    if (!btn) return;
+    if (e.target.value === "RESET") {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
+    }
+});
+
+document.getElementById("btn-confirm-hard-reset")?.addEventListener("click", () => {
+    window.chrome.webview.postMessage(JSON.stringify({ action: "hard_reset" }));
+    document.getElementById("hard-reset-modal")?.classList.remove("show");
+    let inp = document.getElementById("hard-reset-input");
+    if (inp) inp.value = "";
+    let btn = document.getElementById("btn-confirm-hard-reset");
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+        btn.style.cursor = "not-allowed";
+    }
 });
 
 window.handleCtxCreateGroup = function() {

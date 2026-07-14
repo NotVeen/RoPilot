@@ -38,6 +38,7 @@ public:
 
     Settings GetSettings();
     void SetSettings(const Settings& settings);
+    void HardReset();
 
 private:
     std::string m_FilePath;

@@ -785,6 +785,16 @@ void ProcessWebMessage(const std::string& msg) {
                 }
             }
         }
+        else if (action == "hard_reset") {
+            try {
+                g_accountManager.HardReset();
+                g_settingsManager.HardReset();
+                g_currentMasterPassword = "";
+                g_currentMasterSalt = "";
+                UpdateUI();
+                SendSettingsData();
+            } catch (...) {}
+        }
         else if (action == "preview_opacity") {
             // We no longer use LWA_ALPHA for previewing opacity because it makes the whole window (including modals) transparent.
             // HTML body CSS variable var(--bg-opacity) handles the realtime preview perfectly without any Win32 API calls!

@@ -41,6 +41,7 @@ public:
     bool AddAccount(const std::string& cookie);
     void RemoveAccount(const std::string& cookie);
     void SetAccounts(const std::vector<Account>& accounts);
+    void HardReset();
     
     std::vector<Account> GetAccounts();
     std::vector<std::string> GetGroups();

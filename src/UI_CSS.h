@@ -1838,7 +1838,8 @@ html:not([data-theme="light"]) .social-item:hover {
 #kill-all-modal.show,
 #unfriend-modal.show,
 #kill-group-modal.show,
-#change-password-modal.show {
+#change-password-modal.show,
+#hard-reset-modal.show {
     opacity: 1 !important;
     pointer-events: auto !important;
 }
@@ -1851,7 +1852,8 @@ html:not([data-theme="light"]) .social-item:hover {
 #kill-all-modal.show #kill-all-modal-content,
 #unfriend-modal.show #unfriend-modal-content,
 #kill-group-modal.show .modal-content,
-#change-password-modal.show #change-password-modal-content {
+#change-password-modal.show #change-password-modal-content,
+#hard-reset-modal.show #hard-reset-modal-content {
     transform: scale(1) !important;
 }
 

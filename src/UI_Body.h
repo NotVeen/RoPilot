@@ -25,7 +25,7 @@ constexpr const char* UI_BODY = R"HTML(
         <span
             ><strong style="font-weight: 700; font-size: 16px">RoPilot</strong
             ><span style="color: var(--text-muted); font-size: 14px; margin-left: 12px; font-weight: 500"
-                >v1.0.4 by NotVeen</span
+                >v1.0.5 by NotVeen</span
             ></span
         >
     </div>
@@ -95,6 +95,7 @@ constexpr const char* UI_BODY = R"HTML(
             </button>
         </div>
         <button class="btn btn-primary" id="btn-mp-submit" data-i18n="btn_unlock">Unlock</button>
+        <p id="mp-forgot-password" style="display: none; margin-top: 12px; font-size: 13px; color: var(--text-muted); cursor: pointer; text-decoration: underline; text-align: center;" onclick="document.getElementById('hard-reset-modal').classList.add('show')" data-i18n="lbl_forgot_password">Forgot Password?</p>
     </div>
     <div id="mp-loading-container" style="display: none; align-items: center; justify-content: center; text-align: center;">
         <svg class="spinner" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-main)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -4524,6 +4525,31 @@ constexpr const char* UI_BODY = R"HTML(
             <button class="btn-primary" id="btn-cp-submit" style="padding: 8px 16px; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                 <span data-i18n="btn_save" style="font-weight: bold;">Save</span>
             </button>
+        </div>
+    </div>
+</div>
+
+<div id="hard-reset-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 999999; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
+    <div id="hard-reset-modal-content" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90%; overflow: hidden; display: flex; flex-direction: column; transform: scale(0.95); transition: transform 0.2s ease;">
+        <div class="modal-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);">
+            <div style="display: flex; align-items: center; gap: 8px">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: #ef4444;" data-i18n="lbl_hard_reset_title">Hard Reset</h2>
+            </div>
+            <button class="btn-icon" onclick="document.getElementById('hard-reset-modal').classList.remove('show')" style="margin: -8px">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="modal-body" style="padding: 20px; color: var(--text-muted); font-size: 14px; line-height: 1.5;">
+            <p data-i18n="desc_hard_reset_warning">Are you sure? This will PERMANENTLY DELETE all your accounts and settings. This action cannot be undone.</p>
+            <div style="margin-top: 16px;">
+                <p data-i18n="desc_type_reset_to_confirm" style="margin-bottom: 8px; font-size: 12px;">Type "RESET" to confirm:</p>
+                <input type="text" id="hard-reset-input" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main);" />
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 16px 20px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+            <button class="btn-secondary" onclick="document.getElementById('hard-reset-modal').classList.remove('show')" style="padding: 8px 16px; background: rgba(255, 255, 255, 0.1); border: none; border-radius: 12px; color: var(--text-main); cursor: pointer;" data-i18n="btn_cancel">Cancel</button>
+            <button id="btn-confirm-hard-reset" style="padding: 8px 16px; background: #ef4444; border: none; border-radius: 12px; color: white; cursor: not-allowed; font-weight: 500; opacity: 0.5;" disabled data-i18n="btn_delete_everything">Delete Everything</button>
         </div>
     </div>
 </div>

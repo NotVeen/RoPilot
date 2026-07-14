@@ -94,3 +94,11 @@ void SettingsManager::SetSettings(const Settings& settings) {
     }
     Save();
 }
+
+void SettingsManager::HardReset() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_Settings = Settings();
+    std::error_code ec;
+    std::filesystem::remove(m_FilePath, ec);
+    std::filesystem::remove(m_FilePath + ".bak", ec);
+}
