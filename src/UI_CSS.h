@@ -435,6 +435,10 @@ body {
 input {
     user-select: auto;
 }
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
 
 /* Titlebar */
 .titlebar {
@@ -1890,13 +1894,17 @@ input[type="range"]:focus {
     border-top: 1px solid var(--border-color);
 }
 
+/* OPTION 1: Smooth Linear Gradient */
 #master-password-overlay {
     position: fixed;
     top: 48px;
     left: 0;
     width: 100vw;
     height: calc(100vh - 48px);
-    background: #0a0a0a;
+    background-color: #050505;
+    background-image: linear-gradient(-45deg, #050505, #1c1c1c, #0a0a0a, #2a2a2a);
+    background-size: 400% 400%;
+    animation: mpGradientBG 12s ease infinite;
     z-index: 99999;
     display: flex;
     align-items: center;
@@ -1904,7 +1912,15 @@ input[type="range"]:focus {
 }
 
 [data-theme="light"] #master-password-overlay {
-    background: #f3f4f6;
+    background-color: #f8f9fa;
+    background-image: linear-gradient(-45deg, #e2e8f0, #ffffff, #cbd5e1, #f1f5f9);
+    background-size: 400% 400%;
+}
+
+@keyframes mpGradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .mp-container {
