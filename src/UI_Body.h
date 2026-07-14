@@ -1388,7 +1388,7 @@ constexpr const char* UI_BODY = R"HTML(
                 position: fixed;
                 inset: 0;
                 background: rgba(10, 10, 14, 0.95);
-                z-index: 9999;
+                z-index: 999999;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
