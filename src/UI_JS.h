@@ -1390,12 +1390,30 @@ if (btnAddBrowser) {
     });
 }
 
+let titleIcon = document.getElementById("titlebar-icon");
+let sideIcon = document.getElementById("sidebar-brand-icon");
+if (titleIcon && sideIcon) {
+    sideIcon.src = titleIcon.src;
+}
+
 let btnHamburger = document.getElementById("btn-hamburger");
 if (btnHamburger) {
-    btnHamburger.addEventListener("click", () => {
+    btnHamburger.addEventListener("click", (e) => {
+        e.stopPropagation();
         let sb = document.getElementById("sidebar");
         if (sb) {
             sb.classList.toggle("collapsed");
+            if (typeof saveSettings === "function") saveSettings(true);
+        }
+    });
+}
+
+let sidebarBrandHeader = document.getElementById("sidebarBrandHeader");
+if (sidebarBrandHeader) {
+    sidebarBrandHeader.addEventListener("click", () => {
+        let sb = document.getElementById("sidebar");
+        if (sb && sb.classList.contains("collapsed")) {
+            sb.classList.remove("collapsed");
             if (typeof saveSettings === "function") saveSettings(true);
         }
     });
