@@ -875,7 +875,7 @@ body.app-locked .app-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -1074,6 +1074,42 @@ body.app-locked .app-container {
 .btn-launch.btn-relogin:hover,
 .btn-relogin:hover {
     background-color: rgba(239, 68, 68, 0.18) !important;
+}
+
+.modal-login-btn {
+    flex: 1;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    background: var(--stat-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    color: var(--text-main) !important;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease !important;
+}
+
+.modal-login-btn:hover {
+    background: var(--bg-hover) !important;
+    border-color: var(--border-medium) !important;
+    color: var(--text-main) !important;
+}
+
+[data-theme="light"] .modal-login-btn {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #111827 !important;
+}
+
+[data-theme="light"] .modal-login-btn:hover {
+    background: #e5e7eb !important;
+    border-color: #9ca3af !important;
+    color: #111827 !important;
 }
 
 .btn-icon {
@@ -1300,17 +1336,23 @@ body.is-dragging-card #ungrouped-grid.is-empty .card {
     z-index: 1;
 }
 
+body.is-dragging-card .card {
+    transition: none !important;
+}
 .sortable-ghost {
     opacity: 0.2 !important;
     background-color: var(--bg-hover) !important;
     border: 2px dashed var(--border-color) !important;
     border-radius: 12px !important;
+    transition: none !important;
 }
 .sortable-drag {
     cursor: grabbing !important;
     opacity: 1 !important;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
     background-color: var(--bg-card) !important;
+    transition: none !important;
+    will-change: transform;
 }
 
 .group-container.collapsed .group-header {
@@ -1931,6 +1973,7 @@ html:not([data-theme="light"]) .social-item:hover {
 #display-name-modal.show,
 #rename-group-modal.show,
 #delete-group-modal.show,
+#group-launch-modal.show,
 #kill-modal.show,
 #remove-modal.show,
 #kill-all-modal.show,
@@ -1945,6 +1988,7 @@ html:not([data-theme="light"]) .social-item:hover {
 #display-name-modal.show #display-name-modal-content,
 #rename-group-modal.show #rename-group-modal-content,
 #delete-group-modal.show #delete-group-modal-content,
+#group-launch-modal.show #group-launch-modal-content,
 #kill-modal.show #kill-modal-content,
 #remove-modal.show #remove-modal-content,
 #kill-all-modal.show #kill-all-modal-content,

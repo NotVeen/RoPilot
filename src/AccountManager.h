@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
 #include <windows.h>
 #include <mutex>
 #include <chrono>
@@ -13,6 +14,16 @@ struct AnalyticsState {
     double ramUsageMB = 0.0;
     std::chrono::system_clock::time_point launchTime;
     bool hasLaunchTime = false;
+};
+
+struct GroupLaunchConfig {
+    std::string PlaceId = "";
+    std::string PrivateServerLink = "";
+    bool ForceOverride = false;
+    bool JoinLowServer = false;
+    bool LowestGraphics = false;
+    bool AntiAFK = false;
+    std::string FFlagOptimization = "Default";
 };
 
 struct Account {
@@ -47,6 +58,11 @@ public:
     std::vector<std::string> GetGroups();
     void SetGroups(const std::vector<std::string>& groups);
 
+    std::map<std::string, GroupLaunchConfig> GetGroupConfigs();
+    void SetGroupConfig(const std::string& groupName, const GroupLaunchConfig& config);
+    void DeleteGroupConfig(const std::string& groupName);
+    void RenameGroupConfig(const std::string& oldName, const std::string& newName);
+
     void UpdateAccountProcess(const std::string& cookie, int status, DWORD processId);
     void UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics);
     void UpdateAccountInfo(const std::string& cookie, const RobloxAPI::UserInfo& info);
@@ -56,6 +72,7 @@ private:
     std::string m_FilePath;
     std::vector<Account> m_Accounts;
     std::vector<std::string> m_Groups;
+    std::map<std::string, GroupLaunchConfig> m_GroupConfigs;
     std::mutex m_mutex;
     std::string m_Password;
     std::string m_Salt;

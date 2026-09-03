@@ -96,6 +96,24 @@ void AccountManager::Load(const std::string& password, const std::string& salt) 
                     }
                 }
             }
+            m_GroupConfigs.clear();
+            if (j.contains("groupConfigs") && j["groupConfigs"].is_object()) {
+                for (auto& el : j["groupConfigs"].items()) {
+                    std::string gName = el.key();
+                    const auto& gObj = el.value();
+                    if (gObj.is_object()) {
+                        GroupLaunchConfig cfg;
+                        cfg.PlaceId = gObj.value("PlaceId", "");
+                        cfg.PrivateServerLink = gObj.value("PrivateServerLink", "");
+                        cfg.ForceOverride = gObj.value("ForceOverride", false);
+                        cfg.JoinLowServer = gObj.value("JoinLowServer", false);
+                        cfg.LowestGraphics = gObj.value("LowestGraphics", false);
+                        cfg.AntiAFK = gObj.value("AntiAFK", false);
+                        cfg.FFlagOptimization = gObj.value("FFlagOptimization", "Default");
+                        m_GroupConfigs[gName] = cfg;
+                    }
+                }
+            }
         }
     } catch (...) {
         file.close();
@@ -126,10 +144,12 @@ void AccountManager::Save(const std::string& password, const std::string& salt) 
 
     std::vector<Account> accsCopy;
     std::vector<std::string> groupsCopy;
+    std::map<std::string, GroupLaunchConfig> groupConfigsCopy;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         accsCopy = m_Accounts;
         groupsCopy = m_Groups;
+        groupConfigsCopy = m_GroupConfigs;
     }
 
     json j = json::object();
@@ -157,6 +177,20 @@ void AccountManager::Save(const std::string& password, const std::string& salt) 
         groupsArray.push_back(g);
     }
     j["groups"] = groupsArray;
+
+    json groupConfigsObj = json::object();
+    for (const auto& pair : groupConfigsCopy) {
+        json item;
+        item["PlaceId"] = pair.second.PlaceId;
+        item["PrivateServerLink"] = pair.second.PrivateServerLink;
+        item["ForceOverride"] = pair.second.ForceOverride;
+        item["JoinLowServer"] = pair.second.JoinLowServer;
+        item["LowestGraphics"] = pair.second.LowestGraphics;
+        item["AntiAFK"] = pair.second.AntiAFK;
+        item["FFlagOptimization"] = pair.second.FFlagOptimization;
+        groupConfigsObj[pair.first] = item;
+    }
+    j["groupConfigs"] = groupConfigsObj;
 
     std::string jsonStr = j.dump(4);
 
@@ -193,7 +227,39 @@ void AccountManager::Save(const std::string& password, const std::string& salt) 
 }
 
 bool AccountManager::AddAccount(const std::string& cookie) {
-    RobloxAPI::UserInfo info = RobloxAPI::GetUserInfo(cookie);
+    std::string cleanCookie = cookie;
+    cleanCookie.erase(0, cleanCookie.find_first_not_of(" \t\r\n\"'"));
+    cleanCookie.erase(cleanCookie.find_last_not_of(" \t\r\n\"'") + 1);
+    if (cleanCookie.find("%") != std::string::npos) {
+        std::string dec;
+        for (size_t i = 0; i < cleanCookie.length(); ++i) {
+            if (cleanCookie[i] == '%' && i + 2 < cleanCookie.length()) {
+                int hexVal = 0;
+                if (sscanf(cleanCookie.substr(i + 1, 2).c_str(), "%x", &hexVal) == 1) {
+                    dec += static_cast<char>(hexVal);
+                    i += 2;
+                    continue;
+                }
+            }
+            dec += cleanCookie[i];
+        }
+        cleanCookie = dec;
+    }
+    if (cleanCookie.rfind(".ROBLOSECURITY=", 0) == 0) {
+        cleanCookie = cleanCookie.substr(15);
+    }
+    if (cleanCookie.empty()) return false;
+
+    RobloxAPI::UserInfo info = RobloxAPI::GetUserInfo(cleanCookie);
+    if (info.UserId == 0) {
+        // Retry with a brief delay in case of session replication lag (especially after browser login)
+        Sleep(600);
+        info = RobloxAPI::GetUserInfo(cleanCookie);
+    }
+    if (info.UserId == 0) {
+        Sleep(1000);
+        info = RobloxAPI::GetUserInfo(cleanCookie);
+    }
     if (info.UserId == 0) return false; // Invalid cookie
 
     bool exists = false;
@@ -201,7 +267,7 @@ bool AccountManager::AddAccount(const std::string& cookie) {
         std::lock_guard<std::mutex> lock(m_mutex);
         for (auto& acc : m_Accounts) {
             if (acc.Info.UserId == info.UserId) {
-                acc.Cookie = cookie;
+                acc.Cookie = cleanCookie;
                 acc.Info = info;
                 acc.Status = 0;
                 exists = true;
@@ -211,7 +277,7 @@ bool AccountManager::AddAccount(const std::string& cookie) {
         
         if (!exists) {
             Account newAcc;
-            newAcc.Cookie = cookie;
+            newAcc.Cookie = cleanCookie;
             newAcc.Info = info;
             m_Accounts.push_back(newAcc);
         }
@@ -342,10 +408,48 @@ void AccountManager::HardReset() {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_Accounts.clear();
     m_Groups.clear();
+    m_GroupConfigs.clear();
     m_Password = "";
     m_Salt = "";
     m_LoadFailed = false;
     std::error_code ec;
     std::filesystem::remove(m_FilePath, ec);
     std::filesystem::remove(m_FilePath + ".bak", ec);
+}
+
+std::map<std::string, GroupLaunchConfig> AccountManager::GetGroupConfigs() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_GroupConfigs;
+}
+
+void AccountManager::SetGroupConfig(const std::string& groupName, const GroupLaunchConfig& config) {
+    if (groupName.empty()) return;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_GroupConfigs[groupName] = config;
+    }
+    Save();
+}
+
+void AccountManager::DeleteGroupConfig(const std::string& groupName) {
+    if (groupName.empty()) return;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_GroupConfigs.erase(groupName);
+    }
+    Save();
+}
+
+void AccountManager::RenameGroupConfig(const std::string& oldName, const std::string& newName) {
+    if (oldName.empty() || newName.empty() || oldName == newName) return;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        auto it = m_GroupConfigs.find(oldName);
+        if (it != m_GroupConfigs.end()) {
+            GroupLaunchConfig cfg = it->second;
+            m_GroupConfigs.erase(it);
+            m_GroupConfigs[newName] = cfg;
+        }
+    }
+    Save();
 }

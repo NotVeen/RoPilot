@@ -186,6 +186,7 @@ std::string ws2s(const std::wstring& w) {
 void SendStatusMessage(const std::string& msg, bool isError = false);
 void SendSettingsData();
 void UpdateUI();
+void ValidateAllAccountsAsync();
 
 uint64_t FileTimeToUInt64(const FILETIME& ft) {
     ULARGE_INTEGER uli;
@@ -195,7 +196,6 @@ uint64_t FileTimeToUInt64(const FILETIME& ft) {
 }
 
 void SendStatusMessage(const std::string& msg, bool isError) {
-    if (!g_webview) return;
     std::string escapedMsg = msg;
     size_t pos = 0;
     while ((pos = escapedMsg.find("'", pos)) != std::string::npos) {
@@ -203,8 +203,8 @@ void SendStatusMessage(const std::string& msg, bool isError) {
         pos += 2;
     }
     
-    std::string script = "window.showStatus('" + escapedMsg + "', " + (isError ? "true" : "false") + ");";
-    g_webview->ExecuteScript(s2ws(script).c_str(), nullptr);
+    std::string* script = new std::string("window.showStatus('" + escapedMsg + "', " + (isError ? "true" : "false") + ");");
+    PostMessage(g_hWnd, WM_APP + 3, (WPARAM)script, 0);
 }
 
 void ProcessWebMessage(const std::string& msg) {
@@ -218,15 +218,30 @@ void ProcessWebMessage(const std::string& msg) {
                     if (g_accountManager.AddAccount(cookie)) {
                         std::string username = "Account";
                         for (const auto& acc : g_accountManager.GetAccounts()) {
-                            if (acc.Cookie == cookie) { username = acc.Info.Username; break; }
+                            if (acc.Cookie == cookie || acc.Cookie.find(cookie) != std::string::npos || cookie.find(acc.Cookie) != std::string::npos) { 
+                                username = acc.Info.Username; 
+                                break; 
+                            }
                         }
-                        SendStatusMessage(username + " added successfully!", false);
-                        UpdateUI();
+                        std::string msg = username + " added successfully!";
+                        if (g_settingsManager.GetSettings().Language == "id") {
+                            msg = username + " berhasil ditambahkan/diperbarui!";
+                        }
+                        SendStatusMessage(msg, false);
+                        PostMessage(g_hWnd, WM_APP + 2, 0, 0);
                     } else {
-                        SendStatusMessage("Failed to add account. Invalid cookie?", true);
+                        std::string errMsg = "Failed to add account. Invalid cookie?";
+                        if (g_settingsManager.GetSettings().Language == "id") {
+                            errMsg = "Gagal menambahkan akun. Cookie tidak valid?";
+                        }
+                        SendStatusMessage(errMsg, true);
                     }
                 } else {
-                    SendStatusMessage("Browser login cancelled or failed.", true);
+                    std::string cancelMsg = "Browser login cancelled or failed.";
+                    if (g_settingsManager.GetSettings().Language == "id") {
+                        cancelMsg = "Login browser dibatalkan atau gagal.";
+                    }
+                    SendStatusMessage(cancelMsg, true);
                 }
             });
         } 
@@ -588,9 +603,9 @@ void ProcessWebMessage(const std::string& msg) {
                     g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
 
                     if (!resolvedPlaceId.empty()) {
-                        // If account placeId was empty, update it
+                        // If account placeId was empty AND account has matching private server link, update it
                         for (const auto& acc : g_accountManager.GetAccounts()) {
-                            if (acc.Cookie == cookie && acc.PlaceId.empty()) {
+                            if (acc.Cookie == cookie && acc.PlaceId.empty() && !linkCode.empty() && acc.PrivateServerLink == linkCode) {
                                 g_accountManager.UpdateAccountGame(cookie, resolvedPlaceId, acc.PrivateServerLink, acc.JoinLowServer, acc.LowestGraphics, acc.AntiAFK, acc.FFlagOptimization);
                                 break;
                             }
@@ -601,6 +616,15 @@ void ProcessWebMessage(const std::string& msg) {
                             s.GlobalPlaceId = resolvedPlaceId;
                             g_settingsManager.SetSettings(s);
                             g_settingsManager.Save();
+                        }
+                        // If group placeId was empty and link matches, update it
+                        auto groupConfigs = g_accountManager.GetGroupConfigs();
+                        for (const auto& pair : groupConfigs) {
+                            if (pair.second.PlaceId.empty() && !linkCode.empty() && pair.second.PrivateServerLink == linkCode) {
+                                GroupLaunchConfig gcfg = pair.second;
+                                gcfg.PlaceId = resolvedPlaceId;
+                                g_accountManager.SetGroupConfig(pair.first, gcfg);
+                            }
                         }
                         // Update UI fields in WebView2
                         std::string fillJs = "if(window.onPlaceIdAutoFilledOnLaunch) window.onPlaceIdAutoFilledOnLaunch('" + cookie + "', '" + resolvedPlaceId + "', '" + linkCode + "');";
@@ -614,7 +638,11 @@ void ProcessWebMessage(const std::string& msg) {
                     }
                     g_toastQueue.push_back({successMsg, false});
                 } else {
-                    g_accountManager.UpdateAccountProcess(cookie, 0, 0);
+                    int newStatus = 0;
+                    if (launchError == "Failed to get Auth Ticket." || launchError == "Failed to get CSRF token.") {
+                        newStatus = 4;
+                    }
+                    g_accountManager.UpdateAccountProcess(cookie, newStatus, 0);
                     if (launchError == "MISMATCH_PLACE_ID") {
                         if (g_settingsManager.GetSettings().Language == "id") {
                             launchError = "Tautan Server Pribadi tidak sesuai dengan ID Tempat.";
@@ -682,6 +710,34 @@ void ProcessWebMessage(const std::string& msg) {
             std::thread([cookie, placeId, psLink, joinLowServer, lowestGraphics, antiAfk, fflagOpt]() {
                 g_accountManager.UpdateAccountGame(cookie, placeId, psLink, joinLowServer, lowestGraphics, antiAfk, fflagOpt);
             }).detach();
+        }
+        else if (action == "save_group_setup") {
+            std::string groupName = j.value("group", "");
+            if (!groupName.empty()) {
+                GroupLaunchConfig cfg;
+                cfg.PlaceId = j.value("placeId", "");
+                cfg.PrivateServerLink = j.value("psLink", "");
+                cfg.ForceOverride = j.value("forceOverride", false);
+                cfg.JoinLowServer = j.value("joinLowServer", false);
+                cfg.LowestGraphics = j.value("lowestGraphics", false);
+                cfg.AntiAFK = j.value("antiAfk", false);
+                cfg.FFlagOptimization = j.value("fflagOptimization", "Default");
+                g_accountManager.SetGroupConfig(groupName, cfg);
+                UpdateUI();
+            }
+        }
+        else if (action == "rename_group") {
+            std::string oldName = j.value("oldName", "");
+            std::string newName = j.value("newName", "");
+            if (!oldName.empty() && !newName.empty()) {
+                g_accountManager.RenameGroupConfig(oldName, newName);
+            }
+        }
+        else if (action == "delete_group") {
+            std::string groupName = j.value("group", "");
+            if (!groupName.empty()) {
+                g_accountManager.DeleteGroupConfig(groupName);
+            }
         }
         else if (action == "close") {
             PostMessage(g_hWnd, WM_CLOSE, 0, 0);
@@ -794,6 +850,7 @@ void ProcessWebMessage(const std::string& msg) {
                 g_accountManager.Save(g_currentMasterPassword, g_currentMasterSalt);
                 UpdateUI();
                 SendSettingsData();
+                ValidateAllAccountsAsync();
             }
         }
         else if (action == "verify_master_password") {
@@ -808,6 +865,7 @@ void ProcessWebMessage(const std::string& msg) {
                         g_accountManager.Load(g_currentMasterPassword, g_currentMasterSalt);
                         g_webview->ExecuteScript(L"window.masterPasswordVerified();", nullptr);
                         UpdateUI();
+                        ValidateAllAccountsAsync();
                     } catch (...) {
                         g_webview->ExecuteScript(L"window.showStatus('Failed to decrypt data.', true);", nullptr);
                     }
@@ -818,6 +876,7 @@ void ProcessWebMessage(const std::string& msg) {
                 g_accountManager.Load();
                 g_webview->ExecuteScript(L"window.masterPasswordVerified();", nullptr);
                 UpdateUI();
+                ValidateAllAccountsAsync();
             }
         }
         else if (action == "change_master_password") {
@@ -1088,11 +1147,59 @@ void UpdateUI() {
         jGroups.push_back(g);
     }
     jRoot["groups"] = jGroups;
-    
+
+    json jGroupConfigs = json::object();
+    for (const auto& pair : g_accountManager.GetGroupConfigs()) {
+        json item;
+        item["PlaceId"] = pair.second.PlaceId;
+        item["PrivateServerLink"] = pair.second.PrivateServerLink;
+        item["ForceOverride"] = pair.second.ForceOverride;
+        item["JoinLowServer"] = pair.second.JoinLowServer;
+        item["LowestGraphics"] = pair.second.LowestGraphics;
+        item["AntiAFK"] = pair.second.AntiAFK;
+        item["FFlagOptimization"] = pair.second.FFlagOptimization;
+        jGroupConfigs[pair.first] = item;
+    }
+    jRoot["groupConfigs"] = jGroupConfigs;
     
     std::string jsonStr = jRoot.dump();
     std::wstring script = L"window.updateAccounts(String.raw`" + s2ws(jsonStr) + L"`);";
     g_webview->ExecuteScript(script.c_str(), nullptr);
+}
+
+void ValidateAllAccountsAsync() {
+    static std::atomic<bool> s_isValidating{false};
+    if (s_isValidating.exchange(true)) return;
+
+    std::thread([]() {
+        auto accounts = g_accountManager.GetAccounts();
+        for (const auto& acc : accounts) {
+            if (!g_running) break;
+            auto info = RobloxAPI::GetUserInfo(acc.Cookie);
+            if (info.UserId == 0) {
+                // Invalid or expired cookie!
+                if (acc.Status != 4) {
+                    g_accountManager.UpdateAccountProcess(acc.Cookie, 4, 0);
+                    PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+                }
+            } else {
+                bool changed = false;
+                if (acc.Status == 4) {
+                    g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
+                    changed = true;
+                }
+                if (info.ThumbnailUrl != acc.Info.ThumbnailUrl || info.Username != acc.Info.Username || info.DisplayName != acc.Info.DisplayName) {
+                    g_accountManager.UpdateAccountInfo(acc.Cookie, info);
+                    changed = true;
+                }
+                if (changed) {
+                    PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+                }
+            }
+            Sleep(200);
+        }
+        s_isValidating = false;
+    }).detach();
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -1412,29 +1519,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     std::thread([]() {
         while (g_running) {
-            auto accounts = g_accountManager.GetAccounts();
-            bool anyChanged = false;
-            for (const auto& acc : accounts) {
-                if (!g_running) break;
-                auto info = RobloxAPI::GetUserInfo(acc.Cookie);
-                if (info.UserId == 0) {
-                    // Invalid cookie detected
-                    if (acc.Status != 4) {
-                        g_accountManager.UpdateAccountProcess(acc.Cookie, 4, 0);
-                        anyChanged = true;
-                    }
-                } else if (info.ThumbnailUrl != acc.Info.ThumbnailUrl || info.Username != acc.Info.Username || info.DisplayName != acc.Info.DisplayName) {
-                    g_accountManager.UpdateAccountInfo(acc.Cookie, info);
-                    anyChanged = true;
-                }
-                Sleep(1000); // Check 1 account per second to avoid rate limiting
-            }
-            if (anyChanged && g_running) {
-                PostMessage(g_hWnd, WM_APP + 2, 0, 0);
-            }
             for (int i = 0; i < 300; ++i) {
                 if (!g_running) break;
                 Sleep(1000);
+            }
+            if (g_running) {
+                ValidateAllAccountsAsync();
             }
         }
     }).detach();
@@ -1634,7 +1724,10 @@ g_webview->NavigateToString(s2ws(html).c_str());
 
                             g_webview->add_NavigationCompleted(Callback<ICoreWebView2NavigationCompletedEventHandler>(
                                 [](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
-                                    UpdateUI();
+                                     UpdateUI();
+                                     if (!g_settingsManager.GetSettings().HasMasterPassword) {
+                                         ValidateAllAccountsAsync();
+                                     }
                                     
                                     if (g_showChangelog) {
                                         std::ifstream clog("changelog.txt");

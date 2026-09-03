@@ -55,7 +55,7 @@ namespace RobloxAPI {
     }
 
     std::string HttpRequest(const std::wstring& method, const std::wstring& host, const std::wstring& path, const std::string& cookie, const std::string& extraHeaders, const std::string& body, std::string* outHeaders) {
-        HINTERNET hSession = WinHttpOpen(L"Roblox Account Manager / 1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+        HINTERNET hSession = WinHttpOpen(L"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
         if (!hSession) return "";
 
         HINTERNET hConnect = WinHttpConnect(hSession, host.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
@@ -64,9 +64,31 @@ namespace RobloxAPI {
         HINTERNET hRequest = WinHttpOpenRequest(hConnect, method.c_str(), path.c_str(), NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
         if (!hRequest) { WinHttpCloseHandle(hConnect); WinHttpCloseHandle(hSession); return ""; }
 
-        std::string headers = "";
+        std::string headers = "Accept: application/json, text/plain, */*\r\n";
+        headers += "Accept-Language: en-US,en;q=0.9\r\n";
         if (!cookie.empty()) {
-            headers += "Cookie: .ROBLOSECURITY=" + cookie + "\r\n";
+            std::string cVal = cookie;
+            cVal.erase(0, cVal.find_first_not_of(" \t\r\n\"'"));
+            cVal.erase(cVal.find_last_not_of(" \t\r\n\"'") + 1);
+            if (cVal.find("%") != std::string::npos) {
+                std::string dec;
+                for (size_t i = 0; i < cVal.length(); ++i) {
+                    if (cVal[i] == '%' && i + 2 < cVal.length()) {
+                        int hexVal = 0;
+                        if (sscanf(cVal.substr(i + 1, 2).c_str(), "%x", &hexVal) == 1) {
+                            dec += static_cast<char>(hexVal);
+                            i += 2;
+                            continue;
+                        }
+                    }
+                    dec += cVal[i];
+                }
+                cVal = dec;
+            }
+            if (cVal.rfind(".ROBLOSECURITY=", 0) == 0) {
+                cVal = cVal.substr(15);
+            }
+            headers += "Cookie: .ROBLOSECURITY=" + cVal + "\r\n";
         }
         if (!extraHeaders.empty()) {
             headers += extraHeaders;

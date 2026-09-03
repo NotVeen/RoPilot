@@ -3162,15 +3162,8 @@ constexpr const char* UI_BODY = R"HTML(
             </div>
             <div style="padding: 20px; display: flex; gap: 12px">
                 <button
-                    class="btn-launch"
+                    class="btn-secondary modal-login-btn"
                     id="btn-add-browser"
-                    style="
-                        flex: 1;
-                        padding: 20px;
-                        flex-direction: column;
-                        height: auto;
-                        border: 1px solid var(--border-color);
-                    "
                     onclick="document.getElementById('modal-add-account').classList.remove('show')"
                 >
                     <svg
@@ -3193,15 +3186,8 @@ constexpr const char* UI_BODY = R"HTML(
                     <span data-i18n="btn_add_browser">Add via Browser</span>
                 </button>
                 <button
-                    class="btn-launch"
+                    class="btn-secondary modal-login-btn"
                     id="btn-add-cookie"
-                    style="
-                        flex: 1;
-                        padding: 20px;
-                        flex-direction: column;
-                        height: auto;
-                        border: 1px solid var(--border-color);
-                    "
                     onclick="document.getElementById('modal-add-account').classList.remove('show')"
                 >
                     <svg
@@ -3912,6 +3898,186 @@ constexpr const char* UI_BODY = R"HTML(
                     "
                 >
                     Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Launch Setup Modal -->
+    <div
+        id="group-launch-modal"
+        class="modal"
+        style="
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            display: flex;
+            backdrop-filter: blur(4px);
+        "
+    >
+        <div
+            id="group-launch-modal-content"
+            style="
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                width: 540px;
+                max-width: 94%;
+                max-height: 88vh;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                transform: scale(0.95);
+                transition: transform 0.2s ease;
+            "
+        >
+            <div
+                class="modal-header"
+                style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);"
+            >
+                <h2 style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="21" x2="4" y2="14"></line>
+                        <line x1="4" y1="10" x2="4" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12" y2="3"></line>
+                        <line x1="20" y1="21" x2="20" y2="16"></line>
+                        <line x1="20" y1="12" x2="20" y2="3"></line>
+                        <line x1="1" y1="14" x2="7" y2="14"></line>
+                        <line x1="9" y1="8" x2="15" y2="8"></line>
+                        <line x1="17" y1="16" x2="23" y2="16"></line>
+                    </svg>
+                    <span data-i18n="lbl_group_launch_setup">Group Launch Setup</span>
+                    <span style="color: var(--text-muted); font-size: 13px; font-weight: 400; margin-left: 4px;" id="group-setup-target-name"></span>
+                </h2>
+                <button
+                    class="btn-icon"
+                    onclick="document.getElementById('group-launch-modal').classList.remove('show')"
+                    style="margin: -8px;"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div style="padding: 18px 20px 30px 20px; display: flex; flex-direction: column; gap: 14px;">
+                <input type="hidden" id="group-setup-group-name" />
+
+                <!-- Place ID -->
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;" data-i18n="lbl_game_id">Place ID</label>
+                    <input
+                        type="text"
+                        id="group-setup-place-id"
+                        placeholder="e.g. 189707"
+                        style="width: 100%; padding: 8px 12px; background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 13px; outline: none;"
+                    />
+                </div>
+
+                <!-- Private Server Link -->
+                <div>
+                    <label style="display: block; font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 6px;" data-i18n="lbl_private_server_link">Private Server Link</label>
+                    <input
+                        type="text"
+                        id="group-setup-ps-link"
+                        placeholder="https://www.roblox.com/games/..."
+                        style="width: 100%; padding: 8px 12px; background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); font-size: 13px; outline: none;"
+                    />
+                </div>
+
+                <!-- Force Override Switch -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 4px;">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-main);" data-i18n="lbl_group_force_override">Force Override Individual Settings</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" data-i18n="desc_group_force_override">Apply this group setup to all accounts in this group, ignoring individual account setups</div>
+                    </div>
+                    <label class="switch" style="margin-left: 12px; flex-shrink: 0;">
+                        <input type="checkbox" id="group-setup-force-override" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Join Low Server -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 500; color: var(--text-main);" data-i18n="lbl_join_low_server">Join Low Server</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" data-i18n="desc_join_low_server">Automatically finds and joins a public server with the lowest player count</div>
+                    </div>
+                    <label class="switch" style="margin-left: 12px; flex-shrink: 0;">
+                        <input type="checkbox" id="group-setup-join-low-server" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Lowest Graphics -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 500; color: var(--text-main);" data-i18n="lbl_lowest_graphics">Lowest Graphics</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" data-i18n="desc_lowest_graphics">Automatically sets graphics quality to level 1 for maximum performance</div>
+                    </div>
+                    <label class="switch" style="margin-left: 12px; flex-shrink: 0;">
+                        <input type="checkbox" id="group-setup-lowest-graphics" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Anti AFK -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 500; color: var(--text-main);" data-i18n="lbl_anti_afk">Anti-AFK</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" data-i18n="desc_anti_afk">Simulates a jump every few minutes to prevent AFK kick</div>
+                    </div>
+                    <label class="switch" style="margin-left: 12px; flex-shrink: 0;">
+                        <input type="checkbox" id="group-setup-anti-afk" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Fast Flags Optimization -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 500; color: var(--text-main);" data-i18n="lbl_fflag_opt">FFlag Optimization</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" data-i18n="desc_fflag_opt">Applies custom Fast Flags when launching to improve performance</div>
+                    </div>
+                    <div class="custom-dropdown" id="group-fflag-dropdown-container">
+                        <input type="hidden" id="group-setup-fflag" value="Default" />
+                        <div class="dropdown-selected" id="group-fflag-dropdown-selected">
+                            <span id="group-fflag-dropdown-text">Default</span>
+                            <svg fill="#888" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 10l5 5 5-5z" />
+                            </svg>
+                        </div>
+                        <div class="dropdown-options" id="group-fflag-dropdown-options">
+                            <div class="dropdown-option" data-value="Default">Default</div>
+                            <div class="dropdown-option" data-value="Medium">Medium</div>
+                            <div class="dropdown-option" data-value="Low">Low</div>
+                            <div class="dropdown-option" data-value="Potato">Potato</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 14px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color);">
+                <button
+                    class="btn-secondary"
+                    onclick="document.getElementById('group-launch-modal').classList.remove('show')"
+                    style="padding: 8px 16px; background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); cursor: pointer; font-size: 13px; font-weight: 500;"
+                    data-i18n="btn_cancel"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="btn-primary"
+                    id="btn-save-group-setup"
+                    style="padding: 8px 18px; background: var(--accent-color, #10b981); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"
+                >
+                    Save
                 </button>
             </div>
         </div>

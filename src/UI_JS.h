@@ -100,6 +100,10 @@ const translations = {
             'When filled, clicking "Launch" on any account card will automatically launch them into this specific game/server.',
         lbl_global_launch_setup: "Global Launch Setup",
         lbl_global_launch_desc: 'When filled, clicking "Launch" on any account will automatically launch them into this specific game/server. Note: Place ID / Link set on individual accounts will override this global setting.',
+        lbl_group_launch_setup: "Group Launch Setup",
+        lbl_group_force_override: "Force Override Individual Settings",
+        desc_group_force_override: "Apply this group setup to all accounts in this group, ignoring individual account setups",
+        toast_group_saved: "Group launch setup saved.",
         toast_skipped_accounts: "Some accounts were skipped because they don't have a Place ID/Private Server Link setup.",
         toast_global_placeid_empty: "You need to fill in the Place ID/Private Server Link globally or individually first!",
         lbl_recent_games: "Recent Games",
@@ -261,6 +265,10 @@ const translations = {
             'Jika diisi, menekan "Launch" pada kartu akun akan secara otomatis meluncurkannya ke dalam game/server khusus ini.',
         lbl_global_launch_setup: "Pengaturan Peluncuran Global",
         lbl_global_launch_desc: 'Jika diisi, menekan "Launch" pada akun manapun akan secara otomatis meluncurkannya ke dalam game/server khusus ini. Catatan: Place ID / Link yang diatur pada masing-masing akun akan menimpa pengaturan global ini.',
+        lbl_group_launch_setup: "Pengaturan Peluncuran Grup",
+        lbl_group_force_override: "Paksa Pengaturan Grup",
+        desc_group_force_override: "Terapkan pengaturan grup ini ke seluruh akun di grup, mengabaikan pengaturan individual akun",
+        toast_group_saved: "Pengaturan peluncuran grup berhasil disimpan.",
         toast_skipped_accounts: "Beberapa akun dilewati karena tidak memiliki pengaturan Place ID/Private Server Link.",
         toast_global_placeid_empty: "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu",
         lbl_recent_games: "Game yang Terakhir Dimainkan",
@@ -475,6 +483,7 @@ const translations = {
 let accountsGrid = document.getElementById("accounts-grid");
 let currentAccounts = [];
 let currentGroups = [];
+let currentGroupConfigs = {};
 let collapsedGroups = new Set();
 let currentSearchTerm = "";
 let currentAnalyticsSearchTerm = "";
@@ -651,6 +660,7 @@ window.renderAccounts = function (accounts) {
                                 </div>
                                 <div class="group-actions">
                                     <button class="btn-icon" onclick="event.stopPropagation(); window.launchGroupAccounts('${escapeHtml(groupName)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></button>
+                                    <button class="btn-icon" title="Group Launch Setup" onclick="event.stopPropagation(); window.openGroupLaunchSetupModal('${escapeHtml(groupName)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></button>
                                     <button class="btn-icon danger" onclick="event.stopPropagation(); window.showKillGroupPrompt('${escapeHtml(groupName)}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="14" width="14"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg></button>
                                     <button class="btn-icon" onclick="event.stopPropagation(); window.renameGroup('${escapeHtml(groupName)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="16 3 21 8 8 21 3 21 3 16 16 3"></polygon></svg></button>
                                     <button class="btn-icon danger" onclick="event.stopPropagation(); window.deleteGroup('${escapeHtml(groupName)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
@@ -793,11 +803,13 @@ window.renderAccounts = function (accounts) {
             window.cardSortables.push(new Sortable(el, {
                 group: "shared",
                 animation: 150,
-                delay: 150,
+                delay: 0,
                 delayOnTouchOnly: true,
                 forceFallback: true,
                 fallbackClass: "sortable-drag",
                 ghostClass: "sortable-ghost",
+                filter: "button, input, a, .btn-launch, .btn-utility, .btn-icon, .btn-relogin, .dropdown-selected",
+                preventOnFilter: false,
                 scroll: true,
                 bubbleScroll: true,
                 onStart: function () {
@@ -1054,6 +1066,7 @@ window.updateAccounts = function (jsonStr) {
         let payload = JSON.parse(jsonStr);
         currentAccounts = payload.accounts || [];
         let loadedGroups = payload.groups || [];
+        currentGroupConfigs = payload.groupConfigs || {};
 
         loadedGroups.forEach((g) => {
             if (!currentGroups.includes(g)) {
@@ -1085,33 +1098,63 @@ window.launchAccount = function (cookie, username, btnElement) {
     window.forceRender = true; // Force UI to rebuild buttons on next update
 
     let acc = currentAccounts.find((a) => a.Cookie === cookie);
-    let gameId = acc && acc.PlaceId ? acc.PlaceId : "";
-    let psLink = acc && acc.PrivateServerLink ? acc.PrivateServerLink : "";
-    
+    let groupName = acc ? acc.Group : "";
+    let gcfg = (groupName && currentGroupConfigs && currentGroupConfigs[groupName]) ? currentGroupConfigs[groupName] : null;
+
     let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
     let globalPsLinkInput = document.getElementById("global-accounts-ps-link");
     let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
     let globalPsLink = globalPsLinkInput ? globalPsLinkInput.value.trim() : "";
-    
-    let hasIndividualTarget = !!(gameId || psLink);
+
+    let gameId = "";
+    let psLink = "";
+    let joinLowServer = false;
+    let lowestGraphics = false;
+    let antiAfk = false;
+    let fflagOpt = "Default";
+
+    let hasGroupTarget = !!(gcfg && (gcfg.PlaceId || gcfg.PrivateServerLink));
+    let hasIndividualTarget = !!(acc && (acc.PlaceId || acc.PrivateServerLink));
     let hasGlobalTarget = !!(globalGameId || globalPsLink);
 
-    if (!hasIndividualTarget) {
-        if (hasGlobalTarget) {
-            gameId = globalGameId;
-            psLink = globalPsLink;
-        } else {
-            let lang = document.getElementById("setting-language")?.value || "en";
-            let dict = translations[lang] || translations["en"];
-            window.showStatus(dict.toast_global_placeid_empty || "You need to fill in the Place ID/Private Server Link globally or individually first!", true);
-            if (acc) acc.Status = 0;
-            window.renderAccounts(currentAccounts);
-            return;
+    if (gcfg && gcfg.ForceOverride && hasGroupTarget) {
+        gameId = gcfg.PlaceId || "";
+        psLink = gcfg.PrivateServerLink || "";
+        joinLowServer = gcfg.JoinLowServer || false;
+        lowestGraphics = gcfg.LowestGraphics || false;
+        antiAfk = gcfg.AntiAFK || false;
+        fflagOpt = gcfg.FFlagOptimization || "Default";
+    } else if (hasIndividualTarget) {
+        gameId = acc.PlaceId || "";
+        psLink = acc.PrivateServerLink || "";
+        joinLowServer = acc.JoinLowServer || false;
+        lowestGraphics = acc.LowestGraphics || false;
+        antiAfk = acc.AntiAFK || false;
+        fflagOpt = acc.FFlagOptimization || "Default";
+    } else if (hasGroupTarget) {
+        gameId = gcfg.PlaceId || "";
+        psLink = gcfg.PrivateServerLink || "";
+        joinLowServer = gcfg.JoinLowServer || false;
+        lowestGraphics = gcfg.LowestGraphics || false;
+        antiAfk = gcfg.AntiAFK || false;
+        fflagOpt = gcfg.FFlagOptimization || "Default";
+    } else if (hasGlobalTarget) {
+        gameId = globalGameId;
+        psLink = globalPsLink;
+        if (acc) {
+            joinLowServer = acc.JoinLowServer || false;
+            lowestGraphics = acc.LowestGraphics || false;
+            antiAfk = acc.AntiAFK || false;
+            fflagOpt = acc.FFlagOptimization || "Default";
         }
+    } else {
+        let lang = document.getElementById("setting-language")?.value || "en";
+        let dict = translations[lang] || translations["en"];
+        window.showStatus(dict.toast_global_placeid_empty || "You need to fill in the Place ID/Private Server Link globally or individually first!", true);
+        if (acc) acc.Status = 0;
+        window.renderAccounts(currentAccounts);
+        return;
     }
-
-    let userId = acc ? acc.Id || acc.UserId : "";
-    let joinLowServer = acc ? acc.JoinLowServer || false : false;
 
     window.chrome.webview.postMessage(
         JSON.stringify({
@@ -1120,8 +1163,8 @@ window.launchAccount = function (cookie, username, btnElement) {
             placeId: gameId,
             linkCode: psLink,
             joinLowServer: joinLowServer,
-            lowestGraphics: acc && acc.LowestGraphics ? true : false,
-            fflagOptimization: acc && acc.FFlagOptimization ? acc.FFlagOptimization : "Default",
+            lowestGraphics: lowestGraphics,
+            fflagOptimization: fflagOpt,
         }),
     );
 };
@@ -1135,9 +1178,13 @@ window.launchAllAccounts = function () {
     let launchedAny = false;
 
     currentAccounts.forEach(acc => {
-        // Only launch if it is not already running or starting
         if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
-            let hasTarget = !!(acc.PlaceId || acc.PrivateServerLink || globalGameId || globalPsLink);
+            let gcfg = (acc.Group && currentGroupConfigs && currentGroupConfigs[acc.Group]) ? currentGroupConfigs[acc.Group] : null;
+            let hasGroupTarget = !!(gcfg && (gcfg.PlaceId || gcfg.PrivateServerLink));
+            let hasIndividualTarget = !!(acc.PlaceId || acc.PrivateServerLink);
+            let hasGlobalTarget = !!(globalGameId || globalPsLink);
+            let hasTarget = hasIndividualTarget || hasGroupTarget || hasGlobalTarget;
+
             if (!hasTarget) {
                 skippedAny = true;
                 return;
@@ -1169,7 +1216,12 @@ window.launchGroupAccounts = function(groupName) {
     currentAccounts.forEach(acc => {
         if (acc.Group === groupName) {
             if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
-                let hasTarget = !!(acc.PlaceId || acc.PrivateServerLink || globalGameId || globalPsLink);
+                let gcfg = (groupName && currentGroupConfigs && currentGroupConfigs[groupName]) ? currentGroupConfigs[groupName] : null;
+                let hasGroupTarget = !!(gcfg && (gcfg.PlaceId || gcfg.PrivateServerLink));
+                let hasIndividualTarget = !!(acc.PlaceId || acc.PrivateServerLink);
+                let hasGlobalTarget = !!(globalGameId || globalPsLink);
+                let hasTarget = hasIndividualTarget || hasGroupTarget || hasGlobalTarget;
+
                 if (!hasTarget) {
                     skippedAny = true;
                     return;
@@ -1557,6 +1609,11 @@ if (btnConfirmRenameGroup) {
                 if (acc.Group === oldName) acc.Group = newName;
             });
 
+            if (currentGroupConfigs && currentGroupConfigs[oldName]) {
+                currentGroupConfigs[newName] = currentGroupConfigs[oldName];
+                delete currentGroupConfigs[oldName];
+            }
+
             let idx = currentGroups.indexOf(oldName);
             if (idx > -1) {
                 currentGroups[idx] = newName;
@@ -1569,6 +1626,16 @@ if (btnConfirmRenameGroup) {
             currentGroups = [...new Set(currentGroups)];
 
             syncLayout();
+
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage(
+                    JSON.stringify({
+                        action: "rename_group",
+                        oldName: oldName,
+                        newName: newName,
+                    }),
+                );
+            }
         }
 
         document.getElementById("rename-group-modal").classList.remove("show");
@@ -1594,6 +1661,10 @@ if (btnConfirmDeleteGroup) {
     btnConfirmDeleteGroup.addEventListener("click", () => {
         let groupName = document.getElementById("delete-group-name").value;
 
+        if (currentGroupConfigs && currentGroupConfigs[groupName]) {
+            delete currentGroupConfigs[groupName];
+        }
+
         currentAccounts.forEach((acc) => {
             if (acc.Group === groupName) acc.Group = "";
         });
@@ -1604,6 +1675,15 @@ if (btnConfirmDeleteGroup) {
         }
 
         syncLayout();
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(
+                JSON.stringify({
+                    action: "delete_group",
+                    group: groupName,
+                }),
+            );
+        }
 
         document.getElementById("delete-group-modal").classList.remove("show");
     });
@@ -3018,16 +3098,39 @@ window.onReceiveResolvedLink = function (data) {
                 if (typeof saveGameSettings === "function") saveGameSettings();
             }
         }
+
+        // 3. Group Launch Inputs
+        let groupPlaceInput = document.getElementById("group-setup-place-id");
+        let groupPsInput = document.getElementById("group-setup-ps-link");
+
+        if (groupPsInput && normalize(groupPsInput.value) === normalize(data.link)) {
+            groupPsInput.dataset.resolvedLink = data.link;
+            groupPsInput.dataset.resolvedPlaceId = data.placeId;
+
+            let curPlaceId = groupPlaceInput ? groupPlaceInput.value.trim() : "";
+            if (curPlaceId.length === 0) {
+                if (groupPlaceInput) {
+                    groupPlaceInput.value = data.placeId;
+                    groupPlaceInput.style.borderColor = "#10b981";
+                }
+            } else if (curPlaceId !== data.placeId) {
+                if (groupPlaceInput) groupPlaceInput.style.borderColor = "#ef4444";
+                window.notifyPlaceIdMismatch(isId);
+            } else {
+                if (groupPlaceInput) groupPlaceInput.style.borderColor = "#10b981";
+            }
+        }
     }
 };
 
 window.onPlaceIdAutoFilledOnLaunch = function (cookie, placeId, linkCode) {
-    if (!placeId) return;
+    if (!placeId || !linkCode) return;
 
+    // 1. If global PS link matches linkCode, auto-fill global Place ID
     let globalPlaceInput = document.getElementById("global-accounts-game-id");
     let globalPsInput = document.getElementById("global-accounts-ps-link");
-    if (globalPlaceInput && !globalPlaceInput.value.trim()) {
-        if (!globalPsInput || !globalPsInput.value.trim() || globalPsInput.value.trim() === linkCode) {
+    if (globalPsInput && globalPsInput.value.trim() === linkCode) {
+        if (globalPlaceInput && !globalPlaceInput.value.trim()) {
             globalPlaceInput.value = placeId;
             if (typeof window.doValidateGlobalAccountsGameLaunchInputs === "function") {
                 window.doValidateGlobalAccountsGameLaunchInputs();
@@ -3035,10 +3138,11 @@ window.onPlaceIdAutoFilledOnLaunch = function (cookie, placeId, linkCode) {
         }
     }
 
+    // 2. If currently opened individual PS link matches linkCode, auto-fill it
     let indPlaceInput = document.getElementById("global-game-id");
     let indPsInput = document.getElementById("global-ps-link");
-    if (indPlaceInput && !indPlaceInput.value.trim()) {
-        if (!indPsInput || !indPsInput.value.trim() || indPsInput.value.trim() === linkCode) {
+    if (indPsInput && indPsInput.value.trim() === linkCode) {
+        if (indPlaceInput && !indPlaceInput.value.trim()) {
             indPlaceInput.value = placeId;
             if (typeof window.doValidateGameLaunchInputs === "function") {
                 window.doValidateGameLaunchInputs();
@@ -3046,10 +3150,29 @@ window.onPlaceIdAutoFilledOnLaunch = function (cookie, placeId, linkCode) {
         }
     }
 
+    // 3. If currently opened group PS link matches linkCode, auto-fill it
+    let groupPlaceInput = document.getElementById("group-setup-place-id");
+    let groupPsInput = document.getElementById("group-setup-ps-link");
+    if (groupPsInput && groupPsInput.value.trim() === linkCode) {
+        if (groupPlaceInput && !groupPlaceInput.value.trim()) {
+            groupPlaceInput.value = placeId;
+        }
+    }
+
+    // 4. Update matching group config in memory
+    if (currentGroupConfigs) {
+        for (let grpName in currentGroupConfigs) {
+            let gcfg = currentGroupConfigs[grpName];
+            if (gcfg && gcfg.PrivateServerLink === linkCode && !gcfg.PlaceId) {
+                gcfg.PlaceId = placeId;
+            }
+        }
+    }
+
+    // 5. Only update account if account itself has this PrivateServerLink
     let acc = currentAccounts.find(a => a.Cookie === cookie);
-    if (acc) {
+    if (acc && acc.PrivateServerLink === linkCode) {
         acc.PlaceId = placeId;
-        if (linkCode) acc.PrivateServerLink = linkCode;
         if (typeof window.renderAccounts === "function") {
             window.renderAccounts(currentAccounts);
         }
@@ -4251,6 +4374,149 @@ window.handleCtxCreateGroup = function() {
     window.createGroup();
     document.getElementById("account-context-menu")?.classList.remove("show");
 };
+
+window.openGroupLaunchSetupModal = function(groupName) {
+    let modal = document.getElementById("group-launch-modal");
+    if (!modal) return;
+
+    let groupNameInput = document.getElementById("group-setup-group-name");
+    if (groupNameInput) groupNameInput.value = groupName;
+
+    let targetNameEl = document.getElementById("group-setup-target-name");
+    if (targetNameEl) targetNameEl.textContent = "- " + groupName;
+
+    let cfg = (currentGroupConfigs && currentGroupConfigs[groupName]) ? currentGroupConfigs[groupName] : {};
+
+    let placeInput = document.getElementById("group-setup-place-id");
+    let psInput = document.getElementById("group-setup-ps-link");
+    let forceOverrideInput = document.getElementById("group-setup-force-override");
+    let joinLowServerInput = document.getElementById("group-setup-join-low-server");
+    let lowestGraphicsInput = document.getElementById("group-setup-lowest-graphics");
+    let antiAfkInput = document.getElementById("group-setup-anti-afk");
+    let fflagInput = document.getElementById("group-setup-fflag");
+    let fflagText = document.getElementById("group-fflag-dropdown-text");
+
+    if (placeInput) {
+        placeInput.value = cfg.PlaceId || "";
+        placeInput.style.borderColor = "var(--border-color)";
+    }
+    if (psInput) {
+        psInput.value = cfg.PrivateServerLink || "";
+        psInput.style.borderColor = "var(--border-color)";
+        delete psInput.dataset.resolvedLink;
+        delete psInput.dataset.resolvedPlaceId;
+    }
+    if (forceOverrideInput) forceOverrideInput.checked = !!cfg.ForceOverride;
+    if (joinLowServerInput) joinLowServerInput.checked = !!cfg.JoinLowServer;
+    if (lowestGraphicsInput) lowestGraphicsInput.checked = !!cfg.LowestGraphics;
+    if (antiAfkInput) antiAfkInput.checked = !!cfg.AntiAFK;
+    let fflagVal = cfg.FFlagOptimization || "Default";
+    if (fflagInput) fflagInput.value = fflagVal;
+    if (fflagText) fflagText.textContent = fflagVal;
+
+    modal.classList.add("show");
+};
+
+let grpFflagSel = document.getElementById("group-fflag-dropdown-selected");
+let grpFflagOpts = document.getElementById("group-fflag-dropdown-options");
+let grpFflagText = document.getElementById("group-fflag-dropdown-text");
+let grpFflagInput = document.getElementById("group-setup-fflag");
+
+if (grpFflagSel && grpFflagOpts && grpFflagInput) {
+    grpFflagSel.addEventListener("click", (e) => {
+        grpFflagOpts.classList.toggle("show");
+        e.stopPropagation();
+    });
+    document.addEventListener("click", () => {
+        grpFflagOpts.classList.remove("show");
+    });
+    grpFflagOpts.querySelectorAll(".dropdown-option").forEach((opt) => {
+        opt.addEventListener("click", (e) => {
+            let selectedValue = opt.getAttribute("data-value");
+            grpFflagText.textContent = selectedValue;
+            grpFflagInput.value = selectedValue;
+            grpFflagOpts.classList.remove("show");
+            e.stopPropagation();
+        });
+    });
+}
+
+let btnSaveGroupSetup = document.getElementById("btn-save-group-setup");
+if (btnSaveGroupSetup) {
+    btnSaveGroupSetup.addEventListener("click", () => {
+        let groupName = document.getElementById("group-setup-group-name")?.value || "";
+        if (!groupName) return;
+
+        let placeId = document.getElementById("group-setup-place-id")?.value.trim() || "";
+        let psLink = document.getElementById("group-setup-ps-link")?.value.trim() || "";
+        let forceOverride = document.getElementById("group-setup-force-override")?.checked || false;
+        let joinLowServer = document.getElementById("group-setup-join-low-server")?.checked || false;
+        let lowestGraphics = document.getElementById("group-setup-lowest-graphics")?.checked || false;
+        let antiAfk = document.getElementById("group-setup-anti-afk")?.checked || false;
+        let fflagOpt = document.getElementById("group-setup-fflag")?.value || "Default";
+
+        let cfg = {
+            PlaceId: placeId,
+            PrivateServerLink: psLink,
+            ForceOverride: forceOverride,
+            JoinLowServer: joinLowServer,
+            LowestGraphics: lowestGraphics,
+            AntiAFK: antiAfk,
+            FFlagOptimization: fflagOpt
+        };
+
+        if (!currentGroupConfigs) currentGroupConfigs = {};
+        currentGroupConfigs[groupName] = cfg;
+
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(JSON.stringify({
+                action: "save_group_setup",
+                group: groupName,
+                placeId: placeId,
+                psLink: psLink,
+                forceOverride: forceOverride,
+                joinLowServer: joinLowServer,
+                lowestGraphics: lowestGraphics,
+                antiAfk: antiAfk,
+                fflagOptimization: fflagOpt
+            }));
+        }
+
+        let modal = document.getElementById("group-launch-modal");
+        if (modal) modal.classList.remove("show");
+
+        let lang = document.getElementById("setting-language")?.value || "en";
+        let dict = translations[lang] || translations["en"];
+        window.showStatus(dict.toast_group_saved || "Group launch setup saved.", false);
+    });
+}
+
+let groupPsInput = document.getElementById("group-setup-ps-link");
+if (groupPsInput) {
+    let groupPlaceInput = document.getElementById("group-setup-place-id");
+    let resolveTimer = null;
+    let handleGroupPsInput = () => {
+        let val = groupPsInput.value.trim();
+        if (resolveTimer) clearTimeout(resolveTimer);
+        if (!val) {
+            if (groupPlaceInput) groupPlaceInput.style.borderColor = "var(--border-color)";
+            return;
+        }
+        resolveTimer = setTimeout(() => {
+            let cookie = currentAccounts.length > 0 ? currentAccounts[0].Cookie : "";
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage(JSON.stringify({
+                    action: "resolve_link",
+                    link: val,
+                    cookie: cookie,
+                    context: "group"
+                }));
+            }
+        }, 300);
+    };
+    groupPsInput.addEventListener("input", handleGroupPsInput);
+    groupPsInput.addEventListener("paste", () => setTimeout(handleGroupPsInput, 50));
+}
 
 document.addEventListener("keydown", (e) => {
     let overlay = document.getElementById("master-password-overlay");
