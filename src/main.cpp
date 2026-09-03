@@ -583,8 +583,29 @@ void ProcessWebMessage(const std::string& msg) {
                 
                 std::string launchError;
                 DWORD outPID = 0;
-                if (Launcher::LaunchAccount(cookie, placeId, linkCode, jobId, launchError, outPID, lowestGraphics, fflagOpt)) {
+                std::string resolvedPlaceId = "";
+                if (Launcher::LaunchAccount(cookie, placeId, linkCode, jobId, launchError, outPID, lowestGraphics, fflagOpt, &resolvedPlaceId)) {
                     g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
+
+                    if (!resolvedPlaceId.empty()) {
+                        // If account placeId was empty, update it
+                        for (const auto& acc : g_accountManager.GetAccounts()) {
+                            if (acc.Cookie == cookie && acc.PlaceId.empty()) {
+                                g_accountManager.UpdateAccountGame(cookie, resolvedPlaceId, acc.PrivateServerLink, acc.JoinLowServer, acc.LowestGraphics, acc.AntiAFK, acc.FFlagOptimization);
+                                break;
+                            }
+                        }
+                        // If global placeId was empty and link matches, update it
+                        Settings s = g_settingsManager.GetSettings();
+                        if (s.GlobalPlaceId.empty() && !linkCode.empty() && s.GlobalPrivateServerLink == linkCode) {
+                            s.GlobalPlaceId = resolvedPlaceId;
+                            g_settingsManager.SetSettings(s);
+                            g_settingsManager.Save();
+                        }
+                        // Update UI fields in WebView2
+                        std::string fillJs = "if(window.onPlaceIdAutoFilledOnLaunch) window.onPlaceIdAutoFilledOnLaunch('" + cookie + "', '" + resolvedPlaceId + "', '" + linkCode + "');";
+                        PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(fillJs), 0);
+                    }
                     
                     std::lock_guard<std::mutex> toastLock(g_toastMutex);
                     std::string successMsg = username + " launched successfully!";
@@ -594,8 +615,13 @@ void ProcessWebMessage(const std::string& msg) {
                     g_toastQueue.push_back({successMsg, false});
                 } else {
                     g_accountManager.UpdateAccountProcess(cookie, 0, 0);
-                    std::lock_guard<std::mutex> toastLock(g_toastMutex);
-                    if (g_settingsManager.GetSettings().Language == "id") {
+                    if (launchError == "MISMATCH_PLACE_ID") {
+                        if (g_settingsManager.GetSettings().Language == "id") {
+                            launchError = "Tautan Server Pribadi tidak sesuai dengan ID Tempat.";
+                        } else {
+                            launchError = "The Private Server link does not match the Place ID.";
+                        }
+                    } else if (g_settingsManager.GetSettings().Language == "id") {
                         if (launchError == "Could not find RobloxPlayerBeta.exe! Please launch Roblox once.") {
                             launchError = "RobloxPlayerBeta.exe tidak ditemukan! Harap jalankan Roblox setidaknya sekali.";
                         } else if (launchError == "RobloxPlayerBeta.dll was not found!") {
@@ -612,6 +638,37 @@ void ProcessWebMessage(const std::string& msg) {
                     ERROR_LOG("Launch Error for " << cookie << ": " << launchError);
                 }
                 PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+            }).detach();
+        }
+        else if (action == "resolve_link") {
+            std::string link = j.value("link", "");
+            std::string context = j.value("context", "global");
+            std::string cookie = j.value("cookie", "");
+            if (cookie.empty()) {
+                auto accs = g_accountManager.GetAccounts();
+                for (const auto& acc : accs) {
+                    if (!acc.Cookie.empty()) {
+                        cookie = acc.Cookie;
+                        break;
+                    }
+                }
+            }
+
+            std::thread([cookie, link, context]() {
+                std::string placeId;
+                std::string error;
+                bool success = RobloxAPI::ResolveLink(cookie, link, placeId, error);
+
+                json jOut;
+                jOut["action"] = "resolve_link_result";
+                jOut["success"] = success;
+                jOut["context"] = context;
+                jOut["link"] = link;
+                jOut["placeId"] = placeId;
+                jOut["error"] = error;
+
+                std::string js = "if(window.onReceiveResolvedLink) window.onReceiveResolvedLink(" + jOut.dump() + ");";
+                PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
             }).detach();
         }
         else if (action == "save_account_game") {

@@ -2690,7 +2690,7 @@ constexpr const char* UI_BODY = R"HTML(
                                 class="settings-input"
                                 placeholder="e.g. 123456789"
                                 style="width: 100%; box-sizing: border-box; transition: border-color 0.2s"
-                                onchange="validateGameLaunchInputs()"
+                                oninput="validateGameLaunchInputs()"
                             />
                             <div
                                 id="game-id-error"
@@ -2717,7 +2717,7 @@ constexpr const char* UI_BODY = R"HTML(
                                 class="settings-input"
                                 placeholder="https://www.roblox.com/games/... or share?code=..."
                                 style="width: 100%; box-sizing: border-box; transition: border-color 0.2s"
-                                onchange="validateGameLaunchInputs()"
+                                oninput="validateGameLaunchInputs()"
                             />
                             <div
                                 id="ps-link-error"

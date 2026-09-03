@@ -204,7 +204,7 @@ namespace Launcher {
         } catch(...) {}
     }
 
-    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics, const std::string& fflagOpt) {
+    bool LaunchAccount(const std::string& cookie, const std::string& placeId, const std::string& linkCode, const std::string& jobId, std::string& outError, DWORD& outPID, bool lowestGraphics, const std::string& fflagOpt, std::string* outResolvedPlaceId) {
         std::lock_guard<std::mutex> lock(g_launchMutex);
         ApplyLowestGraphicsSettings(lowestGraphics);
         
@@ -239,16 +239,22 @@ namespace Launcher {
         std::string extractedLinkCode = linkCode;
         bool isShareLink = false;
 
-        if (localPlaceId.empty() && !extractedLinkCode.empty()) {
+        if (!extractedLinkCode.empty()) {
             size_t gamesPos = extractedLinkCode.find("/games/");
             if (gamesPos != std::string::npos) {
                 size_t idStart = gamesPos + 7;
                 size_t idEnd = extractedLinkCode.find('/', idStart);
                 if (idEnd == std::string::npos) idEnd = extractedLinkCode.find('?', idStart);
-                if (idEnd != std::string::npos) {
-                    localPlaceId = extractedLinkCode.substr(idStart, idEnd - idStart);
-                } else {
-                    localPlaceId = extractedLinkCode.substr(idStart);
+                std::string extractedId = (idEnd != std::string::npos) ? extractedLinkCode.substr(idStart, idEnd - idStart) : extractedLinkCode.substr(idStart);
+                if (!extractedId.empty()) {
+                    if (!localPlaceId.empty() && localPlaceId != extractedId) {
+                        outError = "MISMATCH_PLACE_ID";
+                        ActiveClientLock::UnlockClient();
+                        return false;
+                    }
+                    if (localPlaceId.empty()) {
+                        localPlaceId = extractedId;
+                    }
                 }
             }
         }
@@ -303,14 +309,17 @@ namespace Launcher {
                         return false;
                     }
 
-                    if (localPlaceId.empty()) {
-                        size_t pIdPos = response.find("\"placeId\":");
-                        if (pIdPos != std::string::npos) {
-                            size_t pIdEnd = response.find_first_of(",}", pIdPos + 10);
-                            std::string extractedPlaceId = response.substr(pIdPos + 10, pIdEnd - (pIdPos + 10));
-                            if (extractedPlaceId != "0" && !extractedPlaceId.empty()) {
-                                localPlaceId = extractedPlaceId;
+                    size_t pIdPos = response.find("\"placeId\":");
+                    if (pIdPos != std::string::npos) {
+                        size_t pIdEnd = response.find_first_of(",}", pIdPos + 10);
+                        std::string extractedPlaceId = response.substr(pIdPos + 10, pIdEnd - (pIdPos + 10));
+                        if (extractedPlaceId != "0" && !extractedPlaceId.empty()) {
+                            if (!localPlaceId.empty() && localPlaceId != extractedPlaceId) {
+                                outError = "MISMATCH_PLACE_ID";
+                                ActiveClientLock::UnlockClient();
+                                return false;
                             }
+                            localPlaceId = extractedPlaceId;
                         }
                     }
                 } catch(...) {
@@ -324,6 +333,10 @@ namespace Launcher {
                 outError = "Place ID tidak ditemukan. Harap isi Place ID atau gunakan URL yang valid.";
                 ActiveClientLock::UnlockClient();
                 return false;
+            }
+
+            if (outResolvedPlaceId) {
+                *outResolvedPlaceId = localPlaceId;
             }
 
             if (!extractedLinkCode.empty()) {

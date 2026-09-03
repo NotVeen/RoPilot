@@ -95,7 +95,7 @@ const translations = {
         lbl_game_launch_setup: "Game Launch Setup",
         lbl_game_id: "Place ID",
         lbl_private_server_link: "Private Server Link",
-        msg_mismatch_place_id: "Mismatch: The Private Server link does not match the Place ID.",
+        msg_mismatch_place_id: "The Private Server link does not match the Place ID.",
         lbl_game_launch_desc:
             'When filled, clicking "Launch" on any account card will automatically launch them into this specific game/server.',
         lbl_global_launch_setup: "Global Launch Setup",
@@ -256,7 +256,7 @@ const translations = {
         lbl_game_launch_setup: "Pengaturan Peluncuran Game",
         lbl_game_id: "ID Place",
         lbl_private_server_link: "Tautan Server Pribadi",
-        msg_mismatch_place_id: "Tidak cocok: Tautan Server Pribadi tidak sesuai dengan ID Tempat.",
+        msg_mismatch_place_id: "Tautan Server Pribadi tidak sesuai dengan ID Tempat.",
         lbl_game_launch_desc:
             'Jika diisi, menekan "Launch" pada kartu akun akan secara otomatis meluncurkannya ke dalam game/server khusus ini.',
         lbl_global_launch_setup: "Pengaturan Peluncuran Global",
@@ -1093,12 +1093,17 @@ window.launchAccount = function (cookie, username, btnElement) {
     let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
     let globalPsLink = globalPsLinkInput ? globalPsLinkInput.value.trim() : "";
     
-    if (!gameId) {
-        if (globalGameId) {
+    let hasIndividualTarget = !!(gameId || psLink);
+    let hasGlobalTarget = !!(globalGameId || globalPsLink);
+
+    if (!hasIndividualTarget) {
+        if (hasGlobalTarget) {
             gameId = globalGameId;
             psLink = globalPsLink;
         } else {
-            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_global_placeid_empty || "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu", true);
+            let lang = document.getElementById("setting-language")?.value || "en";
+            let dict = translations[lang] || translations["en"];
+            window.showStatus(dict.toast_global_placeid_empty || "You need to fill in the Place ID/Private Server Link globally or individually first!", true);
             if (acc) acc.Status = 0;
             window.renderAccounts(currentAccounts);
             return;
@@ -1123,14 +1128,17 @@ window.launchAccount = function (cookie, username, btnElement) {
 
 window.launchAllAccounts = function () {
     let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
+    let globalPsLinkInput = document.getElementById("global-accounts-ps-link");
     let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
+    let globalPsLink = globalPsLinkInput ? globalPsLinkInput.value.trim() : "";
     let skippedAny = false;
     let launchedAny = false;
 
     currentAccounts.forEach(acc => {
         // Only launch if it is not already running or starting
         if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
-            if (!acc.PlaceId && !globalGameId) {
+            let hasTarget = !!(acc.PlaceId || acc.PrivateServerLink || globalGameId || globalPsLink);
+            if (!hasTarget) {
                 skippedAny = true;
                 return;
             }
@@ -1140,24 +1148,29 @@ window.launchAllAccounts = function () {
     });
 
     if (skippedAny) {
+        let lang = document.getElementById("setting-language")?.value || "en";
+        let dict = translations[lang] || translations["en"];
         if (!launchedAny) {
-            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_global_placeid_empty || "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu", true);
+            window.showStatus(dict.toast_global_placeid_empty || "You need to fill in the Place ID/Private Server Link globally or individually first!", true);
         } else {
-            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_skipped_accounts || "Beberapa akun dilewati karena tidak memiliki pengaturan Place ID/Private Server Link.", true);
+            window.showStatus(dict.toast_skipped_accounts || "Some accounts were skipped because they don't have a Place ID/Private Server Link setup.", true);
         }
     }
 };
 
 window.launchGroupAccounts = function(groupName) {
     let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
+    let globalPsLinkInput = document.getElementById("global-accounts-ps-link");
     let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
+    let globalPsLink = globalPsLinkInput ? globalPsLinkInput.value.trim() : "";
     let skippedAny = false;
     let launchedAny = false;
 
     currentAccounts.forEach(acc => {
         if (acc.Group === groupName) {
             if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
-                if (!acc.PlaceId && !globalGameId) {
+                let hasTarget = !!(acc.PlaceId || acc.PrivateServerLink || globalGameId || globalPsLink);
+                if (!hasTarget) {
                     skippedAny = true;
                     return;
                 }
@@ -1168,10 +1181,12 @@ window.launchGroupAccounts = function(groupName) {
     });
 
     if (skippedAny) {
+        let lang = document.getElementById("setting-language")?.value || "en";
+        let dict = translations[lang] || translations["en"];
         if (!launchedAny) {
-            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_global_placeid_empty || "Kamu perlu mengisi ID Place/Private Server Link global atau individual terlebih dahulu", true);
+            window.showStatus(dict.toast_global_placeid_empty || "You need to fill in the Place ID/Private Server Link globally or individually first!", true);
         } else {
-            window.showStatus(translations[document.getElementById("setting-language")?.value || "en"]?.toast_skipped_accounts || "Beberapa akun dilewati karena tidak memiliki pengaturan Place ID/Private Server Link.", true);
+            window.showStatus(dict.toast_skipped_accounts || "Some accounts were skipped because they don't have a Place ID/Private Server Link setup.", true);
         }
     }
 };
@@ -1258,6 +1273,11 @@ function saveGameSettings() {
     let fflagOptSel = document.getElementById("setting-fflag-optimization");
     let fflagOpt = fflagOptSel ? fflagOptSel.value : "Default";
 
+    let errorGameId = document.getElementById("game-id-error");
+    let errorPsLink = document.getElementById("ps-link-error");
+    if (errorGameId && errorGameId.style.display === "block") return;
+    if (errorPsLink && errorPsLink.style.display === "block") return;
+
     if (placeId.length > 0 && !/^\d+$/.test(placeId)) return;
 
     if (psLink.length > 0) {
@@ -1307,21 +1327,6 @@ document.getElementById("search-input-analytics").addEventListener("input", (e) 
     currentAnalyticsSearchTerm = e.target.value.toLowerCase();
     if (window.renderAccounts) window.renderAccounts(currentAccounts);
 });
-
-let psLinkInput = document.getElementById("global-ps-link");
-if (psLinkInput) {
-    psLinkInput.addEventListener("input", function () {
-        let val = this.value;
-        let match = val.match(/games\/(\d+)/);
-        if (match && match[1]) {
-            let gameIdInput = document.getElementById("global-game-id");
-            if (gameIdInput && !gameIdInput.value) {
-                gameIdInput.value = match[1];
-                if (typeof saveGameSettings === "function") saveGameSettings();
-            }
-        }
-    });
-}
 
 let recentGamesGrid = document.getElementById("mo-recent-games-grid");
 if (recentGamesGrid) {
@@ -2906,6 +2911,133 @@ function calculateAccountAge(createdIsoStr) {
         return isId ? `${diffDays} Hari` : `${diffDays} Day${diffDays !== 1 ? "s" : ""}`;
     }
 }
+let psMismatchToastTimer = null;
+window.notifyPlaceIdMismatch = function (isId) {
+    if (psMismatchToastTimer) clearTimeout(psMismatchToastTimer);
+    psMismatchToastTimer = setTimeout(() => {
+        let lang = document.getElementById("setting-language")?.value || "en";
+        let dict = translations[lang] || translations["en"];
+        let msg = dict.msg_mismatch_place_id || (isId ? "Tautan Server Pribadi tidak sesuai dengan ID Tempat." : "The Private Server link does not match the Place ID.");
+        window.showStatus(msg, true);
+    }, 400);
+};
+
+window.onReceiveResolvedLink = function (data) {
+    if (!data || !data.link) return;
+    let isId = document.getElementById("setting-language") && document.getElementById("setting-language").value === "id";
+    let mismatchMsg = isId ? "Tautan Server Pribadi tidak sesuai dengan ID Tempat." : "The Private Server link does not match the Place ID.";
+    const normalize = s => (s || "").trim().replace(/\/+$/, "");
+
+    if (data.success && data.placeId) {
+        // 1. Global Launch Inputs
+        let globalPlaceInput = document.getElementById("global-accounts-game-id");
+        let globalPsInput = document.getElementById("global-accounts-ps-link");
+        let globalErrId = document.getElementById("error-global-accounts-game-id");
+
+        if (globalPsInput && normalize(globalPsInput.value) === normalize(data.link)) {
+            globalPsInput.dataset.resolvedLink = data.link;
+            globalPsInput.dataset.resolvedPlaceId = data.placeId;
+
+            let curPlaceId = globalPlaceInput ? globalPlaceInput.value.trim() : "";
+            if (curPlaceId.length === 0) {
+                if (globalPlaceInput) {
+                    globalPlaceInput.value = data.placeId;
+                    globalPlaceInput.style.borderColor = "#10b981";
+                }
+                if (globalErrId) globalErrId.style.display = "none";
+                if (typeof window.doValidateGlobalAccountsGameLaunchInputs === "function") {
+                    window.doValidateGlobalAccountsGameLaunchInputs();
+                }
+            } else if (curPlaceId !== data.placeId) {
+                if (globalPlaceInput) globalPlaceInput.style.borderColor = "#ef4444";
+                if (globalErrId) {
+                    globalErrId.style.display = "block";
+                    globalErrId.innerText = mismatchMsg;
+                }
+                window.notifyPlaceIdMismatch(isId);
+            } else {
+                if (globalPlaceInput) globalPlaceInput.style.borderColor = "#10b981";
+                if (globalErrId) globalErrId.style.display = "none";
+                if (typeof window.doValidateGlobalAccountsGameLaunchInputs === "function") {
+                    window.doValidateGlobalAccountsGameLaunchInputs();
+                }
+            }
+        }
+
+        // 2. Individual Account Launch Inputs
+        let indPlaceInput = document.getElementById("global-game-id");
+        let indPsInput = document.getElementById("global-ps-link");
+        let indErrId = document.getElementById("game-id-error");
+
+        if (indPsInput && normalize(indPsInput.value) === normalize(data.link)) {
+            indPsInput.dataset.resolvedLink = data.link;
+            indPsInput.dataset.resolvedPlaceId = data.placeId;
+
+            let curPlaceId = indPlaceInput ? indPlaceInput.value.trim() : "";
+            if (curPlaceId.length === 0) {
+                if (indPlaceInput) {
+                    indPlaceInput.value = data.placeId;
+                    indPlaceInput.style.borderColor = "#10b981";
+                }
+                if (indErrId) indErrId.style.display = "none";
+                if (typeof window.doValidateGameLaunchInputs === "function") {
+                    window.doValidateGameLaunchInputs();
+                }
+                if (typeof saveGameSettings === "function") saveGameSettings();
+            } else if (curPlaceId !== data.placeId) {
+                if (indPlaceInput) indPlaceInput.style.borderColor = "#ef4444";
+                if (indErrId) {
+                    indErrId.style.display = "block";
+                    indErrId.innerText = mismatchMsg;
+                }
+                window.notifyPlaceIdMismatch(isId);
+            } else {
+                if (indPlaceInput) indPlaceInput.style.borderColor = "#10b981";
+                if (indErrId) indErrId.style.display = "none";
+                if (typeof window.doValidateGameLaunchInputs === "function") {
+                    window.doValidateGameLaunchInputs();
+                }
+                if (typeof saveGameSettings === "function") saveGameSettings();
+            }
+        }
+    }
+};
+
+window.onPlaceIdAutoFilledOnLaunch = function (cookie, placeId, linkCode) {
+    if (!placeId) return;
+
+    let globalPlaceInput = document.getElementById("global-accounts-game-id");
+    let globalPsInput = document.getElementById("global-accounts-ps-link");
+    if (globalPlaceInput && !globalPlaceInput.value.trim()) {
+        if (!globalPsInput || !globalPsInput.value.trim() || globalPsInput.value.trim() === linkCode) {
+            globalPlaceInput.value = placeId;
+            if (typeof window.doValidateGlobalAccountsGameLaunchInputs === "function") {
+                window.doValidateGlobalAccountsGameLaunchInputs();
+            }
+        }
+    }
+
+    let indPlaceInput = document.getElementById("global-game-id");
+    let indPsInput = document.getElementById("global-ps-link");
+    if (indPlaceInput && !indPlaceInput.value.trim()) {
+        if (!indPsInput || !indPsInput.value.trim() || indPsInput.value.trim() === linkCode) {
+            indPlaceInput.value = placeId;
+            if (typeof window.doValidateGameLaunchInputs === "function") {
+                window.doValidateGameLaunchInputs();
+            }
+        }
+    }
+
+    let acc = currentAccounts.find(a => a.Cookie === cookie);
+    if (acc) {
+        acc.PlaceId = placeId;
+        if (linkCode) acc.PrivateServerLink = linkCode;
+        if (typeof window.renderAccounts === "function") {
+            window.renderAccounts(currentAccounts);
+        }
+    }
+};
+
 let validateGameLaunchTimer = null;
 window.validateGameLaunchInputs = function () {
     if (validateGameLaunchTimer) clearTimeout(validateGameLaunchTimer);
@@ -2918,6 +3050,7 @@ window.doValidateGameLaunchInputs = function () {
     let errorPsLink = document.getElementById("ps-link-error");
     let isId =
         document.getElementById("setting-language") && document.getElementById("setting-language").value === "id";
+    let mismatchMsg = isId ? "Tautan Server Pribadi tidak sesuai dengan ID Tempat." : "The Private Server link does not match the Place ID.";
 
     if (!placeIdInput || !psLinkInput) return;
 
@@ -2942,24 +3075,7 @@ window.doValidateGameLaunchInputs = function () {
         }
     };
 
-    // Validate Place ID
-    if (placeId.length > 0) {
-        if (!/^\d+$/.test(placeId)) {
-            updateState(
-                placeIdInput,
-                errorGameId,
-                "#ef4444",
-                "block",
-                isId ? "Place ID hanya boleh berisi angka." : "Place ID must contain only numbers.",
-            );
-        } else {
-            updateState(placeIdInput, errorGameId, "#10b981", "none");
-        }
-    } else {
-        updateState(placeIdInput, errorGameId, "", "none");
-    }
-
-    // Validate PS Link
+    let targetResolvedPlaceId = "";
     if (psLink.length > 0) {
         let isValidLink =
             (psLink.includes("roblox.com/games/") && psLink.includes("privateServerLinkCode=")) ||
@@ -2974,10 +3090,61 @@ window.doValidateGameLaunchInputs = function () {
             );
         } else {
             updateState(psLinkInput, errorPsLink, "#10b981", "none");
+            let match = psLink.match(/games\/(\d+)/i);
+            if (match && match[1]) {
+                targetResolvedPlaceId = match[1];
+                psLinkInput.dataset.resolvedLink = psLink;
+                psLinkInput.dataset.resolvedPlaceId = targetResolvedPlaceId;
+            } else if (psLinkInput.dataset.resolvedLink === psLink && psLinkInput.dataset.resolvedPlaceId) {
+                targetResolvedPlaceId = psLinkInput.dataset.resolvedPlaceId;
+            } else {
+                if (window.chrome && window.chrome.webview) {
+                    let cookieToSend = currentUtilityCookie || ((currentAccounts && currentAccounts.length > 0) ? currentAccounts[0].Cookie : "");
+                    window.chrome.webview.postMessage(JSON.stringify({
+                        action: "resolve_link",
+                        link: psLink,
+                        context: "individual",
+                        cookie: cookieToSend
+                    }));
+                }
+            }
+
+            if (targetResolvedPlaceId) {
+                if (placeId.length === 0) {
+                    placeIdInput.value = targetResolvedPlaceId;
+                    placeId = targetResolvedPlaceId;
+                }
+            }
         }
     } else {
         updateState(psLinkInput, errorPsLink, "", "none");
+        delete psLinkInput.dataset.resolvedLink;
+        delete psLinkInput.dataset.resolvedPlaceId;
     }
+
+    if (placeId.length > 0) {
+        if (!/^\d+$/.test(placeId)) {
+            updateState(
+                placeIdInput,
+                errorGameId,
+                "#ef4444",
+                "block",
+                isId ? "Place ID hanya boleh berisi angka." : "Place ID must contain only numbers.",
+            );
+        } else if (targetResolvedPlaceId && placeId !== targetResolvedPlaceId) {
+            updateState(placeIdInput, errorGameId, "#ef4444", "block", mismatchMsg);
+            window.notifyPlaceIdMismatch(isId);
+        } else {
+            updateState(placeIdInput, errorGameId, "#10b981", "none");
+        }
+    } else {
+        updateState(placeIdInput, errorGameId, "", "none");
+    }
+
+    if (errorGameId && errorGameId.style.display === "block") return;
+    if (errorPsLink && errorPsLink.style.display === "block") return;
+
+    if (typeof saveGameSettings === "function") saveGameSettings();
 };
 
 let validateGlobalAccountsGameLaunchTimer = null;
@@ -2992,6 +3159,7 @@ window.doValidateGlobalAccountsGameLaunchInputs = function () {
     let errorGameId = document.getElementById("error-global-accounts-game-id");
     let errorPsLink = document.getElementById("error-global-accounts-ps-link");
     let isId = document.getElementById("setting-language") && document.getElementById("setting-language").value === "id";
+    let mismatchMsg = isId ? "Tautan Server Pribadi tidak sesuai dengan ID Tempat." : "The Private Server link does not match the Place ID.";
 
     if (!placeIdInput || !psLinkInput) return;
 
@@ -3016,16 +3184,7 @@ window.doValidateGlobalAccountsGameLaunchInputs = function () {
         }
     };
 
-    if (placeId.length > 0) {
-        if (!/^\d+$/.test(placeId)) {
-            updateState(placeIdInput, errorGameId, "#ef4444", "block", isId ? "Place ID hanya boleh berisi angka." : "Place ID must contain only numbers.");
-        } else {
-            updateState(placeIdInput, errorGameId, "#10b981", "none");
-        }
-    } else {
-        updateState(placeIdInput, errorGameId, "", "none");
-    }
-
+    let targetResolvedPlaceId = "";
     if (psLink.length > 0) {
         let isValidLink = (psLink.includes("roblox.com/games/") && psLink.includes("privateServerLinkCode=")) || (psLink.includes("roblox.com/share") && psLink.includes("code="));
         if (!isValidLink) {
@@ -3033,19 +3192,48 @@ window.doValidateGlobalAccountsGameLaunchInputs = function () {
         } else {
             updateState(psLinkInput, errorPsLink, "#10b981", "none");
             let match = psLink.match(/games\/(\d+)/i);
-            if (match) {
-                let linkId = match[1];
+            if (match && match[1]) {
+                targetResolvedPlaceId = match[1];
+                psLinkInput.dataset.resolvedLink = psLink;
+                psLinkInput.dataset.resolvedPlaceId = targetResolvedPlaceId;
+            } else if (psLinkInput.dataset.resolvedLink === psLink && psLinkInput.dataset.resolvedPlaceId) {
+                targetResolvedPlaceId = psLinkInput.dataset.resolvedPlaceId;
+            } else {
+                if (window.chrome && window.chrome.webview) {
+                    let cookieToSend = (currentAccounts && currentAccounts.length > 0) ? currentAccounts[0].Cookie : "";
+                    window.chrome.webview.postMessage(JSON.stringify({
+                        action: "resolve_link",
+                        link: psLink,
+                        context: "global",
+                        cookie: cookieToSend
+                    }));
+                }
+            }
+
+            if (targetResolvedPlaceId) {
                 if (placeId.length === 0) {
-                    placeIdInput.value = linkId;
-                    placeId = linkId;
-                } else if (placeId !== linkId) {
-                    updateState(placeIdInput, errorGameId, "#ef4444", "block", isId ? "Tidak cocok: Tautan tidak sesuai dengan ID Tempat." : "Mismatch: The Private Server link does not match the Place ID.");
-                    return;
+                    placeIdInput.value = targetResolvedPlaceId;
+                    placeId = targetResolvedPlaceId;
                 }
             }
         }
     } else {
         updateState(psLinkInput, errorPsLink, "", "none");
+        delete psLinkInput.dataset.resolvedLink;
+        delete psLinkInput.dataset.resolvedPlaceId;
+    }
+
+    if (placeId.length > 0) {
+        if (!/^\d+$/.test(placeId)) {
+            updateState(placeIdInput, errorGameId, "#ef4444", "block", isId ? "Place ID hanya boleh berisi angka." : "Place ID must contain only numbers.");
+        } else if (targetResolvedPlaceId && placeId !== targetResolvedPlaceId) {
+            updateState(placeIdInput, errorGameId, "#ef4444", "block", mismatchMsg);
+            window.notifyPlaceIdMismatch(isId);
+        } else {
+            updateState(placeIdInput, errorGameId, "#10b981", "none");
+        }
+    } else {
+        updateState(placeIdInput, errorGameId, "", "none");
     }
 
     if (errorGameId && errorGameId.style.display === "block") return;
@@ -3926,6 +4114,7 @@ window.masterPasswordVerified = function() {
         setTimeout(() => {
             overlay.style.transition = "opacity 0.4s ease";
             overlay.style.opacity = "0";
+            document.body.classList.remove("app-locked");
             setTimeout(() => {
                 overlay.style.display = "none";
                 overlay.style.opacity = "1";

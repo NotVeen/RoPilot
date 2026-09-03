@@ -127,24 +127,26 @@ constexpr const char* UI_CSS = R"CSS(
 }
 :root {
     --bg-deep: #0a0a0a;
-    --bg-sidebar: #111111;
-    --bg-card: #111111;
-    --bg-hover: #222222;
-    --border-color: #2a2a2a;
+    --bg-sidebar: #181818;
+    --bg-card: #181818;
+    --bg-hover: #2d2d2d;
+    --border-color: #2d2d2d;
+    --border-faint: rgba(255, 255, 255, 0.04);
     --separator-color: rgba(255, 255, 255, 0.04);
+    --stat-bg: #161616;
     --text-main: #ffffff;
-    --text-muted: #888888;
+    --text-muted: #999999;
     --text-green: #4ade80;
     --text-yellow: #facc15;
     --text-blue: #60a5fa;
-    --btn-bg: #222222;
-    --btn-hover: #333333;
+    --btn-bg: #161616;
+    --btn-hover: #222222;
     --btn-danger: #3b1313;
     --btn-danger-hover: #5c1818;
     --text-danger: #f87171;
     --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --scrollbar-thumb: #1f1f1f;
-    --scrollbar-thumb-hover: #333333;
+    --scrollbar-thumb: #282828;
+    --scrollbar-thumb-hover: #383838;
     --ui-scale: 1;
 }
 html {
@@ -155,23 +157,25 @@ html {
 }
 body {
     --bg-deep: rgba(10, 10, 10, var(--bg-opacity));
-    --bg-sidebar: rgba(17, 17, 17, var(--bg-opacity));
+    --bg-sidebar: rgba(24, 24, 24, var(--bg-opacity));
     background-color: var(--bg-deep) !important;
 }
 body .card,
 body #add-menu,
 body .group-header {
-    background-color: rgba(17, 17, 17, var(--bg-opacity)) !important;
+    background-color: rgba(26, 26, 26, var(--bg-opacity)) !important;
 }
-body .nav-item.active {
-    background-color: rgba(34, 34, 34, var(--bg-opacity)) !important;
+body .nav-item.active,
+body .btn-add-account {
+    background-color: rgba(40, 40, 40, var(--bg-opacity)) !important;
 }
 body .nav-item:hover,
-body .add-menu-item:hover {
-    background-color: rgba(45, 45, 45, var(--bg-opacity)) !important;
+body .add-menu-item:hover,
+body .btn-add-account:hover {
+    background-color: rgba(56, 56, 56, var(--bg-opacity)) !important;
 }
 [data-theme="light"] body {
-    --bg-deep: rgba(243, 244, 246, var(--bg-opacity));
+    --bg-deep: rgba(248, 250, 252, var(--bg-opacity));
     --bg-sidebar: rgba(255, 255, 255, var(--bg-opacity));
 }
 [data-theme="light"] body .card,
@@ -179,29 +183,37 @@ body .add-menu-item:hover {
 [data-theme="light"] body .group-header {
     background-color: rgba(255, 255, 255, var(--bg-opacity)) !important;
 }
-[data-theme="light"] body .nav-item.active {
-    background-color: rgba(229, 231, 235, var(--bg-opacity)) !important;
+[data-theme="light"] body .nav-item.active,
+[data-theme="light"] body .btn-add-account {
+    background-color: rgba(241, 245, 249, var(--bg-opacity)) !important;
 }
 [data-theme="light"] body .nav-item:hover,
-[data-theme="light"] body .add-menu-item:hover {
-    background-color: rgba(209, 213, 219, var(--bg-opacity)) !important;
+[data-theme="light"] body .add-menu-item:hover,
+[data-theme="light"] body .btn-add-account:hover {
+    background-color: rgba(226, 232, 240, var(--bg-opacity)) !important;
 }
 
 [data-theme="light"] {
-    --bg-deep: #f3f4f6;
+    --bg-deep: #f8fafc;
     --bg-sidebar: #ffffff;
     --bg-card: #ffffff;
-    --bg-hover: #e5e7eb;
-    --border-color: #d1d5db;
-    --separator-color: rgba(0, 0, 0, 0.05);
-    --text-main: #111827;
-    --text-muted: #6b7280;
-    --btn-bg: #f3f4f6;
-    --btn-hover: #e5e7eb;
-    --btn-danger: #fef2f2;
-    --btn-danger-hover: #fee2e2;
-    --scrollbar-thumb: #d1d5db;
-    --scrollbar-thumb-hover: #9ca3af;
+    --bg-hover: #f1f5f9;
+    --border-color: #e2e8f0;
+    --border-faint: rgba(0, 0, 0, 0.05);
+    --separator-color: rgba(0, 0, 0, 0.06);
+    --stat-bg: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --btn-bg: #f1f5f9;
+    --btn-hover: #e2e8f0;
+    --btn-danger: #fee2e2;
+    --btn-danger-hover: #fecaca;
+    --text-danger: #ef4444;
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-thumb-hover: #94a3b8;
+    --text-green: #10b981;
+    --text-yellow: #f59e0b;
+    --text-blue: #3b82f6;
 }
 [data-theme="light"] .setting-title {
     color: var(--text-main) !important;
@@ -266,9 +278,6 @@ body .add-menu-item:hover {
         var(--accent-tint-active, transparent)
     ) !important;
     color: #111827 !important;
-}
-[data-theme="light"] .btn-add-account:hover {
-    filter: brightness(0.85);
 }
 
 [data-theme="light"] .btn-launch,
@@ -444,7 +453,7 @@ input::-ms-clear {
 .titlebar {
     height: 48px;
     background-color: var(--bg-deep);
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-faint);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -511,17 +520,23 @@ input::-ms-clear {
 }
 
 /* Layout */
+body.app-locked .app-container {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 .app-container {
     display: flex;
     flex-grow: 1;
     overflow: hidden;
+    transition: opacity 0.4s ease;
 }
 
 /* Sidebar */
 .sidebar {
-    width: 240px;
+    width: 220px;
     background-color: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-faint);
     display: flex;
     flex-direction: column;
     padding: 16px;
@@ -798,7 +813,9 @@ input::-ms-clear {
 }
 
 .btn-add-account:hover {
-    filter: brightness(0.85);
+    background-color: var(--bg-hover);
+    background-image: linear-gradient(var(--accent-tint-hover, transparent), var(--accent-tint-hover, transparent));
+    color: var(--text-main);
 }
 
 .add-menu-item {
@@ -925,7 +942,7 @@ input::-ms-clear {
 }
 
 .stat-box {
-    background-color: var(--bg-deep);
+    background-color: var(--stat-bg);
     padding: 8px;
     border-radius: 12px;
     display: flex;
@@ -967,7 +984,7 @@ input::-ms-clear {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: transparent;
+    background: var(--stat-bg);
     border: 1px solid var(--border-color);
     color: var(--text-muted);
     cursor: pointer;
@@ -986,7 +1003,7 @@ input::-ms-clear {
 
 .btn-launch {
     flex-grow: 1;
-    background-color: var(--accent-color, transparent);
+    background-color: var(--accent-color, var(--stat-bg));
     color: var(--text-main);
     border: 1px solid var(--border-color);
     padding: 8px 16px;
@@ -1030,7 +1047,7 @@ input::-ms-clear {
 }
 
 .btn-icon {
-    background-color: transparent;
+    background-color: var(--stat-bg);
     color: var(--text-muted);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -1060,7 +1077,7 @@ input::-ms-clear {
 }
 
 .btn-remove {
-    background-color: transparent;
+    background-color: var(--stat-bg);
     color: var(--text-muted);
     border: 1px solid var(--border-color);
     padding: 8px 16px;
@@ -1142,7 +1159,7 @@ input::-ms-clear {
 /* Groups */
 .group-container {
     margin-bottom: 12px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 12px;
     border: 1px solid var(--border-color);
     overflow: hidden;
@@ -1901,8 +1918,8 @@ input[type="range"]:focus {
     left: 0;
     width: 100vw;
     height: calc(100vh - 48px);
-    background-color: #050505;
-    background-image: linear-gradient(-45deg, #050505, #1c1c1c, #0a0a0a, #2a2a2a);
+    background-color: rgba(5, 5, 5, var(--bg-opacity));
+    background-image: linear-gradient(-45deg, rgba(5, 5, 5, var(--bg-opacity)), rgba(28, 28, 28, var(--bg-opacity)), rgba(10, 10, 10, var(--bg-opacity)), rgba(42, 42, 42, var(--bg-opacity)));
     background-size: 400% 400%;
     animation: mpGradientBG 12s ease infinite;
     z-index: 99999;
@@ -1912,8 +1929,8 @@ input[type="range"]:focus {
 }
 
 [data-theme="light"] #master-password-overlay {
-    background-color: #f8f9fa;
-    background-image: linear-gradient(-45deg, #e2e8f0, #ffffff, #cbd5e1, #f1f5f9);
+    background-color: rgba(248, 249, 250, var(--bg-opacity));
+    background-image: linear-gradient(-45deg, rgba(226, 232, 240, var(--bg-opacity)), rgba(255, 255, 255, var(--bg-opacity)), rgba(203, 213, 225, var(--bg-opacity)), rgba(241, 245, 249, var(--bg-opacity)));
     background-size: 400% 400%;
 }
 

@@ -605,4 +605,113 @@ namespace RobloxAPI {
         return "";
     }
 
+    bool ResolveLink(const std::string& cookie, const std::string& link, std::string& outPlaceId, std::string& outError) {
+        if (link.empty()) {
+            outError = "Link is empty.";
+            return false;
+        }
+
+        // 1. Check if placeId is directly in /games/<id>/
+        size_t gamesPos = link.find("/games/");
+        if (gamesPos != std::string::npos) {
+            size_t idStart = gamesPos + 7;
+            size_t idEnd = link.find('/', idStart);
+            if (idEnd == std::string::npos) idEnd = link.find('?', idStart);
+            std::string extractedId = (idEnd != std::string::npos) ? link.substr(idStart, idEnd - idStart) : link.substr(idStart);
+            bool allDigits = !extractedId.empty();
+            for (char c : extractedId) {
+                if (!isdigit((unsigned char)c)) { allDigits = false; break; }
+            }
+            if (allDigits) {
+                outPlaceId = extractedId;
+                return true;
+            }
+        }
+
+        // 2. Check if it's a share link: share?code=...
+        std::string extractedCode = link;
+        size_t pos = extractedCode.find("share?code=");
+        if (pos != std::string::npos) {
+            extractedCode = extractedCode.substr(pos + 11);
+            size_t ampersand = extractedCode.find('&');
+            if (ampersand != std::string::npos) {
+                extractedCode = extractedCode.substr(0, ampersand);
+            }
+        } else {
+            pos = extractedCode.find("code=");
+            if (pos != std::string::npos) {
+                extractedCode = extractedCode.substr(pos + 5);
+                size_t ampersand = extractedCode.find('&');
+                if (ampersand != std::string::npos) {
+                    extractedCode = extractedCode.substr(0, ampersand);
+                }
+            }
+        }
+
+        if (extractedCode.empty()) {
+            outError = "Invalid link code format.";
+            return false;
+        }
+
+        std::string csrf = GetCSRFToken(cookie);
+        if (csrf.empty()) {
+            outError = "Failed to obtain CSRF token.";
+            return false;
+        }
+
+        std::string resolveApi = "/sharelinks/v1/resolve-link";
+        std::string extraHeaders = "X-CSRF-TOKEN: " + csrf + "\r\nContent-Type: application/json\r\n";
+        std::string postData = "{\"linkId\":\"" + extractedCode + "\",\"linkType\":\"Server\"}";
+        std::string dummyHeaders;
+        std::string response = HttpRequest(L"POST", L"apis.roblox.com", s2ws(resolveApi), cookie, extraHeaders, postData, &dummyHeaders);
+
+        // Try direct string extraction first (matching Launcher.cpp logic)
+        size_t pIdPos = response.find("\"placeId\":");
+        if (pIdPos != std::string::npos) {
+            size_t pIdEnd = response.find_first_of(",}", pIdPos + 10);
+            std::string extractedPlaceId = response.substr(pIdPos + 10, pIdEnd - (pIdPos + 10));
+            extractedPlaceId.erase(0, extractedPlaceId.find_first_not_of(" \t\r\n\""));
+            size_t last = extractedPlaceId.find_last_not_of(" \t\r\n\"");
+            if (last != std::string::npos) extractedPlaceId = extractedPlaceId.substr(0, last + 1);
+            if (extractedPlaceId != "0" && !extractedPlaceId.empty()) {
+                outPlaceId = extractedPlaceId;
+                return true;
+            }
+        }
+
+        try {
+            json j = json::parse(response);
+            if (j.contains("status") && j["status"].is_string() && j["status"].get<std::string>() == "Expired") {
+                outError = "Share link has expired.";
+                return false;
+            }
+            if (j.contains("placeId")) {
+                if (j["placeId"].is_number()) {
+                    long long pid = j["placeId"].get<long long>();
+                    if (pid > 0) {
+                        outPlaceId = std::to_string(pid);
+                        return true;
+                    }
+                } else if (j["placeId"].is_string()) {
+                    std::string pid = j["placeId"].get<std::string>();
+                    if (pid != "0" && !pid.empty()) {
+                        outPlaceId = pid;
+                        return true;
+                    }
+                }
+            }
+            if (j.contains("errors") && j["errors"].is_array() && !j["errors"].empty()) {
+                outError = j["errors"][0].value("message", "Failed to resolve link.");
+                return false;
+            }
+        } catch (...) {
+            outError = "Failed to parse API response.";
+            return false;
+        }
+
+        outError = "Place ID could not be found from link.";
+        return false;
+    }
+
 }
+

@@ -39,4 +39,7 @@ namespace RobloxAPI {
 
     AccountOverviewData GetAccountOverview(const std::string& cookie, long long userId);
 
-    UserInfo GetUserInfo(const std::string& cookie);}
+    UserInfo GetUserInfo(const std::string& cookie);
+
+    bool ResolveLink(const std::string& cookie, const std::string& link, std::string& outPlaceId, std::string& outError);
+}
