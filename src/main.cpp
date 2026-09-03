@@ -1122,8 +1122,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             mmi->ptMaxPosition.x = mi.rcWork.left - mi.rcMonitor.left;
             mmi->ptMaxPosition.y = mi.rcWork.top - mi.rcMonitor.top;
         }
-        mmi->ptMinTrackSize.x = 940;
-        mmi->ptMinTrackSize.y = 500;
+        mmi->ptMinTrackSize.x = 800;
+        mmi->ptMinTrackSize.y = 480;
         return 0;
     }
     case WM_APP + 2: {
@@ -1266,8 +1266,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
     int screenW = GetSystemMetrics(SM_CXSCREEN);
     int screenH = GetSystemMetrics(SM_CYSCREEN);
-    int winW = 1000;
-    int winH = 600;
+    int winW = 1120;
+    int winH = 620;
     int xPos = (screenW - winW) / 2;
     int yPos = (screenH - winH) / 2;
 
