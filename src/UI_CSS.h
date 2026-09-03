@@ -430,10 +430,8 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: calc(100vh / var(--ui-scale));
-    width: calc(100vw / var(--ui-scale));
-    transform: scale(var(--ui-scale));
-    transform-origin: top left;
+    height: 100vh;
+    width: 100vw;
     margin: 0;
     padding: 0;
     user-select: none; /* Disable text selection */
@@ -527,9 +525,16 @@ body.app-locked .app-container {
 
 .app-container {
     display: flex;
-    flex-grow: 1;
+    position: absolute;
+    top: 48px;
+    left: 0;
+    width: calc(100vw / var(--ui-scale));
+    height: calc((100vh - 48px) / var(--ui-scale));
+    transform: scale(var(--ui-scale));
+    transform-origin: top left;
     overflow: hidden;
     transition: opacity 0.4s ease;
+    z-index: 1;
 }
 
 /* Sidebar */

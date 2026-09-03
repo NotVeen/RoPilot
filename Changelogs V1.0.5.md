@@ -9,3 +9,4 @@
 - Removed the duplicate eye icon that appeared when typing the master password.
 - Fixed an issue where the auto-update progress was hidden behind the master key screen.
 - Fixed an issue where accounts could not be launched if only Private Server link was provided without Place ID.
+- Fixed UI scale affecting full-screen overlays (unlock screen, update progress, and modals) by scoping UI scaling strictly to the main application container.

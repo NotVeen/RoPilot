@@ -1380,6 +1380,8 @@ constexpr const char* UI_BODY = R"HTML(
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
         <!-- Update Overlay -->
         <div
@@ -3101,7 +3103,6 @@ constexpr const char* UI_BODY = R"HTML(
                 </div>
             </div>
         </div>
-    </div>
     <!-- Add Account Modal -->
     <div
         id="modal-add-account"
@@ -4464,7 +4465,6 @@ constexpr const char* UI_BODY = R"HTML(
             </div>
         </div>
     </div>
-</div>
 
 <!-- Change Password Modal -->
 <div id="change-password-modal" class="modal" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 1000; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; display: flex; backdrop-filter: blur(4px);">
