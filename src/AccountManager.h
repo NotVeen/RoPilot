@@ -38,6 +38,7 @@ struct Account {
     bool JoinLowServer = false;
     bool LowestGraphics = false;
     bool AntiAFK = false;
+    bool ActiveAntiAFK = false;
     std::string FFlagOptimization = "Default";
     AnalyticsState Analytics;
 };
@@ -64,6 +65,7 @@ public:
     void RenameGroupConfig(const std::string& oldName, const std::string& newName);
 
     void UpdateAccountProcess(const std::string& cookie, int status, DWORD processId);
+    void SetActiveAntiAFK(const std::string& cookie, bool active);
     void UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics);
     void UpdateAccountInfo(const std::string& cookie, const RobloxAPI::UserInfo& info);
     void UpdateAccountGame(const std::string& cookie, const std::string& placeId, const std::string& psLink, bool joinLowServer, bool lowestGraphics, bool antiAfk, const std::string& fflagOpt);

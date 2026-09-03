@@ -6,6 +6,7 @@
 - **Modern Obsidian UI Redesign**: Redesigned UI with sleek obsidian dark palette (`#0d0e12` background, `#17181e` cards, `#232530` borders), compact 38px frameless titlebar with 32x28px controls, modern sidebar navigation with brand header and dedicated collapse toggle button, adjusted default window dimensions to 1120x620 (min 800x480), 6px sleek scrollbars, and refined account cards and group containers.
 - **Group Launch Setup & Cascading Priority**: Added dedicated Group Launch Setup for account groups with Place ID, Private Server link auto-fill, Join Low Server, Lowest Graphics, Anti-AFK, and Fast Flags optimization. Features a Force Override switch and hierarchical cascading launch priority (Group Override -> Individual -> Group -> Global).
 - **Instant Post-Unlock Account Validation**: Automatically validates all saved account cookies asynchronously right after entering master password (or on startup).
+- **Enhanced Anti-AFK**: Upgraded Anti-AFK mechanism to use benign Shift key taps instead of jumping to preserve character farming positions, bypassed Windows foreground lock timeout for reliable multi-instance switching, and added randomized human-like timing jitter.
 
 ## 🐛 Bug Fixes
 - Removed the duplicate eye icon that appeared when typing the master password.

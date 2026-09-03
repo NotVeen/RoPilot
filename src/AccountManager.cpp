@@ -85,6 +85,7 @@ void AccountManager::Load(const std::string& password, const std::string& salt) 
                     acc.JoinLowServer = item.value("JoinLowServer", false);
                     acc.LowestGraphics = item.value("LowestGraphics", false);
                     acc.AntiAFK = item.value("AntiAFK", false);
+                    acc.ActiveAntiAFK = acc.AntiAFK;
                     acc.FFlagOptimization = item.value("FFlagOptimization", "Default");
                     m_Accounts.push_back(acc);
                 }
@@ -319,12 +320,23 @@ void AccountManager::UpdateAccountProcess(const std::string& cookie, int status,
                 acc.Analytics.launchTime = std::chrono::system_clock::now();
                 acc.Analytics.hasLaunchTime = true;
             } else if (processId == 0) {
+                acc.ActiveAntiAFK = false;
                 acc.Analytics.hasLaunchTime = false;
                 acc.Analytics.cpuUsage = 0.0;
                 acc.Analytics.ramUsageMB = 0.0;
                 acc.Analytics.lastSystemTime = 0;
                 acc.Analytics.lastProcessTime = 0;
             }
+            break;
+        }
+    }
+}
+
+void AccountManager::SetActiveAntiAFK(const std::string& cookie, bool active) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto& acc : m_Accounts) {
+        if (acc.Cookie == cookie) {
+            acc.ActiveAntiAFK = active;
             break;
         }
     }

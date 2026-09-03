@@ -62,6 +62,7 @@ const translations = {
         lbl_update: "Update Available",
         desc_update: "A new version of RoPilot is detected! Would you like to download and install it now?",
         btn_cancel: "Cancel",
+        btn_close: "Close",
         btn_update: "Update Now",
         lbl_kill_all: "Kill All Roblox Clients",
         desc_kill_all: "Are you sure you want to kill all active Roblox clients? The game will close immediately.",
@@ -74,7 +75,8 @@ const translations = {
         lbl_lowest_graphics: "Lowest Graphics",
         desc_lowest_graphics: "Automatically sets graphics quality to level 1 for maximum performance. Sets to automatic when turned off",
         lbl_anti_afk: "Anti-AFK",
-        desc_anti_afk: "Simulates a jump every few minutes in the background to prevent AFK kick",
+        desc_anti_afk:
+            "Sends a subtle key tap periodically in the background to prevent AFK kick",
         lbl_fflag_opt: "FFlag Optimization",
         desc_fflag_opt:
             "Applies custom Fast Flags when launching this account to improve performance",
@@ -307,6 +309,7 @@ const translations = {
         lbl_update: "Pembaruan Tersedia",
         desc_update: "Versi baru RoPilot terdeteksi! Apakah Anda ingin mengunduh dan menginstalnya sekarang?",
         btn_cancel: "Batal",
+        btn_close: "Tutup",
         btn_update: "Perbarui Sekarang",
         lbl_kill_all: "Tutup Semua Klien Roblox",
         desc_kill_all:
@@ -320,7 +323,8 @@ const translations = {
         lbl_lowest_graphics: "Grafik Terendah",
         desc_lowest_graphics: "Secara otomatis menyetel kualitas grafik ke tingkat 1 untuk performa maksimum. Akan kembali ke otomatis jika opsi ini dimatikan",
         lbl_anti_afk: "Anti-AFK",
-        desc_anti_afk: "Mensimulasikan loncatan setiap beberapa menit di latar belakang untuk mencegah kick AFK",
+        desc_anti_afk:
+            "Mengirim input tombol halus secara berkala di latar belakang untuk mencegah kick AF",
         lbl_fflag_opt: "Optimalisasi FFlag",
         desc_fflag_opt:
             "Menerapkan Fast Flags kustom saat meluncurkan akun ini untuk meningkatkan performa",
@@ -1117,36 +1121,19 @@ window.launchAccount = function (cookie, username, btnElement) {
     let hasIndividualTarget = !!(acc && (acc.PlaceId || acc.PrivateServerLink));
     let hasGlobalTarget = !!(globalGameId || globalPsLink);
 
+    // 1. Resolve Target Game (Place ID & Private Server Link)
     if (gcfg && gcfg.ForceOverride && hasGroupTarget) {
         gameId = gcfg.PlaceId || "";
         psLink = gcfg.PrivateServerLink || "";
-        joinLowServer = gcfg.JoinLowServer || false;
-        lowestGraphics = gcfg.LowestGraphics || false;
-        antiAfk = gcfg.AntiAFK || false;
-        fflagOpt = gcfg.FFlagOptimization || "Default";
     } else if (hasIndividualTarget) {
         gameId = acc.PlaceId || "";
         psLink = acc.PrivateServerLink || "";
-        joinLowServer = acc.JoinLowServer || false;
-        lowestGraphics = acc.LowestGraphics || false;
-        antiAfk = acc.AntiAFK || false;
-        fflagOpt = acc.FFlagOptimization || "Default";
     } else if (hasGroupTarget) {
         gameId = gcfg.PlaceId || "";
         psLink = gcfg.PrivateServerLink || "";
-        joinLowServer = gcfg.JoinLowServer || false;
-        lowestGraphics = gcfg.LowestGraphics || false;
-        antiAfk = gcfg.AntiAFK || false;
-        fflagOpt = gcfg.FFlagOptimization || "Default";
     } else if (hasGlobalTarget) {
         gameId = globalGameId;
         psLink = globalPsLink;
-        if (acc) {
-            joinLowServer = acc.JoinLowServer || false;
-            lowestGraphics = acc.LowestGraphics || false;
-            antiAfk = acc.AntiAFK || false;
-            fflagOpt = acc.FFlagOptimization || "Default";
-        }
     } else {
         let lang = document.getElementById("setting-language")?.value || "en";
         let dict = translations[lang] || translations["en"];
@@ -1154,6 +1141,29 @@ window.launchAccount = function (cookie, username, btnElement) {
         if (acc) acc.Status = 0;
         window.renderAccounts(currentAccounts);
         return;
+    }
+
+    // 2. Resolve Launch Options (JoinLowServer, LowestGraphics, AntiAFK, FFlagOptimization)
+    if (gcfg && gcfg.ForceOverride) {
+        joinLowServer = gcfg.JoinLowServer || false;
+        lowestGraphics = gcfg.LowestGraphics || false;
+        antiAfk = gcfg.AntiAFK || false;
+        fflagOpt = gcfg.FFlagOptimization || "Default";
+    } else if (hasIndividualTarget) {
+        joinLowServer = acc ? (acc.JoinLowServer || false) : false;
+        lowestGraphics = acc ? (acc.LowestGraphics || false) : false;
+        antiAfk = acc ? (acc.AntiAFK || false) : false;
+        fflagOpt = acc ? (acc.FFlagOptimization || "Default") : "Default";
+    } else if (hasGroupTarget) {
+        joinLowServer = gcfg.JoinLowServer || false;
+        lowestGraphics = gcfg.LowestGraphics || false;
+        antiAfk = gcfg.AntiAFK || false;
+        fflagOpt = gcfg.FFlagOptimization || "Default";
+    } else {
+        joinLowServer = acc ? (acc.JoinLowServer || false) : false;
+        lowestGraphics = acc ? (acc.LowestGraphics || false) : false;
+        antiAfk = acc ? (acc.AntiAFK || false) : false;
+        fflagOpt = acc ? (acc.FFlagOptimization || "Default") : "Default";
     }
 
     window.chrome.webview.postMessage(
@@ -1164,6 +1174,7 @@ window.launchAccount = function (cookie, username, btnElement) {
             linkCode: psLink,
             joinLowServer: joinLowServer,
             lowestGraphics: lowestGraphics,
+            antiAfk: antiAfk,
             fflagOptimization: fflagOpt,
         }),
     );
@@ -3113,6 +3124,9 @@ window.onReceiveResolvedLink = function (data) {
                     groupPlaceInput.value = data.placeId;
                     groupPlaceInput.style.borderColor = "#10b981";
                 }
+                if (typeof window.saveCurrentGroupSetup === "function") {
+                    window.saveCurrentGroupSetup();
+                }
             } else if (curPlaceId !== data.placeId) {
                 if (groupPlaceInput) groupPlaceInput.style.borderColor = "#ef4444";
                 window.notifyPlaceIdMismatch(isId);
@@ -4012,6 +4026,8 @@ window.onReceiveRecentGames = function (jsonStr) {
 window.launchRecentGame = function (btn, gameId) {
     btn.innerHTML =
         '<svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
+    let recAcc = currentAccounts.find((a) => a.Cookie === currentUtilityCookie);
+    let recAntiAfk = recAcc ? (recAcc.AntiAFK || false) : false;
     window.chrome.webview.postMessage(
         JSON.stringify({
             action: "launch",
@@ -4019,6 +4035,7 @@ window.launchRecentGame = function (btn, gameId) {
             placeId: gameId,
             linkCode: "",
             forceRejoin: true,
+            antiAfk: recAntiAfk,
         }),
     );
 };
@@ -4422,6 +4439,52 @@ let grpFflagOpts = document.getElementById("group-fflag-dropdown-options");
 let grpFflagText = document.getElementById("group-fflag-dropdown-text");
 let grpFflagInput = document.getElementById("group-setup-fflag");
 
+window.saveCurrentGroupSetup = function () {
+    let groupName = document.getElementById("group-setup-group-name")?.value || "";
+    if (!groupName) return;
+
+    let placeId = document.getElementById("group-setup-place-id")?.value.trim() || "";
+    let psLink = document.getElementById("group-setup-ps-link")?.value.trim() || "";
+    let forceOverride = document.getElementById("group-setup-force-override")?.checked || false;
+    let joinLowServer = document.getElementById("group-setup-join-low-server")?.checked || false;
+    let lowestGraphics = document.getElementById("group-setup-lowest-graphics")?.checked || false;
+    let antiAfk = document.getElementById("group-setup-anti-afk")?.checked || false;
+    let fflagOpt = document.getElementById("group-setup-fflag")?.value || "Default";
+
+    let cfg = {
+        PlaceId: placeId,
+        PrivateServerLink: psLink,
+        ForceOverride: forceOverride,
+        JoinLowServer: joinLowServer,
+        LowestGraphics: lowestGraphics,
+        AntiAFK: antiAfk,
+        FFlagOptimization: fflagOpt
+    };
+
+    if (!currentGroupConfigs) currentGroupConfigs = {};
+    currentGroupConfigs[groupName] = cfg;
+
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(JSON.stringify({
+            action: "save_group_setup",
+            group: groupName,
+            placeId: placeId,
+            psLink: psLink,
+            forceOverride: forceOverride,
+            joinLowServer: joinLowServer,
+            lowestGraphics: lowestGraphics,
+            antiAfk: antiAfk,
+            fflagOptimization: fflagOpt
+        }));
+    }
+};
+
+document.getElementById("group-setup-place-id")?.addEventListener("input", window.saveCurrentGroupSetup);
+document.getElementById("group-setup-force-override")?.addEventListener("change", window.saveCurrentGroupSetup);
+document.getElementById("group-setup-join-low-server")?.addEventListener("change", window.saveCurrentGroupSetup);
+document.getElementById("group-setup-lowest-graphics")?.addEventListener("change", window.saveCurrentGroupSetup);
+document.getElementById("group-setup-anti-afk")?.addEventListener("change", window.saveCurrentGroupSetup);
+
 if (grpFflagSel && grpFflagOpts && grpFflagInput) {
     grpFflagSel.addEventListener("click", (e) => {
         grpFflagOpts.classList.toggle("show");
@@ -4436,58 +4499,9 @@ if (grpFflagSel && grpFflagOpts && grpFflagInput) {
             grpFflagText.textContent = selectedValue;
             grpFflagInput.value = selectedValue;
             grpFflagOpts.classList.remove("show");
+            window.saveCurrentGroupSetup();
             e.stopPropagation();
         });
-    });
-}
-
-let btnSaveGroupSetup = document.getElementById("btn-save-group-setup");
-if (btnSaveGroupSetup) {
-    btnSaveGroupSetup.addEventListener("click", () => {
-        let groupName = document.getElementById("group-setup-group-name")?.value || "";
-        if (!groupName) return;
-
-        let placeId = document.getElementById("group-setup-place-id")?.value.trim() || "";
-        let psLink = document.getElementById("group-setup-ps-link")?.value.trim() || "";
-        let forceOverride = document.getElementById("group-setup-force-override")?.checked || false;
-        let joinLowServer = document.getElementById("group-setup-join-low-server")?.checked || false;
-        let lowestGraphics = document.getElementById("group-setup-lowest-graphics")?.checked || false;
-        let antiAfk = document.getElementById("group-setup-anti-afk")?.checked || false;
-        let fflagOpt = document.getElementById("group-setup-fflag")?.value || "Default";
-
-        let cfg = {
-            PlaceId: placeId,
-            PrivateServerLink: psLink,
-            ForceOverride: forceOverride,
-            JoinLowServer: joinLowServer,
-            LowestGraphics: lowestGraphics,
-            AntiAFK: antiAfk,
-            FFlagOptimization: fflagOpt
-        };
-
-        if (!currentGroupConfigs) currentGroupConfigs = {};
-        currentGroupConfigs[groupName] = cfg;
-
-        if (window.chrome && window.chrome.webview) {
-            window.chrome.webview.postMessage(JSON.stringify({
-                action: "save_group_setup",
-                group: groupName,
-                placeId: placeId,
-                psLink: psLink,
-                forceOverride: forceOverride,
-                joinLowServer: joinLowServer,
-                lowestGraphics: lowestGraphics,
-                antiAfk: antiAfk,
-                fflagOptimization: fflagOpt
-            }));
-        }
-
-        let modal = document.getElementById("group-launch-modal");
-        if (modal) modal.classList.remove("show");
-
-        let lang = document.getElementById("setting-language")?.value || "en";
-        let dict = translations[lang] || translations["en"];
-        window.showStatus(dict.toast_group_saved || "Group launch setup saved.", false);
     });
 }
 
@@ -4497,6 +4511,7 @@ if (groupPsInput) {
     let resolveTimer = null;
     let handleGroupPsInput = () => {
         let val = groupPsInput.value.trim();
+        window.saveCurrentGroupSetup();
         if (resolveTimer) clearTimeout(resolveTimer);
         if (!val) {
             if (groupPlaceInput) groupPlaceInput.style.borderColor = "var(--border-color)";

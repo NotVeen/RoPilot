@@ -3027,7 +3027,7 @@ constexpr const char* UI_BODY = R"HTML(
                                 </div>
                                 <div class="setting-desc" style="font-size: 12px; color: var(--text-muted)">
                                     <span data-i18n="desc_anti_afk"
-                                        >Simulates a jump every few minutes in the background to prevent AFK kick</span
+                                        >Sends a subtle key tap periodically in the background to prevent AFK kick</span
                                     >
                                 </div>
                             </div>
@@ -4032,7 +4032,7 @@ constexpr const char* UI_BODY = R"HTML(
                 <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
                     <div>
                         <div style="font-size: 13px; font-weight: 500; color: var(--text-main);" data-i18n="lbl_anti_afk">Anti-AFK</div>
-                        <div style="font-size: 11px; color: var(--text-muted);" data-i18n="desc_anti_afk">Simulates a jump every few minutes to prevent AFK kick</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" data-i18n="desc_anti_afk">Sends a subtle key tap periodically to prevent AFK kick</div>
                     </div>
                     <label class="switch" style="margin-left: 12px; flex-shrink: 0;">
                         <input type="checkbox" id="group-setup-anti-afk" />
@@ -4063,21 +4063,14 @@ constexpr const char* UI_BODY = R"HTML(
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 14px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color);">
-                <button
-                    class="btn-secondary"
-                    onclick="document.getElementById('group-launch-modal').classList.remove('show')"
-                    style="padding: 8px 16px; background: var(--bg-deep); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-main); cursor: pointer; font-size: 13px; font-weight: 500;"
-                    data-i18n="btn_cancel"
-                >
-                    Cancel
-                </button>
+            <div class="modal-footer" style="padding: 14px 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color);">
                 <button
                     class="btn-primary"
-                    id="btn-save-group-setup"
-                    style="padding: 8px 18px; background: var(--accent-color, #10b981); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"
+                    onclick="document.getElementById('group-launch-modal').classList.remove('show')"
+                    style="padding: 8px 22px; background: var(--accent-color, #10b981); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"
+                    data-i18n="btn_close"
                 >
-                    Save
+                    Close
                 </button>
             </div>
         </div>

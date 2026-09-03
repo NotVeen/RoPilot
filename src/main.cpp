@@ -553,7 +553,10 @@ void ProcessWebMessage(const std::string& msg) {
             bool forceRejoin = j.value("forceRejoin", false);
             bool joinLowServer = j.value("joinLowServer", false);
             bool lowestGraphics = j.value("lowestGraphics", false);
+            bool antiAfk = j.value("antiAfk", false);
             std::string fflagOpt = j.value("fflagOptimization", "Default");
+
+            g_accountManager.SetActiveAntiAFK(cookie, antiAfk);
             
             bool alreadyRunning = false;
             DWORD existingPid = 0;
@@ -851,6 +854,9 @@ void ProcessWebMessage(const std::string& msg) {
                 UpdateUI();
                 SendSettingsData();
                 ValidateAllAccountsAsync();
+                if (Launcher::IsAnyRobloxRunning()) {
+                    g_webview->ExecuteScript(L"if(window.showKillAllPrompt) window.showKillAllPrompt();", nullptr);
+                }
             }
         }
         else if (action == "verify_master_password") {
@@ -866,6 +872,9 @@ void ProcessWebMessage(const std::string& msg) {
                         g_webview->ExecuteScript(L"window.masterPasswordVerified();", nullptr);
                         UpdateUI();
                         ValidateAllAccountsAsync();
+                        if (Launcher::IsAnyRobloxRunning()) {
+                            g_webview->ExecuteScript(L"if(window.showKillAllPrompt) window.showKillAllPrompt();", nullptr);
+                        }
                     } catch (...) {
                         g_webview->ExecuteScript(L"window.showStatus('Failed to decrypt data.', true);", nullptr);
                     }
@@ -877,6 +886,9 @@ void ProcessWebMessage(const std::string& msg) {
                 g_webview->ExecuteScript(L"window.masterPasswordVerified();", nullptr);
                 UpdateUI();
                 ValidateAllAccountsAsync();
+                if (Launcher::IsAnyRobloxRunning()) {
+                    g_webview->ExecuteScript(L"if(window.showKillAllPrompt) window.showKillAllPrompt();", nullptr);
+                }
             }
         }
         else if (action == "change_master_password") {
@@ -1537,14 +1549,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         };
         
         while (g_running) {
-            for (int i = 0; i < 300; ++i) {
+            for (int i = 0; i < 15; ++i) {
                 if (!g_running) return;
                 Sleep(1000);
             }
             
             auto accounts = g_accountManager.GetAccounts();
             for (const auto& acc : accounts) {
-                if (acc.AntiAFK && acc.ProcessId != 0 && acc.Status == 3) {
+                if (acc.ActiveAntiAFK && acc.ProcessId != 0 && acc.Status == 3) {
                     EnumData data = { acc.ProcessId, NULL };
                     EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
                         EnumData* d = (EnumData*)lParam;
@@ -1565,56 +1577,74 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                         HWND originalFg = GetForegroundWindow();
                         bool wasMinimized = IsIconic(data.hwnd);
                         
+                        // Temporarily disable foreground lock timeout so focus switch is instant and never blocked
+                        DWORD prevTimeout = 0;
+                        BOOL gotTimeout = SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, &prevTimeout, 0);
+                        if (gotTimeout) {
+                            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (PVOID)0, 0);
+                        }
+
                         if (wasMinimized) {
                             ShowWindow(data.hwnd, SW_RESTORE);
-                            Sleep(80);
+                            Sleep(40 + (rand() % 25));
                         }
 
                         // Force Active
-                        DWORD fgThread = GetWindowThreadProcessId(originalFg, NULL);
+                        DWORD fgThread = originalFg ? GetWindowThreadProcessId(originalFg, NULL) : 0;
                         DWORD myThread = GetCurrentThreadId();
+                        bool attached = false;
                         
-                        if (fgThread != myThread) {
-                            AttachThreadInput(myThread, fgThread, TRUE);
-                            SetForegroundWindow(data.hwnd);
+                        if (fgThread != 0 && fgThread != myThread) {
+                            attached = AttachThreadInput(myThread, fgThread, TRUE);
+                        }
+                        SetForegroundWindow(data.hwnd);
+                        BringWindowToTop(data.hwnd);
+                        if (attached) {
                             AttachThreadInput(myThread, fgThread, FALSE);
-                        } else {
-                            SetForegroundWindow(data.hwnd);
                         }
                         
-                        Sleep(80);
+                        Sleep(35 + (rand() % 25));
 
+                        // Tap benign key (VK_RSHIFT - Right Shift) with scan code 0x36
+                        // Right Shift resets Roblox's idle timer, but does NOT trigger Shift Lock (Shift Lock only binds to Left Shift)
                         INPUT inputs[2] = {0};
                         
                         inputs[0].type = INPUT_KEYBOARD;
-                        inputs[0].ki.wVk = VK_SPACE;
-                        inputs[0].ki.wScan = MapVirtualKey(VK_SPACE, MAPVK_VK_TO_VSC);
+                        inputs[0].ki.wVk = VK_RSHIFT;
+                        inputs[0].ki.wScan = 0x36;
                         inputs[0].ki.dwFlags = KEYEVENTF_SCANCODE;
 
                         inputs[1].type = INPUT_KEYBOARD;
-                        inputs[1].ki.wVk = VK_SPACE;
-                        inputs[1].ki.wScan = MapVirtualKey(VK_SPACE, MAPVK_VK_TO_VSC);
+                        inputs[1].ki.wVk = VK_RSHIFT;
+                        inputs[1].ki.wScan = 0x36;
                         inputs[1].ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
 
                         SendInput(1, inputs, sizeof(INPUT));
-                        Sleep(50);
+                        Sleep(30 + (rand() % 20));
                         SendInput(1, inputs + 1, sizeof(INPUT));
                         
-                        Sleep(120);
+                        Sleep(30 + (rand() % 20));
 
                         if (originalFg != NULL && originalFg != data.hwnd) {
                             fgThread = GetWindowThreadProcessId(originalFg, NULL);
-                            if (fgThread != myThread) {
-                                AttachThreadInput(myThread, fgThread, TRUE);
-                                SetForegroundWindow(originalFg);
+                            attached = false;
+                            if (fgThread != 0 && fgThread != myThread) {
+                                attached = AttachThreadInput(myThread, fgThread, TRUE);
+                            }
+                            SetForegroundWindow(originalFg);
+                            BringWindowToTop(originalFg);
+                            if (attached) {
                                 AttachThreadInput(myThread, fgThread, FALSE);
-                            } else {
-                                SetForegroundWindow(originalFg);
                             }
                         }
 
                         if (wasMinimized) {
                             ShowWindow(data.hwnd, SW_MINIMIZE);
+                        }
+
+                        // Restore previous foreground lock timeout
+                        if (gotTimeout) {
+                            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (PVOID)(ULONG_PTR)prevTimeout, 0);
                         }
                     }
                 }
@@ -1748,7 +1778,7 @@ g_webview->NavigateToString(s2ws(html).c_str());
                                         g_showChangelog = false;
                                     }
                                     
-                                    if (Launcher::IsAnyRobloxRunning()) {
+                                    if (!g_settingsManager.GetSettings().HasMasterPassword && Launcher::IsAnyRobloxRunning()) {
                                         g_webview->ExecuteScript(L"if(window.showKillAllPrompt) window.showKillAllPrompt();", nullptr);
                                     }
                                     

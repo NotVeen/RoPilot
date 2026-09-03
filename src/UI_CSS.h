@@ -1969,6 +1969,27 @@ html:not([data-theme="light"]) .social-item:hover {
         height: 800px !important;
     }
 }
+.modal,
+#cookie-modal,
+#group-modal,
+#update-prompt-modal,
+#changelog-modal,
+#modal-add-account,
+#wear-outfit-modal,
+#display-name-modal,
+#rename-group-modal,
+#delete-group-modal,
+#group-launch-modal,
+#kill-modal,
+#remove-modal,
+#kill-all-modal,
+#unfriend-modal,
+#kill-group-modal,
+#change-password-modal,
+#hard-reset-modal {
+    top: 38px !important;
+    height: calc(100vh - 38px) !important;
+}
 #wear-outfit-modal.show,
 #display-name-modal.show,
 #rename-group-modal.show,
