@@ -319,7 +319,8 @@ void AccountManager::UpdateAccountProcess(const std::string& cookie, int status,
             if (processId != 0 && !acc.Analytics.hasLaunchTime) {
                 acc.Analytics.launchTime = std::chrono::system_clock::now();
                 acc.Analytics.hasLaunchTime = true;
-            } else if (processId == 0) {
+            }
+            if (status == 0) {
                 acc.ActiveAntiAFK = false;
                 acc.Analytics.hasLaunchTime = false;
                 acc.Analytics.cpuUsage = 0.0;
@@ -404,6 +405,9 @@ void AccountManager::UpdateAccountGame(const std::string& cookie, const std::str
                     acc.JoinLowServer = joinLowServer;
                     acc.LowestGraphics = lowestGraphics;
                     acc.AntiAFK = antiAfk;
+                    if (acc.ProcessId != 0) {
+                        acc.ActiveAntiAFK = antiAfk;
+                    }
                     acc.FFlagOptimization = fflagOpt;
                     changed = true;
                 }
@@ -439,6 +443,13 @@ void AccountManager::SetGroupConfig(const std::string& groupName, const GroupLau
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_GroupConfigs[groupName] = config;
+        if (config.ForceOverride) {
+            for (auto& acc : m_Accounts) {
+                if (acc.Group == groupName && acc.ProcessId != 0) {
+                    acc.ActiveAntiAFK = config.AntiAFK;
+                }
+            }
+        }
     }
     Save();
 }

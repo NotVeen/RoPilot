@@ -1549,23 +1549,29 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         };
         
         while (g_running) {
-            for (int i = 0; i < 15; ++i) {
+            for (int i = 0; i < 300; ++i) {
                 if (!g_running) return;
                 Sleep(1000);
             }
             
             auto accounts = g_accountManager.GetAccounts();
             for (const auto& acc : accounts) {
-                if (acc.ActiveAntiAFK && acc.ProcessId != 0 && acc.Status == 3) {
+                if (acc.ActiveAntiAFK && acc.ProcessId != 0 && (acc.Status == 2 || acc.Status == 3)) {
                     EnumData data = { acc.ProcessId, NULL };
                     EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
                         EnumData* d = (EnumData*)lParam;
                         DWORD pid = 0;
                         GetWindowThreadProcessId(hwnd, &pid);
                         if (pid == d->processId) {
-                            char className[256];
+                            char className[256] = {0};
                             GetClassNameA(hwnd, className, sizeof(className));
                             if (std::string(className) == "WINDOWSCLIENT") {
+                                d->hwnd = hwnd;
+                                return FALSE;
+                            }
+                            char title[256] = {0};
+                            GetWindowTextA(hwnd, title, sizeof(title));
+                            if (strstr(title, "Roblox") != nullptr) {
                                 d->hwnd = hwnd;
                                 return FALSE;
                             }
@@ -1573,7 +1579,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                         return TRUE;
                     }, (LPARAM)&data);
                     
-                    if (data.hwnd != NULL) {
+                    if (data.hwnd != NULL && IsWindow(data.hwnd)) {
                         HWND originalFg = GetForegroundWindow();
                         bool wasMinimized = IsIconic(data.hwnd);
                         
@@ -1581,59 +1587,69 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                         DWORD prevTimeout = 0;
                         BOOL gotTimeout = SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, &prevTimeout, 0);
                         if (gotTimeout) {
-                            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (PVOID)0, 0);
+                            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (PVOID)0, SPIF_SENDCHANGE);
                         }
 
                         if (wasMinimized) {
                             ShowWindow(data.hwnd, SW_RESTORE);
-                            Sleep(40 + (rand() % 25));
+                            Sleep(100 + (rand() % 30));
                         }
 
                         // Force Active
                         DWORD fgThread = originalFg ? GetWindowThreadProcessId(originalFg, NULL) : 0;
+                        DWORD targetThread = GetWindowThreadProcessId(data.hwnd, NULL);
                         DWORD myThread = GetCurrentThreadId();
-                        bool attached = false;
+                        bool attachedFg = false;
+                        bool attachedTarget = false;
                         
                         if (fgThread != 0 && fgThread != myThread) {
-                            attached = AttachThreadInput(myThread, fgThread, TRUE);
+                            attachedFg = AttachThreadInput(myThread, fgThread, TRUE);
                         }
+                        if (targetThread != 0 && targetThread != myThread) {
+                            attachedTarget = AttachThreadInput(myThread, targetThread, TRUE);
+                        }
+
                         SetForegroundWindow(data.hwnd);
                         BringWindowToTop(data.hwnd);
-                        if (attached) {
+
+                        if (attachedFg) {
                             AttachThreadInput(myThread, fgThread, FALSE);
                         }
+                        if (attachedTarget) {
+                            AttachThreadInput(myThread, targetThread, FALSE);
+                        }
                         
-                        Sleep(35 + (rand() % 25));
+                        Sleep(50 + (rand() % 25));
 
-                        // Tap benign key (VK_RSHIFT - Right Shift) with scan code 0x36
-                        // Right Shift resets Roblox's idle timer, but does NOT trigger Shift Lock (Shift Lock only binds to Left Shift)
+                        // Tap benign key (VK_INSERT - Insert)
+                        // Insert resets Roblox's idle timer, but does NOT trigger Shift Lock, jump, or move character
                         INPUT inputs[2] = {0};
                         
                         inputs[0].type = INPUT_KEYBOARD;
-                        inputs[0].ki.wVk = VK_RSHIFT;
-                        inputs[0].ki.wScan = 0x36;
-                        inputs[0].ki.dwFlags = KEYEVENTF_SCANCODE;
+                        inputs[0].ki.wVk = VK_INSERT;
+                        inputs[0].ki.wScan = (WORD)MapVirtualKey(VK_INSERT, MAPVK_VK_TO_VSC);
+                        inputs[0].ki.dwFlags = KEYEVENTF_EXTENDEDKEY;
 
                         inputs[1].type = INPUT_KEYBOARD;
-                        inputs[1].ki.wVk = VK_RSHIFT;
-                        inputs[1].ki.wScan = 0x36;
-                        inputs[1].ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+                        inputs[1].ki.wVk = VK_INSERT;
+                        inputs[1].ki.wScan = (WORD)MapVirtualKey(VK_INSERT, MAPVK_VK_TO_VSC);
+                        inputs[1].ki.dwFlags = KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP;
 
                         SendInput(1, inputs, sizeof(INPUT));
-                        Sleep(30 + (rand() % 20));
+                        Sleep(40 + (rand() % 20));
                         SendInput(1, inputs + 1, sizeof(INPUT));
                         
-                        Sleep(30 + (rand() % 20));
+                        Sleep(50 + (rand() % 25));
 
-                        if (originalFg != NULL && originalFg != data.hwnd) {
+                        if (originalFg != NULL && originalFg != data.hwnd && IsWindow(originalFg)) {
                             fgThread = GetWindowThreadProcessId(originalFg, NULL);
-                            attached = false;
+                            attachedFg = false;
                             if (fgThread != 0 && fgThread != myThread) {
-                                attached = AttachThreadInput(myThread, fgThread, TRUE);
+                                attachedFg = AttachThreadInput(myThread, fgThread, TRUE);
                             }
                             SetForegroundWindow(originalFg);
                             BringWindowToTop(originalFg);
-                            if (attached) {
+                            if (attachedFg) {
                                 AttachThreadInput(myThread, fgThread, FALSE);
                             }
                         }
@@ -1644,7 +1660,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
                         // Restore previous foreground lock timeout
                         if (gotTimeout) {
-                            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (PVOID)(ULONG_PTR)prevTimeout, 0);
+                            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (PVOID)(ULONG_PTR)prevTimeout, SPIF_SENDCHANGE);
                         }
                     }
                 }

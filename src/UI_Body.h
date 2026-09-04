@@ -4063,16 +4063,6 @@ constexpr const char* UI_BODY = R"HTML(
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 14px 20px; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color);">
-                <button
-                    class="btn-primary"
-                    onclick="document.getElementById('group-launch-modal').classList.remove('show')"
-                    style="padding: 8px 22px; background: var(--accent-color, #10b981); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"
-                    data-i18n="btn_close"
-                >
-                    Close
-                </button>
-            </div>
         </div>
     </div>
 
