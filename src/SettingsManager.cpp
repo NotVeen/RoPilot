@@ -26,7 +26,6 @@ void SettingsManager::Load() {
         m_Settings.CpuLimiter = j.value("cpuLimiter", false);
         m_Settings.BackgroundCpuLimit = j.value("backgroundCpuLimit", 2);
         m_Settings.LightMode = j.value("lightMode", false);
-        m_Settings.AccentColor = j.value("accentColor", "");
         m_Settings.FontFamily = j.value("fontFamily", "Segoe UI, sans-serif");
         m_Settings.Language = j.value("language", "en");
         m_Settings.UiScale = j.value("uiScale", 1.0);
@@ -61,7 +60,6 @@ void SettingsManager::Save() {
         j["cpuLimiter"] = m_Settings.CpuLimiter;
         j["backgroundCpuLimit"] = m_Settings.BackgroundCpuLimit;
         j["lightMode"] = m_Settings.LightMode;
-        j["accentColor"] = m_Settings.AccentColor;
         j["fontFamily"] = m_Settings.FontFamily;
         j["language"] = m_Settings.Language;
         j["uiScale"] = m_Settings.UiScale;

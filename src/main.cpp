@@ -969,7 +969,6 @@ void ProcessWebMessage(const std::string& msg) {
             s.CpuLimiter = j.value("cpuLimiter", s.CpuLimiter);
             s.BackgroundCpuLimit = j.value("backgroundCpuLimit", s.BackgroundCpuLimit);
             s.LightMode = j.value("lightMode", s.LightMode);
-            s.AccentColor = j.value("accentColor", s.AccentColor);
             s.FontFamily = j.value("fontFamily", s.FontFamily);
             s.Language = j.value("language", s.Language);
             s.UiScale = j.value("uiScale", s.UiScale);
@@ -1282,7 +1281,6 @@ void SendSettingsData() {
     jOut["cpuLimiter"] = s.CpuLimiter;
     jOut["backgroundCpuLimit"] = s.BackgroundCpuLimit;
     jOut["lightMode"] = s.LightMode;
-    jOut["accentColor"] = s.AccentColor;
     jOut["fontFamily"] = s.FontFamily;
     jOut["language"] = s.Language;
     jOut["uiScale"] = s.UiScale;
@@ -1932,12 +1930,6 @@ if (s.SidebarCollapsed) {
 }
 
 std::string extraStyle = "<style>:root {";
-if (!s.AccentColor.empty()) {
-    extraStyle += "--accent-color: " + s.AccentColor + ";";
-    extraStyle += "--toggle-color: " + s.AccentColor + ";";
-    extraStyle += "--accent-tint-hover: " + s.AccentColor + "26;";
-    extraStyle += "--accent-tint-active: " + s.AccentColor + "40;";
-}
 if (!s.FontFamily.empty()) {
     extraStyle += "--font-family: " + s.FontFamily + ";";
 }

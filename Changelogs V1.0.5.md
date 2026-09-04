@@ -17,4 +17,4 @@
 - Fixed UI scale affecting full-screen overlays (unlock screen, update progress, and modals) by scoping UI scaling strictly to the main application container.
 - Fixed Roblox window tiling overlap and invisible border gaps in grid presets (Auto, 2x2, 2x3, 3x3) by removing WS_THICKFRAME to bypass WM_GETMINMAXINFO minimum height clamping (800x600) and dynamically compensating for DWM extended frame bounds.
 - Fixed RoPilot brand icon in sidebar disappearing in Light Mode by dynamically syncing between dark and light base64 assets identical to the titlebar icon.
-- Fixed Accent Color customization not applying live or persisting across UI controls (range slider thumbs, toggle switches, active sidebar items, checkboxes, and buttons) in both Dark and Light modes.
+- Removed Accent Color customization and established cohesive Dark + Indigo and Light + Indigo color themes across UI controls (range slider thumbs, toggle switches, active sidebar items, checkboxes, and buttons).

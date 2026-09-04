@@ -47,8 +47,6 @@ const translations = {
         desc_auto_updates: "Automatically download and install new versions when you launch RoPilot",
         lbl_appearance: "Appearance",
         lbl_light_mode: "Light Mode",
-        lbl_accent_color: "Accent Color",
-        desc_accent_color: "Customize the primary highlight color of the UI",
         lbl_font: "Font",
         desc_font: "Change the global application font",
         lbl_language: "Language",
@@ -308,8 +306,6 @@ const translations = {
         desc_hide_identity: "Sensor username dan user ID akun Anda",
         lbl_appearance: "Tampilan",
         lbl_light_mode: "Mode Terang",
-        lbl_accent_color: "Warna Aksen",
-        desc_accent_color: "Sesuaikan warna sorotan utama antarmuka pengguna",
         lbl_font: "Font",
         desc_font: "Ubah font utama aplikasi",
         lbl_language: "Bahasa",
@@ -650,7 +646,7 @@ window.renderAccounts = function (accounts) {
                 let cpuBar = document.getElementById(`analytics-cpu-bar-${userId}`);
                 if (cpuBar) {
                     cpuBar.style.width = Math.min(acc.CpuUsage, 100) + "%";
-                    cpuBar.style.background = acc.CpuUsage > 80 ? "#ff5252" : "var(--accent-color)";
+                    cpuBar.style.background = acc.CpuUsage > 80 ? "#ff5252" : "var(--accent-color, #6366f1)";
                 }
                 let cpuVal = document.getElementById(`analytics-cpu-val-${userId}`);
                 if (cpuVal) cpuVal.innerText = acc.CpuUsage.toFixed(1) + "%";
@@ -983,7 +979,7 @@ window.renderAccounts = function (accounts) {
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
                                                 <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">CPU</span>
                                             </div>
-                                            <div class="analytic-bar-bg" style="flex-grow: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;"><div id="analytics-cpu-bar-${acc.Id || acc.UserId}" style="width: ${Math.min(acc.CpuUsage, 100)}%; height: 100%; background: ${acc.CpuUsage > 80 ? "#ff5252" : "var(--accent-color)"};"></div></div>
+                                            <div class="analytic-bar-bg" style="flex-grow: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;"><div id="analytics-cpu-bar-${acc.Id || acc.UserId}" style="width: ${Math.min(acc.CpuUsage, 100)}%; height: 100%; background: ${acc.CpuUsage > 80 ? "#ff5252" : "var(--accent-color, #6366f1)"};"></div></div>
                                             <span id="analytics-cpu-val-${acc.Id || acc.UserId}" style="font-size: 13px; font-weight: 700; width: 45px; text-align: right;">${acc.CpuUsage.toFixed(1)}%</span>
                                         </div>
                                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -1968,43 +1964,7 @@ if (uiScaleSlider && uiScaleVal) {
     });
 }
 let lightModeToggle = document.getElementById("setting-light-mode");
-let accentColorInput = document.getElementById("setting-accent-color");
 let fontFamilyInput = document.getElementById("setting-font-family");
-
-function applyAccentColor(color, isReset = false) {
-    if (!isReset && color && typeof color === "string" && color.trim() !== "") {
-        let hex = color.trim();
-        document.documentElement.style.setProperty("--accent-color", hex);
-        document.documentElement.style.setProperty("--toggle-color", hex);
-        document.documentElement.style.setProperty("--accent-text", getContrastYIQ(hex));
-        document.documentElement.style.setProperty("--accent-tint-hover", hex + "26");
-        document.documentElement.style.setProperty("--accent-tint-active", hex + "40");
-        if (accentColorInput) {
-            accentColorInput.value = hex;
-            accentColorInput.dataset.reset = "false";
-        }
-    } else {
-        document.documentElement.style.removeProperty("--accent-color");
-        document.documentElement.style.removeProperty("--toggle-color");
-        document.documentElement.style.removeProperty("--accent-text");
-        document.documentElement.style.removeProperty("--accent-tint-hover");
-        document.documentElement.style.removeProperty("--accent-tint-active");
-        if (accentColorInput) {
-            accentColorInput.value = "#10b981";
-            accentColorInput.dataset.reset = "true";
-        }
-    }
-}
-
-if (accentColorInput) {
-    accentColorInput.addEventListener("input", (e) => {
-        applyAccentColor(e.target.value, false);
-    });
-    accentColorInput.addEventListener("change", (e) => {
-        applyAccentColor(e.target.value, false);
-        saveSettings();
-    });
-}
 if (fontFamilyInput) {
     fontFamilyInput.addEventListener("change", (e) => {
         document.documentElement.style.setProperty("--font-family", e.target.value);
@@ -2091,7 +2051,6 @@ function saveSettings(silent = false) {
             cpuLimiter: cpuLimiterToggle ? cpuLimiterToggle.checked : false,
             backgroundCpuLimit: cpuLimitSlider ? parseInt(cpuLimitSlider.value) : 2,
             lightMode: lightModeToggle ? lightModeToggle.checked : false,
-            accentColor: accentColorInput && accentColorInput.dataset.reset !== "true" ? accentColorInput.value : "",
             fontFamily: fontFamilyInput
                 ? fontFamilyInput.value
                 : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
@@ -2369,13 +2328,7 @@ if (lightModeToggle) {
         saveSettings();
     });
 }
-let btnResetAccent = document.getElementById("btn-reset-accent-color");
-if (btnResetAccent && accentColorInput) {
-    btnResetAccent.addEventListener("click", () => {
-        applyAccentColor("", true);
-        saveSettings();
-    });
-}
+
 let btnStartUpdate = document.getElementById("btn-start-update");
 if (btnStartUpdate) {
     btnStartUpdate.addEventListener("click", () => {
@@ -2434,13 +2387,7 @@ if (window.chrome && window.chrome.webview) {
                         sideIcon.src = msg.lightMode ? icon_black_b64 : icon_white_b64;
                     }
                 }
-                if (accentColorInput) {
-                    if (typeof msg.accentColor === "string" && msg.accentColor.trim() !== "") {
-                        applyAccentColor(msg.accentColor, false);
-                    } else {
-                        applyAccentColor("", true);
-                    }
-                }
+
                 let fFamInput = document.getElementById("setting-font-family");
 
                 let langInput = document.getElementById("setting-language");

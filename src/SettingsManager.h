@@ -13,7 +13,6 @@ struct Settings {
     bool CpuLimiter = false;
     int BackgroundCpuLimit = 2;
     bool LightMode = false;
-    std::string AccentColor = "";
     std::string FontFamily = "Segoe UI, sans-serif";
     std::string Language = "en";
     double UiScale = 1.0;
