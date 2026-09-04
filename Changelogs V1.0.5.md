@@ -1,22 +1,17 @@
 # RoPilot v1.0.5 Changelog
 
 ## ✨ New Features
-- **Hard Reset**: Added a "Forgot Password" button on the unlock screen to securely factory reset the application without manually deleting files.
-- **Private Server Auto-Fill & Mismatch Detection**: Automatically resolves Place ID from Private Server links (including share links), auto-fills empty Place ID forms, and provides bilingual notifications if Place ID and Private Server link mismatch.
-- **Modern Obsidian UI Redesign**: Redesigned UI with sleek obsidian dark palette (`#0d0e12` background, `#17181e` cards, `#232530` borders), compact 38px frameless titlebar with 32x28px controls, modern sidebar navigation with brand header and dedicated collapse toggle button, adjusted default window dimensions to 1120x620 (min 800x480), 6px sleek scrollbars, and refined account cards and group containers.
-- **Group Launch Setup & Cascading Priority**: Added dedicated Group Launch Setup for account groups with Place ID, Private Server link auto-fill, Join Low Server, Lowest Graphics, Anti-AFK, and Fast Flags optimization. Features a Force Override switch and hierarchical cascading launch priority (Group Override -> Individual -> Group -> Global).
-- **Instant Post-Unlock Account Validation**: Automatically validates all saved account cookies asynchronously right after entering master password (or on startup).
-- **Enhanced Anti-AFK**: Upgraded Anti-AFK mechanism to use benign Insert key taps instead of jumping or shift to preserve character farming positions and prevent triggering Shift Lock, bypassed Windows foreground lock timeout for reliable multi-instance switching, and added randomized human-like timing jitter.
-- **Window Grid Organizer**: Added automated multi-instance window layout organizer with Auto Grid (proportional 1x2, 2x2, 2x3, 3x3 based on active instances), Compact Mini Grid (200x200 flow layout for extreme GPU and space savings), manual presets, and an optional Auto-Tile on Launch toggle.
-- **Aggregate Performance Analytics**: Added an overall instances summary dashboard to the Performance Analytics page with a sleek compact card layout displaying active Roblox client count, total aggregated CPU usage with dynamic threshold coloring, total aggregated RAM usage (MB/GB), and peak active session uptime with watermark vector icons.
+- **Hard Reset**: Added a "Forgot Password" option on the unlock screen to easily factory reset the app if you forget your master password.
+- **Private Server Auto-Fill**: Automatically extracts Place IDs from Private Server links and warns if there is a mismatch.
+- **Modern UI Redesign**: Sleek obsidian look with refined Dark and Light modes, compact titlebar, and cleaner navigation.
+- **Group Launch Setup**: Configure launch settings per account group with flexible priority overrides (Override -> Account -> Group -> Global).
+- **Instant Account Validation**: Automatically checks saved account cookies in the background right after unlocking.
+- **Enhanced Anti-AFK**: Improved idle prevention that simulates benign keypresses without disrupting character positioning or Shift Lock.
+- **Window Grid Organizer**: Automatically tile Roblox windows with Auto Grid, Compact Mini Grid (200x200), or quick layout presets.
+- **Performance Analytics**: View aggregated stats across all active Roblox clients (total CPU, total RAM, instance count, and peak uptime).
 
 ## 🐛 Bug Fixes
-- Removed the duplicate eye icon that appeared when typing the master password.
-- Fixed an issue where the auto-update progress was hidden behind the master key screen.
-- Fixed an issue where accounts could not be launched if only Private Server link was provided without Place ID.
-- Fixed UI scale affecting full-screen overlays (unlock screen, update progress, and modals) by scoping UI scaling strictly to the main application container.
-- Fixed Roblox window tiling overlap and invisible border gaps in grid presets (Auto, 2x2, 2x3, 3x3) by removing WS_THICKFRAME to bypass WM_GETMINMAXINFO minimum height clamping (800x600) and dynamically compensating for DWM extended frame bounds.
-- Fixed RoPilot brand icon in sidebar disappearing in Light Mode by dynamically syncing between dark and light base64 assets identical to the titlebar icon.
-- Removed Accent Color customization and established cohesive Dark + Indigo and Light + Indigo color themes across UI controls (range slider thumbs, toggle switches, active sidebar items, checkboxes, and buttons).
-- Fixed unwanted vertical indicator bars appearing on all sidebar navigation items in Light Mode by cleaning up pseudo-elements and refining active pill styling.
-- Maintained strict monochrome styling for the Master Key unlock screen overlay, ensuring inputs, icons, and unlock buttons remain neutral across themes.
+- Fixed duplicate eye icon appearing in master password fields.
+- Fixed auto-update progress bar getting hidden behind the unlock screen.
+- Fixed launch failure when only a Private Server link was provided without a Place ID.
+- Fixed UI scaling affecting full-screen overlays like the unlock screen and modals.
