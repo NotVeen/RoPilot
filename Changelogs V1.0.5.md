@@ -13,6 +13,5 @@
 
 ## 🐛 Bug Fixes
 - Fixed duplicate eye icon appearing in master password fields.
-- Fixed auto-update progress bar getting hidden behind the unlock screen.
 - Fixed launch failure when only a Private Server link was provided without a Place ID.
 - Fixed UI scaling affecting full-screen overlays like the unlock screen and modals.

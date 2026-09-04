@@ -222,6 +222,18 @@ namespace Launcher {
 
         ApplyFFlags(robloxPath, fflagOpt);
 
+        if (!IsAnyRobloxRunning()) {
+            char localPath[MAX_PATH];
+            if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, localPath))) {
+                fs::path rbxDir = fs::path(localPath) / "Roblox";
+                fs::path walPath = rbxDir / "rbx-storage.db-wal";
+                fs::path shmPath = rbxDir / "rbx-storage.db-shm";
+                std::error_code ec;
+                if (fs::exists(walPath, ec)) fs::remove(walPath, ec);
+                if (fs::exists(shmPath, ec)) fs::remove(shmPath, ec);
+            }
+        }
+
         std::string csrf = RobloxAPI::GetCSRFToken(cookie);
         if (csrf.empty()) {
             outError = "Failed to get CSRF token.";

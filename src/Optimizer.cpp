@@ -74,33 +74,17 @@ namespace Optimizer {
     void SetLowestPriority(HANDLE hProcess) {
         if (!hProcess) return;
 
-        DWORD cores = LogicalCores();
-        if (cores >= 12) {
-            DWORD useCores = std::max<DWORD>(2, cores / 2);
-            DWORD_PTR mask = 0;
-            for (DWORD i = 0; i < useCores; ++i) mask |= (1ull << i);
-            SetProcessAffinityMask(hProcess, mask);
-        }
-
-        SetPriorityClass(hProcess, IDLE_PRIORITY_CLASS);
-        SetEfficiencyMode(hProcess, true);
-
-        PROCESS_POWER_THROTTLING_STATE pt = {0};
-        pt.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
-        pt.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
-        pt.StateMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
-        SetProcessInformation(hProcess, ProcessPowerThrottling, &pt, sizeof(pt));
+        // Use BELOW_NORMAL_PRIORITY_CLASS to allow background instances to keep alive network & UI
+        // without starving foreground applications. Never use IDLE_PRIORITY_CLASS for online games.
+        SetPriorityClass(hProcess, BELOW_NORMAL_PRIORITY_CLASS);
     }
 
     void SetHighestPriority(HANDLE hProcess) {
         if (!hProcess) return;
 
-        DWORD cores = LogicalCores();
-        if (cores >= 12) {
-            DWORD_PTR processMask = 0, systemMask = 0;
-            if (GetProcessAffinityMask(GetCurrentProcess(), &processMask, &systemMask)) {
-                SetProcessAffinityMask(hProcess, systemMask);
-            }
+        DWORD_PTR processMask = 0, systemMask = 0;
+        if (GetProcessAffinityMask(hProcess, &processMask, &systemMask)) {
+            SetProcessAffinityMask(hProcess, systemMask);
         }
 
         SetPriorityClass(hProcess, HIGH_PRIORITY_CLASS);
@@ -114,12 +98,8 @@ namespace Optimizer {
     }
 
     void TrimWorkingSet(HANDLE hProcess, DWORD pid) {
-        std::lock_guard<std::mutex> lock(g_TrimMutex);
-        if (g_TrimmedPids.find(pid) == g_TrimmedPids.end()) {
-            SetProcessWorkingSetSize(hProcess, (SIZE_T)-1, (SIZE_T)-1);
-            EmptyWorkingSet(hProcess);
-            g_TrimmedPids.insert(pid);
-        }
+        // Do NOT call EmptyWorkingSet: it forces all texture buffers and Luau VM pages
+        // to disk/pagefile, purging in-game UI textures, breaking buttons, and causing severe page faults.
     }
 
     void SetProcessCpuLimit(HANDLE hProcess, DWORD pid, int limitPercent) {
@@ -197,9 +177,31 @@ namespace Optimizer {
                                             g_TrimmedPids.erase(pe.th32ProcessID);
                                         }
                                     } else {
-                                        SetLowestPriority(hProc);
-                                        SetProcessCpuLimit(hProc, pe.th32ProcessID, g_settingsManager.GetSettings().CpuLimiter ? g_settingsManager.GetSettings().BackgroundCpuLimit : 100);
-                                        TrimWorkingSet(hProc, pe.th32ProcessID);
+                                        // Check process uptime: grant startup grace period (35s) so assets and UI load smoothly
+                                        bool isStartingUp = false;
+                                        FILETIME ftCreation{}, ftExit{}, ftKernel{}, ftUser{};
+                                        if (GetProcessTimes(hProc, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
+                                            FILETIME ftNow{};
+                                            GetSystemTimeAsFileTime(&ftNow);
+                                            ULARGE_INTEGER createTime, nowTime;
+                                            createTime.LowPart = ftCreation.dwLowDateTime;
+                                            createTime.HighPart = ftCreation.dwHighDateTime;
+                                            nowTime.LowPart = ftNow.dwLowDateTime;
+                                            nowTime.HighPart = ftNow.dwHighDateTime;
+
+                                            uint64_t uptimeSec = (nowTime.QuadPart - createTime.QuadPart) / 10000000ULL;
+                                            if (uptimeSec < 35) {
+                                                isStartingUp = true;
+                                            }
+                                        }
+
+                                        if (isStartingUp) {
+                                            SetProcessCpuLimit(hProc, pe.th32ProcessID, 100);
+                                        } else {
+                                            SetLowestPriority(hProc);
+                                            SetProcessCpuLimit(hProc, pe.th32ProcessID, g_settingsManager.GetSettings().CpuLimiter ? g_settingsManager.GetSettings().BackgroundCpuLimit : 100);
+                                            TrimWorkingSet(hProc, pe.th32ProcessID);
+                                        }
                                     }
                                     CloseHandle(hProc);
                                 }

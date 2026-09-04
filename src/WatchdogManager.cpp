@@ -185,6 +185,11 @@ bool WatchdogManager::CheckLogForDisconnect(AccountWatchdogState& state) {
     }
 
     uint64_t currentSize = (uint64_t)fileSize.QuadPart;
+    if (state.LastLogReadOffset == 0) {
+        state.LastLogReadOffset = currentSize;
+        CloseHandle(hFile);
+        return false;
+    }
     if (currentSize <= state.LastLogReadOffset) {
         CloseHandle(hFile);
         return false;
@@ -259,11 +264,33 @@ bool WatchdogManager::CheckCrashDialog(DWORD pid) {
 }
 
 void WatchdogManager::TriggerDisconnect(AccountWatchdogState& state, int rejoinDelay, int maxRetries, bool autoRejoinEnabled, const std::string& language) {
-    // Terminate hanging process if still running
+    // Terminate hanging process if still running (try WM_CLOSE first so SQLite flushes rbx-storage.db cleanly)
     if (state.ProcessId != 0) {
-        HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, state.ProcessId);
+        struct CloseWindowData {
+            DWORD pid;
+            HWND hwnd;
+        } closeData = { state.ProcessId, NULL };
+
+        EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+            auto* p = reinterpret_cast<CloseWindowData*>(lParam);
+            DWORD pid = 0;
+            GetWindowThreadProcessId(hwnd, &pid);
+            if (pid == p->pid && IsWindowVisible(hwnd)) {
+                p->hwnd = hwnd;
+                return FALSE;
+            }
+            return TRUE;
+        }, (LPARAM)&closeData);
+
+        if (closeData.hwnd) {
+            PostMessage(closeData.hwnd, WM_CLOSE, 0, 0);
+        }
+
+        HANDLE hProcess = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, FALSE, state.ProcessId);
         if (hProcess) {
-            TerminateProcess(hProcess, 0);
+            if (WaitForSingleObject(hProcess, 1500) == WAIT_TIMEOUT) {
+                TerminateProcess(hProcess, 0);
+            }
             CloseHandle(hProcess);
         }
         state.ProcessId = 0;
@@ -340,10 +367,14 @@ void WatchdogManager::Tick(int rejoinDelay, int maxRetries, bool autoRejoinEnabl
                             TriggerDisconnect(state, rejoinDelay, maxRetries, autoRejoinEnabled, language);
                         }
                     } else {
-                        // Alive: check crash dialog or log disconnect every 2 seconds
+                        // Alive: check crash dialog or log disconnect every 2 seconds after 15s startup grace period
                         if (m_tickCounter % 2 == 0) {
-                            if (CheckCrashDialog(state.ProcessId) || CheckLogForDisconnect(state)) {
-                                TriggerDisconnect(state, rejoinDelay, maxRetries, autoRejoinEnabled, language);
+                            auto now = std::chrono::steady_clock::now();
+                            auto uptimeSec = std::chrono::duration_cast<std::chrono::seconds>(now - state.LaunchTime).count();
+                            if (uptimeSec >= 15) {
+                                if (CheckCrashDialog(state.ProcessId) || CheckLogForDisconnect(state)) {
+                                    TriggerDisconnect(state, rejoinDelay, maxRetries, autoRejoinEnabled, language);
+                                }
                             }
                         }
                     }
