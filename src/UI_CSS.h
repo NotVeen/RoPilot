@@ -250,19 +250,27 @@ body .btn-add-account:hover {
 [data-theme="light"] .hamburger-btn:hover {
     color: var(--text-main) !important;
 }
+[data-theme="light"] .nav-item {
+    color: #475569;
+}
+[data-theme="light"] .nav-item svg {
+    color: #64748b;
+}
+[data-theme="light"] .nav-item:hover {
+    color: #0f172a !important;
+    background-color: #f1f5f9 !important;
+}
+[data-theme="light"] .nav-item:hover svg {
+    color: #334155 !important;
+}
 [data-theme="light"] .nav-item.active {
     background-color: #e0e7ff !important;
-    background-image: linear-gradient(
-        var(--accent-tint-active, transparent),
-        var(--accent-tint-active, transparent)
-    ) !important;
+    background-image: none !important;
     color: #4338ca !important;
+    font-weight: 600;
 }
 [data-theme="light"] .nav-item.active svg {
     color: #4f46e5 !important;
-}
-[data-theme="light"] .nav-item::before {
-    background-color: var(--accent-color, #4f46e5) !important;
 }
 [data-theme="light"] .nav-text {
     color: inherit !important;
@@ -773,18 +781,6 @@ body.app-locked .app-container {
     -webkit-user-select: none;
 }
 
-.nav-item::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 6px;
-    bottom: 6px;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background-color: transparent;
-    transition: background-color 0.2s ease;
-}
-
 .nav-item svg {
     flex-shrink: 0;
     transition: color 150ms ease;
@@ -803,10 +799,6 @@ body.app-locked .app-container {
         var(--accent-tint-active, transparent)
     );
     font-weight: 600;
-}
-
-.nav-item.active::before {
-    background-color: var(--accent-color, #6366f1) !important;
 }
 
 .nav-item.active svg {
@@ -2158,6 +2150,27 @@ input[type="range"]:focus {
 
 #btn-mp-submit {
     font-weight: 700;
+    background-color: #ffffff !important;
+    color: #111111 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer;
+    transition: background-color 0.2s ease, filter 0.2s ease;
+}
+
+#btn-mp-submit:hover {
+    background-color: #f3f4f6 !important;
+}
+
+[data-theme="light"] #btn-mp-submit {
+    background-color: #111827 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+}
+
+[data-theme="light"] #btn-mp-submit:hover {
+    background-color: #1f2937 !important;
 }
 
 .mp-container .input-group {
@@ -2215,15 +2228,18 @@ input[type="range"]:focus {
 }
 
 [data-theme="light"] .mp-container input, [data-theme="light"] .ropilot-swal .swal2-input {
-    background: var(--bg-hover);
+    background: #ffffff;
+    border-color: #d1d5db;
 }
 
 .mp-container input:focus, .ropilot-swal .swal2-input:focus {
-    border-color: #555;
+    border-color: #717582 !important;
+    box-shadow: none !important;
 }
 
 [data-theme="light"] .mp-container input:focus, [data-theme="light"] .ropilot-swal .swal2-input:focus {
-    border-color: #9ca3af;
+    border-color: #475569 !important;
+    box-shadow: none !important;
 }
 
 .ropilot-swal .swal2-input {

@@ -18,3 +18,5 @@
 - Fixed Roblox window tiling overlap and invisible border gaps in grid presets (Auto, 2x2, 2x3, 3x3) by removing WS_THICKFRAME to bypass WM_GETMINMAXINFO minimum height clamping (800x600) and dynamically compensating for DWM extended frame bounds.
 - Fixed RoPilot brand icon in sidebar disappearing in Light Mode by dynamically syncing between dark and light base64 assets identical to the titlebar icon.
 - Removed Accent Color customization and established cohesive Dark + Indigo and Light + Indigo color themes across UI controls (range slider thumbs, toggle switches, active sidebar items, checkboxes, and buttons).
+- Fixed unwanted vertical indicator bars appearing on all sidebar navigation items in Light Mode by cleaning up pseudo-elements and refining active pill styling.
+- Maintained strict monochrome styling for the Master Key unlock screen overlay, ensuring inputs, icons, and unlock buttons remain neutral across themes.
