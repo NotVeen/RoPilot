@@ -2030,8 +2030,10 @@ const icon_white_b64 =
 if (document.documentElement.getAttribute("data-theme") === "light") {
     let tIcon = document.getElementById("titlebar-icon");
     let sIcon = document.getElementById("sidebar-brand-icon");
+    let mpIcon = document.getElementById("mp-brand-icon");
     if (tIcon) tIcon.src = icon_black_b64;
     if (sIcon) sIcon.src = icon_black_b64;
+    if (mpIcon) mpIcon.src = icon_black_b64;
 }
 
 function saveSettings(silent = false) {
@@ -2325,6 +2327,10 @@ if (lightModeToggle) {
         if (sideIcon) {
             sideIcon.src = isLight ? icon_black_b64 : icon_white_b64;
         }
+        let mpIcon = document.getElementById("mp-brand-icon");
+        if (mpIcon) {
+            mpIcon.src = isLight ? icon_black_b64 : icon_white_b64;
+        }
         saveSettings();
     });
 }
@@ -2385,6 +2391,10 @@ if (window.chrome && window.chrome.webview) {
                     let sideIcon = document.getElementById("sidebar-brand-icon");
                     if (sideIcon) {
                         sideIcon.src = msg.lightMode ? icon_black_b64 : icon_white_b64;
+                    }
+                    let mpIcon = document.getElementById("mp-brand-icon");
+                    if (mpIcon) {
+                        mpIcon.src = msg.lightMode ? icon_black_b64 : icon_white_b64;
                     }
                 }
 

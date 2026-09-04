@@ -2134,6 +2134,14 @@ input[type="range"]:focus {
     animation: mpContainerFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+.mp-brand-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    user-select: none;
+    pointer-events: none;
+}
+
 .mp-container h2 {
     margin: 0 0 10px 0;
     font-size: 24px;

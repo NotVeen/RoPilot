@@ -9,6 +9,7 @@
 - **Enhanced Anti-AFK**: Improved idle prevention that simulates benign keypresses without disrupting character positioning or Shift Lock.
 - **Window Grid Organizer**: Automatically tile Roblox windows with Auto Grid, Compact Mini Grid (200x200), or quick layout presets.
 - **Performance Analytics**: View aggregated stats across all active Roblox clients (total CPU, total RAM, instance count, and peak uptime).
+- **Master Key Branding**: Replaced padlock icon on the master password screen with the dynamic RoPilot brand icon that adapts to Dark and Light themes.
 
 ## 🐛 Bug Fixes
 - Fixed duplicate eye icon appearing in master password fields.
