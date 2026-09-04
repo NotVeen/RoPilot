@@ -214,13 +214,42 @@ bool WatchdogManager::CheckLogForDisconnect(AccountWatchdogState& state) {
         buffer[bytesRead] = '\0';
         std::string text(buffer.data(), bytesRead);
 
-        if (text.find("[FLog::Network] Connection lost") != std::string::npos ||
-            text.find("Disconnect event received") != std::string::npos ||
-            text.find("Lost connection to the game server") != std::string::npos ||
-            text.find("DisconnectionNotification") != std::string::npos ||
-            text.find("Error: Disconnected") != std::string::npos ||
-            text.find("[FLog::Network] Client:Disconnect") != std::string::npos) {
-            disconnectFound = true;
+        // If player is teleporting between places, Roblox normally disconnects from old server.
+        // Ignore this and give a fresh grace period for destination map.
+        bool isTeleporting = (text.find("doTeleport") != std::string::npos ||
+                              text.find("Teleported.") != std::string::npos ||
+                              text.find("IsTeleport") != std::string::npos ||
+                              text.find("finishTeleportWithJoinScriptPayload") != std::string::npos);
+
+        if (isTeleporting) {
+            state.LaunchTime = std::chrono::steady_clock::now();
+        } else {
+            // Ignore clean client-initiated disconnects (Reason 285 / DisconnectClientInitiated)
+            bool isClientInitiated = (text.find("Reason: 285") != std::string::npos ||
+                                      text.find("DisconnectClientInitiated") != std::string::npos);
+
+            if (!isClientInitiated) {
+                // Genuine disconnect error patterns
+                if (text.find("Lost connection to the game server") != std::string::npos ||
+                    text.find("Error: Disconnected") != std::string::npos ||
+                    text.find("Disconnect event received") != std::string::npos ||
+                    text.find("Connection lost: AckTimeout") != std::string::npos ||
+                    text.find("Connection lost: SendTimeout") != std::string::npos ||
+                    text.find("Reason: 277") != std::string::npos ||
+                    text.find("Reason: 268") != std::string::npos ||
+                    text.find("Reason: 279") != std::string::npos ||
+                    text.find("Reason: 267") != std::string::npos ||
+                    text.find("Reason: 273") != std::string::npos ||
+                    text.find("Reason: 264") != std::string::npos ||
+                    text.find("Error code: 277") != std::string::npos ||
+                    text.find("Error code: 268") != std::string::npos ||
+                    text.find("Error code: 279") != std::string::npos ||
+                    text.find("Error code: 267") != std::string::npos ||
+                    text.find("Error code: 273") != std::string::npos ||
+                    text.find("Error code: 264") != std::string::npos) {
+                    disconnectFound = true;
+                }
+            }
         }
     }
 
