@@ -28,6 +28,9 @@ struct Settings {
     std::string MasterPasswordSalt = "";
     bool AutoTileOnLaunch = false;
     std::string DefaultTileMode = "auto";
+    bool AutoRejoin = false;
+    int RejoinDelay = 10;
+    int MaxRejoinRetries = 3;
 };
 
 class SettingsManager {

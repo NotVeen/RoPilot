@@ -17,6 +17,7 @@
 #include "SettingsManager.h"
 #include "Crypto.h"
 #include "Updater.h"
+#include "WatchdogManager.h"
 #include <json.hpp>
 #include <iostream>
 #include <regex>
@@ -746,6 +747,7 @@ void ProcessWebMessage(const std::string& msg) {
                 }
             }
 
+            WatchdogManager::GetInstance().ClearDeliberatelyStopped(cookie);
             g_accountManager.UpdateAccountProcess(cookie, 1, 0);
             PostMessage(g_hWnd, WM_APP + 2, 0, 0);
 
@@ -763,6 +765,15 @@ void ProcessWebMessage(const std::string& msg) {
                 std::string resolvedPlaceId = "";
                 if (Launcher::LaunchAccount(cookie, placeId, linkCode, jobId, launchError, outPID, lowestGraphics, fflagOpt, &resolvedPlaceId)) {
                     g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
+
+                    std::string userIdStr = "";
+                    for (const auto& a : g_accountManager.GetAccounts()) {
+                        if (a.Cookie == cookie) {
+                            userIdStr = std::to_string(a.Info.UserId);
+                            break;
+                        }
+                    }
+                    WatchdogManager::GetInstance().OnAccountLaunched(cookie, username, userIdStr, outPID);
 
                     if (!resolvedPlaceId.empty()) {
                         // If account placeId was empty AND account has matching private server link, update it
@@ -915,6 +926,7 @@ void ProcessWebMessage(const std::string& msg) {
             ShowWindow(g_hWnd, SW_MINIMIZE);
         }
         else if (action == "kill_all") {
+            WatchdogManager::GetInstance().DisableAll();
             int killed = KillAllRobloxInstances();
             if (killed > 0) {
                 SendStatusMessage("All Roblox instances terminated.", false);
@@ -976,7 +988,11 @@ void ProcessWebMessage(const std::string& msg) {
             bool oldBlur = s.EnableWindowBlur;
             s.WindowOpacity = j.value("windowOpacity", s.WindowOpacity);
             s.EnableWindowBlur = j.value("enableWindowBlur", s.EnableWindowBlur);
-        s.HideIdentity = j.value("hideIdentity", s.HideIdentity);
+            s.HideIdentity = j.value("hideIdentity", s.HideIdentity);
+            
+            s.AutoRejoin = j.value("autoRejoin", s.AutoRejoin);
+            s.RejoinDelay = j.value("rejoinDelay", s.RejoinDelay);
+            s.MaxRejoinRetries = j.value("maxRejoinRetries", s.MaxRejoinRetries);
             
             bool oldDiscordRPC = s.EnableDiscordRPC;
             s.EnableDiscordRPC = j.value("enableDiscordRPC", s.EnableDiscordRPC);
@@ -1216,6 +1232,7 @@ void ProcessWebMessage(const std::string& msg) {
         }
         else if (action == "kill") {
             std::string cookie = j.value("cookie", "");
+            WatchdogManager::GetInstance().MarkDeliberatelyStopped(cookie);
             for (auto& acc : g_accountManager.GetAccounts()) {
                 if (acc.Cookie == cookie) {
                     if (acc.ProcessId != 0) {
@@ -1243,15 +1260,18 @@ void ProcessWebMessage(const std::string& msg) {
             std::string killedNames = "";
             
             for (auto& acc : g_accountManager.GetAccounts()) {
-                if (acc.Group == targetGroup && acc.ProcessId != 0) {
-                    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, acc.ProcessId);
-                    if (hProcess) {
-                        TerminateProcess(hProcess, 0);
-                        CloseHandle(hProcess);
-                        g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
-                        killed++;
-                        if (!killedNames.empty()) killedNames += ", ";
-                        killedNames += acc.Info.Username;
+                if (acc.Group == targetGroup) {
+                    WatchdogManager::GetInstance().MarkDeliberatelyStopped(acc.Cookie);
+                    if (acc.ProcessId != 0) {
+                        HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, acc.ProcessId);
+                        if (hProcess) {
+                            TerminateProcess(hProcess, 0);
+                            CloseHandle(hProcess);
+                            g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
+                            killed++;
+                            if (!killedNames.empty()) killedNames += ", ";
+                            killedNames += acc.Info.Username;
+                        }
                     }
                 }
             }
@@ -1262,6 +1282,12 @@ void ProcessWebMessage(const std::string& msg) {
             } else {
                 SendStatusMessage("No active instance found.", true);
             }
+        }
+        else if (action == "cancel_rejoin") {
+            std::string cookie = j.value("cookie", "");
+            WatchdogManager::GetInstance().CancelRejoin(cookie);
+            g_accountManager.UpdateAccountProcess(cookie, 0, 0);
+            UpdateUI();
         }
     } catch (...) {}
 }
@@ -1294,6 +1320,9 @@ void SendSettingsData() {
     jOut["hasMasterPassword"] = s.HasMasterPassword;
     jOut["autoTileOnLaunch"] = s.AutoTileOnLaunch;
     jOut["defaultTileMode"] = s.DefaultTileMode;
+    jOut["autoRejoin"] = s.AutoRejoin;
+    jOut["rejoinDelay"] = s.RejoinDelay;
+    jOut["maxRejoinRetries"] = s.MaxRejoinRetries;
     std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
     g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
 }
@@ -1310,7 +1339,15 @@ void UpdateUI() {
         jAcc["UserId"] = acc.Info.UserId;
         jAcc["ThumbnailUrl"] = acc.Info.ThumbnailUrl;
         jAcc["Cookie"] = acc.Cookie;
-        jAcc["Status"] = acc.Status;
+
+        int cd = 0;
+        if (WatchdogManager::GetInstance().IsRejoining(acc.Cookie, cd)) {
+            jAcc["Status"] = 5;
+            jAcc["RejoinCountdown"] = cd;
+        } else {
+            jAcc["Status"] = acc.Status;
+            jAcc["RejoinCountdown"] = 0;
+        }
         jAcc["JobId"] = acc.JobId;
         jAcc["ProcessId"] = acc.ProcessId;
         jAcc["Group"] = acc.Group;
@@ -1546,7 +1583,33 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         Launcher::InitializeMultiInstance();
 
-    g_accountManager.Load();
+        WatchdogManager::GetInstance().SetLaunchCallback([](const std::string& cookie) {
+            std::string escaped = cookie;
+            size_t pos = 0;
+            while ((pos = escaped.find("'", pos)) != std::string::npos) {
+                escaped.replace(pos, 1, "\\'");
+                pos += 2;
+            }
+            std::string* js = new std::string("if(window.launchAccount) window.launchAccount('" + escaped + "', null, null);");
+            PostMessage(g_hWnd, WM_APP + 3, (WPARAM)js, 0);
+        });
+
+        WatchdogManager::GetInstance().SetStatusUpdateCallback([](const std::string& cookie, int status, int countdown) {
+            std::string escaped = cookie;
+            size_t pos = 0;
+            while ((pos = escaped.find("'", pos)) != std::string::npos) {
+                escaped.replace(pos, 1, "\\'");
+                pos += 2;
+            }
+            std::string* js = new std::string("if(window.onWatchdogStatus) window.onWatchdogStatus('" + escaped + "', " + std::to_string(status) + ", " + std::to_string(countdown) + ");");
+            PostMessage(g_hWnd, WM_APP + 3, (WPARAM)js, 0);
+        });
+
+        WatchdogManager::GetInstance().SetToastCallback([](const std::string& message, bool isError) {
+            SendStatusMessage(message, isError);
+        });
+
+        g_accountManager.Load();
     
     if (g_settingsManager.GetSettings().EnableDiscordRPC) {
         DiscordRPC::Initialize("1525423648452771942");
@@ -1614,6 +1677,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
         while (g_running) {
             Sleep(1000);
             if (!g_running) break;
+
+            Settings s = g_settingsManager.GetSettings();
+            WatchdogManager::GetInstance().Tick(s.RejoinDelay, s.MaxRejoinRetries, s.AutoRejoin, s.Language);
             
             bool updated = false;
             auto accounts = g_accountManager.GetAccounts();
@@ -1679,6 +1745,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                                                 if (acc.Status != 3) {
                                                     g_accountManager.UpdateAccountProcess(acc.Cookie, 3, acc.ProcessId);
                                                 }
+                                                WatchdogManager::GetInstance().OnAccountJoinedGame(acc.Cookie);
                                             } else {
                                                 if (acc.Status != 2) {
                                                     g_accountManager.UpdateAccountProcess(acc.Cookie, 2, acc.ProcessId);
@@ -1695,8 +1762,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                     }
 
                     if (!isProcessAlive) {
-                        g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
-                        updated = true;
+                        int dummyCd = 0;
+                        if (!WatchdogManager::GetInstance().IsRejoining(acc.Cookie, dummyCd)) {
+                            g_accountManager.UpdateAccountProcess(acc.Cookie, 0, 0);
+                            updated = true;
+                        }
                     }
                 }
             }

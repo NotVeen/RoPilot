@@ -1177,8 +1177,100 @@ constexpr const char* UI_BODY = R"HTML(
                         <span class="slider"></span>
                     </label>
                 </div>
-                  
-                  <div
+
+                <div
+                    class="setting-item"
+                    style="padding: 12px 0px; border-top: 1px solid var(--separator-color); display: flex; justify-content: space-between; align-items: center"
+                >
+                    <div>
+                        <div
+                            class="setting-title"
+                            style="font-size: 15px; font-weight: 500; margin-bottom: 4px; color: white"
+                        >
+                            <span data-i18n="lbl_auto_rejoin">Auto-Rejoin on Disconnect / Crash</span>
+                        </div>
+                        <div
+                            class="setting-desc"
+                            style="font-size: 13px; color: var(--text-muted)"
+                            data-i18n="desc_auto_rejoin"
+                        >
+                            Automatically reconnect accounts when disconnected or crashed.
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-auto-rejoin" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="rejoin-options-container" style="display: none; padding-bottom: 8px;">
+                    <div
+                        class="setting-item"
+                        style="padding: 10px 0px 10px 16px; border-top: 1px dashed var(--border-subtle); display: flex; justify-content: space-between; align-items: center"
+                    >
+                        <div>
+                            <div
+                                class="setting-title"
+                                style="font-size: 14px; font-weight: 500; margin-bottom: 2px; color: white"
+                                data-i18n="lbl_rejoin_delay"
+                            >
+                                Rejoin Delay (Seconds)
+                            </div>
+                            <div
+                                class="setting-desc"
+                                style="font-size: 12px; color: var(--text-muted)"
+                                data-i18n="desc_rejoin_delay"
+                            >
+                                Cooldown period in seconds before reconnecting.
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input
+                                type="number"
+                                id="setting-rejoin-delay"
+                                min="5"
+                                max="60"
+                                value="10"
+                                class="settings-input"
+                                style="width: 75px; text-align: center; padding: 6px 8px;"
+                            />
+                            <span style="font-size: 13px; color: var(--text-muted)">s</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="setting-item"
+                        style="padding: 10px 0px 10px 16px; border-top: 1px dashed var(--border-subtle); display: flex; justify-content: space-between; align-items: center"
+                    >
+                        <div>
+                            <div
+                                class="setting-title"
+                                style="font-size: 14px; font-weight: 500; margin-bottom: 2px; color: white"
+                                data-i18n="lbl_max_rejoin_retries"
+                            >
+                                Max Rejoin Retries
+                            </div>
+                            <div
+                                class="setting-desc"
+                                style="font-size: 12px; color: var(--text-muted)"
+                                data-i18n="desc_max_rejoin_retries"
+                            >
+                                Maximum reconnect attempts before stopping.
+                            </div>
+                        </div>
+                        <input
+                            type="number"
+                            id="setting-max-rejoin-retries"
+                            min="1"
+                            max="10"
+                            value="3"
+                            class="settings-input"
+                            style="width: 75px; text-align: center; padding: 6px 8px;"
+                        />
+                    </div>
+                </div>
+
+                <div
                       class="setting-item"
                       style="
                           padding: 12px 0px;

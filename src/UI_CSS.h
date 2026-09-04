@@ -982,6 +982,16 @@ body.app-locked .app-container {
     background-color: var(--text-danger) !important;
     box-shadow: 0 0 6px var(--text-danger);
 }
+.status-dot.warning, .status-dot.rejoining {
+    background-color: var(--text-yellow) !important;
+    box-shadow: 0 0 6px var(--text-yellow);
+    animation: pulseRejoin 1.5s ease-in-out infinite;
+}
+@keyframes pulseRejoin {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.25); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
 
 .user-info {
     display: flex;

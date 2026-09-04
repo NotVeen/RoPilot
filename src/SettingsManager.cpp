@@ -41,6 +41,9 @@ void SettingsManager::Load() {
         m_Settings.MasterPasswordSalt = j.value("masterPasswordSalt", "");
         m_Settings.AutoTileOnLaunch = j.value("autoTileOnLaunch", false);
         m_Settings.DefaultTileMode = j.value("defaultTileMode", "auto");
+        m_Settings.AutoRejoin = j.value("autoRejoin", false);
+        m_Settings.RejoinDelay = j.value("rejoinDelay", 10);
+        m_Settings.MaxRejoinRetries = j.value("maxRejoinRetries", 3);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -75,6 +78,9 @@ void SettingsManager::Save() {
         j["masterPasswordSalt"] = m_Settings.MasterPasswordSalt;
         j["autoTileOnLaunch"] = m_Settings.AutoTileOnLaunch;
         j["defaultTileMode"] = m_Settings.DefaultTileMode;
+        j["autoRejoin"] = m_Settings.AutoRejoin;
+        j["rejoinDelay"] = m_Settings.RejoinDelay;
+        j["maxRejoinRetries"] = m_Settings.MaxRejoinRetries;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

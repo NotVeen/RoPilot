@@ -257,6 +257,13 @@ const translations = {
         desc_longest_session: "Longest session",
         desc_instances_running: "running",
         lbl_active_count: "Active",
+        lbl_auto_rejoin: "Auto-Rejoin on Disconnect / Crash",
+        desc_auto_rejoin: "Automatically re-launch Roblox if disconnected or crashed",
+        lbl_rejoin_delay: "Rejoin Cooldown (Seconds)",
+        desc_rejoin_delay: "Seconds to wait before reconnecting (allows server to fully release slot)",
+        lbl_max_rejoin_retries: "Max Rejoin Retries",
+        desc_max_rejoin_retries: "Maximum reconnection attempts before stopping",
+        lbl_rejoining_in: "Rejoining in",
     },
     id: {
         nav_accounts: "Akun",
@@ -506,6 +513,13 @@ const translations = {
         desc_longest_session: "Sesi terlama",
         desc_instances_running: "berjalan",
         lbl_active_count: "Aktif",
+        lbl_auto_rejoin: "Auto-Rejoin saat Terputus / Crash",
+        desc_auto_rejoin: "Luncurkan ulang Roblox secara otomatis jika terputus atau crash",
+        lbl_rejoin_delay: "Jeda Waktu Rejoin (Detik)",
+        desc_rejoin_delay: "Waktu tunggu sebelum menyambung kembali (memberi jeda server melepaskan slot)",
+        lbl_max_rejoin_retries: "Batas Percobaan Rejoin",
+        desc_max_rejoin_retries: "Batas maksimal percobaan penyambungan ulang sebelum berhenti",
+        lbl_rejoining_in: "Rejoining in",
     },
 };
 let accountsGrid = document.getElementById("accounts-grid");
@@ -608,7 +622,7 @@ window.renderAccounts = function (accounts) {
         }
 
         let accountsStr = JSON.stringify(
-            accounts.map((a) => ({ id: a.Id, uid: a.UserId, stat: a.Status, grp: a.Group, pid: a.ProcessId })),
+            accounts.map((a) => ({ id: a.Id, uid: a.UserId, stat: a.Status, grp: a.Group, pid: a.ProcessId, cd: a.RejoinCountdown })),
         );
         let groupsStr = JSON.stringify(currentGroups);
         let collapsedStr = JSON.stringify(Array.from(collapsedGroups));
@@ -635,6 +649,13 @@ window.renderAccounts = function (accounts) {
         if (canQuickUpdate) {
             accounts.forEach((acc) => {
                 let userId = acc.Id || acc.UserId || "0";
+                let statusVal = document.getElementById(`status-val-${userId}`);
+                if (statusVal && acc.Status === 5) {
+                    let cd = acc.RejoinCountdown || 10;
+                    let lang = document.getElementById("setting-language")?.value || "en";
+                    let prefix = translations[lang]?.lbl_rejoining_in || "Rejoining in";
+                    statusVal.innerText = `${prefix} ${cd}s`;
+                }
                 let instanceVal = document.getElementById(`instance-val-${userId}`);
                 if (instanceVal) {
                     instanceVal.innerText =
@@ -784,6 +805,13 @@ window.renderAccounts = function (accounts) {
                             translations[document.getElementById("setting-language")?.value || "en"]?.lbl_invalid ||
                             "Invalid Cookie";
                         statusValueClass = "red";
+                    } else if (acc.Status === 5) {
+                        statusColorClass = "warning";
+                        let cd = acc.RejoinCountdown || 10;
+                        let lang = document.getElementById("setting-language")?.value || "en";
+                        let prefix = translations[lang]?.lbl_rejoining_in || "Rejoining in";
+                        statusText = `${prefix} ${cd}s`;
+                        statusValueClass = "yellow";
                     }
 
                     let instanceText =
@@ -817,7 +845,7 @@ window.renderAccounts = function (accounts) {
                                 <div class="card-stats">
                                     <div class="stat-box">
                                         <span class="stat-label">Status</span>
-                                        <span class="stat-value ${statusValueClass}">${statusText}</span>
+                                        <span class="stat-value ${statusValueClass}" id="status-val-${userId}">${statusText}</span>
                                     </div>
                                     <div class="stat-box">
                                         <span class="stat-label" data-i18n="lbl_instance">Instance</span>
@@ -833,11 +861,16 @@ window.renderAccounts = function (accounts) {
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
                                             <span data-i18n="btn_relogin">Re-Login</span>
                                         </button>`
-                                            : acc.Status === 1
-                                              ? `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)">
-                                                <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                                            : acc.Status === 5
+                                              ? `<button class="btn-launch btn-cancel-rejoin" onclick="event.stopPropagation(); window.cancelRejoin('${cookie}')" style="background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.4); display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                                <svg class="spinner" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                                                <span data-i18n="btn_cancel">Cancel</span>
                                             </button>`
-                                              : `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg> <span data-i18n="btn_launch">Launch</span></button>`
+                                              : acc.Status === 1
+                                                ? `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)">
+                                                  <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                                              </button>`
+                                                : `<button class="btn-launch" id="launch-${acc.Id || acc.UserId || cookie}" onclick="window.launchAccount('${cookie}', '${username}', this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg> <span data-i18n="btn_launch">Launch</span></button>`
                                     }
                                     <button class="btn-icon danger" onclick="window.removeAccount('${cookie}', '${username}')">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -1339,6 +1372,34 @@ window.launchGroupAccounts = function(groupName) {
 window.killGroupAccounts = function(groupName) {
     let targetGroup = String(groupName).trim();
     window.chrome.webview.postMessage(JSON.stringify({ action: "kill_group", group: targetGroup }));
+};
+
+window.cancelRejoin = function(cookie) {
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(JSON.stringify({
+            action: "cancel_rejoin",
+            cookie: cookie
+        }));
+    }
+};
+
+window.onWatchdogStatus = function(cookie, status, countdown) {
+    let acc = currentAccounts.find((a) => a.Cookie === cookie);
+    if (acc) {
+        acc.Status = status;
+        acc.RejoinCountdown = countdown;
+        let userId = acc.Id || acc.UserId || "0";
+        let statusVal = document.getElementById(`status-val-${userId}`);
+        if (statusVal && status === 5) {
+            let lang = document.getElementById("setting-language")?.value || "en";
+            let prefix = translations[lang]?.lbl_rejoining_in || "Rejoining in";
+            statusVal.innerText = `${prefix} ${countdown}s`;
+        }
+        if (status === 0 || status === 5) {
+            window.forceRender = true;
+        }
+        window.renderAccounts(currentAccounts);
+    }
 };
 
 window.toggleTileDropdown = function(e) {
@@ -2071,6 +2132,15 @@ function saveSettings(silent = false) {
             enableWindowBlur: document.getElementById("setting-window-blur")
                 ? document.getElementById("setting-window-blur").checked
                 : false,
+            autoRejoin: document.getElementById("setting-auto-rejoin")
+                ? document.getElementById("setting-auto-rejoin").checked
+                : false,
+            rejoinDelay: document.getElementById("setting-rejoin-delay")
+                ? parseInt(document.getElementById("setting-rejoin-delay").value) || 10
+                : 10,
+            maxRejoinRetries: document.getElementById("setting-max-rejoin-retries")
+                ? parseInt(document.getElementById("setting-max-rejoin-retries").value) || 3
+                : 3,
         }),
     );
 }
@@ -2088,6 +2158,30 @@ let cpuLimiterToggle = document.getElementById("setting-cpu-limiter-toggle");
 let cpuLimitContainer = document.getElementById("cpu-limit-container");
 let cpuLimitSlider = document.getElementById("setting-cpu-limit");
 let cpuLimitValue = document.getElementById("cpu-limit-value");
+
+let autoRejoinToggle = document.getElementById("setting-auto-rejoin");
+let rejoinContainer = document.getElementById("rejoin-options-container");
+let rejoinDelayInput = document.getElementById("setting-rejoin-delay");
+let maxRejoinRetriesInput = document.getElementById("setting-max-rejoin-retries");
+
+if (autoRejoinToggle) {
+    autoRejoinToggle.addEventListener("change", (e) => {
+        if (rejoinContainer) {
+            rejoinContainer.style.display = autoRejoinToggle.checked ? "block" : "none";
+        }
+        saveSettings();
+    });
+}
+if (rejoinDelayInput) {
+    rejoinDelayInput.addEventListener("change", (e) => {
+        saveSettings();
+    });
+}
+if (maxRejoinRetriesInput) {
+    maxRejoinRetriesInput.addEventListener("change", (e) => {
+        saveSettings();
+    });
+}
 
 if (autoUpdateToggle) {
     autoUpdateToggle.addEventListener("change", (e) => {
@@ -2362,6 +2456,18 @@ if (window.chrome && window.chrome.webview) {
                 if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                 if (discordRpcToggle) discordRpcToggle.checked = msg.enableDiscordRPC;
                 if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
+                if (autoRejoinToggle && typeof msg.autoRejoin !== "undefined") {
+                    autoRejoinToggle.checked = !!msg.autoRejoin;
+                    if (rejoinContainer) {
+                        rejoinContainer.style.display = autoRejoinToggle.checked ? "block" : "none";
+                    }
+                }
+                if (rejoinDelayInput && typeof msg.rejoinDelay !== "undefined") {
+                    rejoinDelayInput.value = msg.rejoinDelay;
+                }
+                if (maxRejoinRetriesInput && typeof msg.maxRejoinRetries !== "undefined") {
+                    maxRejoinRetriesInput.value = msg.maxRejoinRetries;
+                }
                 let autoTileCb = document.getElementById("tile-auto-launch-cb");
                 if (autoTileCb && typeof msg.autoTileOnLaunch !== "undefined") {
                     autoTileCb.checked = !!msg.autoTileOnLaunch;
