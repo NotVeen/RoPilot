@@ -473,51 +473,68 @@ constexpr const char* UI_BODY = R"HTML(
                 </div>
             </div>
 
-            <!-- Overall Total Stats Summary -->
+            <!-- Overall Total Stats Summary (Compact Style) -->
             <div id="analytics-total-summary" class="analytics-summary-grid">
                 <div class="analytics-summary-card">
-                    <div class="analytics-summary-header">
+                    <div class="analytics-summary-content">
                         <span class="analytics-summary-title" data-i18n="lbl_total_instances">Active Instances</span>
-                        <div class="analytics-summary-icon green">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        </div>
+                        <div class="analytics-summary-value text-green" id="total-instances-val">0 Active</div>
                     </div>
-                    <div class="analytics-summary-value" id="total-instances-val">0</div>
-                    <div class="analytics-summary-sub" id="total-instances-sub">0 running</div>
+                    <div class="analytics-summary-watermark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            <path d="m9 12 2 2 4-4"></path>
+                        </svg>
+                    </div>
                 </div>
                 <div class="analytics-summary-card">
-                    <div class="analytics-summary-header">
+                    <div class="analytics-summary-content">
                         <span class="analytics-summary-title" data-i18n="lbl_total_cpu">Total CPU</span>
-                        <div class="analytics-summary-icon blue">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
-                        </div>
+                        <div class="analytics-summary-value" id="total-cpu-val">0.0%</div>
                     </div>
-                    <div class="analytics-summary-value" id="total-cpu-val">0.0%</div>
-                    <div class="analytic-bar-bg" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 6px;">
-                        <div id="total-cpu-bar" style="width: 0%; height: 100%; background: var(--accent-color); transition: width 0.3s ease;"></div>
+                    <div class="analytics-summary-watermark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                            <rect x="9" y="9" width="6" height="6"></rect>
+                            <line x1="9" y1="1" x2="9" y2="4"></line>
+                            <line x1="15" y1="1" x2="15" y2="4"></line>
+                            <line x1="9" y1="20" x2="9" y2="23"></line>
+                            <line x1="15" y1="20" x2="15" y2="23"></line>
+                            <line x1="20" y1="9" x2="23" y2="9"></line>
+                            <line x1="20" y1="14" x2="23" y2="14"></line>
+                            <line x1="1" y1="9" x2="4" y2="9"></line>
+                            <line x1="1" y1="14" x2="4" y2="14"></line>
+                        </svg>
                     </div>
                 </div>
                 <div class="analytics-summary-card">
-                    <div class="analytics-summary-header">
+                    <div class="analytics-summary-content">
                         <span class="analytics-summary-title" data-i18n="lbl_total_ram">Total RAM</span>
-                        <div class="analytics-summary-icon purple">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="9" x2="22" y2="9"></line><line x1="2" y1="15" x2="22" y2="15"></line><line x1="6" y1="3" x2="6" y2="21"></line><line x1="10" y1="3" x2="10" y2="21"></line><line x1="14" y1="3" x2="14" y2="21"></line><line x1="18" y1="3" x2="18" y2="21"></line></svg>
-                        </div>
+                        <div class="analytics-summary-value" id="total-ram-val">0 MB</div>
                     </div>
-                    <div class="analytics-summary-value" id="total-ram-val">0 MB</div>
-                    <div class="analytic-bar-bg" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 6px;">
-                        <div id="total-ram-bar" style="width: 0%; height: 100%; background: #a270ff; transition: width 0.3s ease;"></div>
+                    <div class="analytics-summary-watermark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect>
+                            <line x1="2" y1="9" x2="22" y2="9"></line>
+                            <line x1="2" y1="15" x2="22" y2="15"></line>
+                            <line x1="6" y1="3" x2="6" y2="21"></line>
+                            <line x1="10" y1="3" x2="10" y2="21"></line>
+                            <line x1="14" y1="3" x2="14" y2="21"></line>
+                            <line x1="18" y1="3" x2="18" y2="21"></line>
+                        </svg>
                     </div>
                 </div>
                 <div class="analytics-summary-card">
-                    <div class="analytics-summary-header">
+                    <div class="analytics-summary-content">
                         <span class="analytics-summary-title" data-i18n="lbl_max_uptime">Peak Uptime</span>
-                        <div class="analytics-summary-icon amber">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        </div>
+                        <div class="analytics-summary-value" id="total-uptime-val">00:00:00</div>
                     </div>
-                    <div class="analytics-summary-value" id="total-uptime-val">00:00:00</div>
-                    <div class="analytics-summary-sub" id="total-uptime-sub" data-i18n="desc_longest_session">Longest session</div>
+                    <div class="analytics-summary-watermark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
                 </div>
             </div>
 

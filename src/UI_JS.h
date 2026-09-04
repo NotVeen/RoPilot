@@ -258,6 +258,7 @@ const translations = {
         lbl_max_uptime: "Peak Uptime",
         desc_longest_session: "Longest session",
         desc_instances_running: "running",
+        lbl_active_count: "Active",
     },
     id: {
         nav_accounts: "Akun",
@@ -508,6 +509,7 @@ const translations = {
         lbl_max_uptime: "Uptime Tertinggi",
         desc_longest_session: "Sesi terlama",
         desc_instances_running: "berjalan",
+        lbl_active_count: "Aktif",
     },
 };
 let accountsGrid = document.getElementById("accounts-grid");
@@ -564,21 +566,14 @@ function updateOverallAnalytics(accounts) {
         let dict = translations[lang] || translations["en"];
 
         let elInst = document.getElementById("total-instances-val");
-        if (elInst) elInst.textContent = count.toString();
-
-        let elInstSub = document.getElementById("total-instances-sub");
-        if (elInstSub) {
-            let runningText = (dict && dict.desc_instances_running) ? dict.desc_instances_running : "running";
-            elInstSub.textContent = count + " " + runningText;
+        if (elInst) {
+            let activeWord = (dict && dict.lbl_active_count) ? dict.lbl_active_count : "Active";
+            elInst.textContent = count + " " + activeWord;
         }
 
         let elCpu = document.getElementById("total-cpu-val");
-        if (elCpu) elCpu.textContent = totalCpu.toFixed(1) + "%";
-
-        let elCpuBar = document.getElementById("total-cpu-bar");
-        if (elCpuBar) {
-            elCpuBar.style.width = Math.min(totalCpu, 100) + "%";
-            elCpuBar.style.background = totalCpu > 80 ? "#ff5252" : "var(--accent-color)";
+        if (elCpu) {
+            elCpu.textContent = totalCpu.toFixed(1) + "%";
         }
 
         let elRam = document.getElementById("total-ram-val");
@@ -590,22 +585,12 @@ function updateOverallAnalytics(accounts) {
             }
         }
 
-        let elRamBar = document.getElementById("total-ram-bar");
-        if (elRamBar) {
-            elRamBar.style.width = Math.min((totalRam / 8192) * 100, 100) + "%";
-        }
-
         let elUptime = document.getElementById("total-uptime-val");
         if (elUptime) {
             let hrs = Math.floor(maxUptime / 3600).toString().padStart(2, "0");
             let mins = Math.floor((maxUptime % 3600) / 60).toString().padStart(2, "0");
             let secs = (maxUptime % 60).toString().padStart(2, "0");
             elUptime.textContent = hrs + ":" + mins + ":" + secs;
-        }
-
-        let elUptimeSub = document.getElementById("total-uptime-sub");
-        if (elUptimeSub && dict && dict.desc_longest_session) {
-            elUptimeSub.textContent = dict.desc_longest_session;
         }
     } catch (err) {
         console.error("updateOverallAnalytics error:", err);
@@ -1646,6 +1631,7 @@ function applyLanguage(lang) {
     if (ungroupedGrid && dict["lbl_drop_ungroup"]) {
         ungroupedGrid.setAttribute("data-drop-text", dict["lbl_drop_ungroup"]);
     }
+    updateOverallAnalytics(currentAccounts);
 }
 
 function switchPage(activeNav, activePage) {

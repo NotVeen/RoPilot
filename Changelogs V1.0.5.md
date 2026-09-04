@@ -8,7 +8,7 @@
 - **Instant Post-Unlock Account Validation**: Automatically validates all saved account cookies asynchronously right after entering master password (or on startup).
 - **Enhanced Anti-AFK**: Upgraded Anti-AFK mechanism to use benign Insert key taps instead of jumping or shift to preserve character farming positions and prevent triggering Shift Lock, bypassed Windows foreground lock timeout for reliable multi-instance switching, and added randomized human-like timing jitter.
 - **Window Grid Organizer**: Added automated multi-instance window layout organizer with Auto Grid (proportional 1x2, 2x2, 2x3, 3x3 based on active instances), Compact Mini Grid (200x200 flow layout for extreme GPU and space savings), manual presets, and an optional Auto-Tile on Launch toggle.
-- **Aggregate Performance Analytics**: Added an overall instances summary dashboard to the Performance Analytics page displaying active Roblox client count, total aggregated CPU usage with dynamic threshold coloring, total aggregated RAM usage (MB/GB), and peak active session uptime.
+- **Aggregate Performance Analytics**: Added an overall instances summary dashboard to the Performance Analytics page with a sleek compact card layout displaying active Roblox client count, total aggregated CPU usage with dynamic threshold coloring, total aggregated RAM usage (MB/GB), and peak active session uptime with watermark vector icons.
 
 ## 🐛 Bug Fixes
 - Removed the duplicate eye icon that appeared when typing the master password.
