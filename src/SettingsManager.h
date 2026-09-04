@@ -27,6 +27,8 @@ struct Settings {
     bool HasMasterPassword = false;
     std::string MasterPasswordHash = "";
     std::string MasterPasswordSalt = "";
+    bool AutoTileOnLaunch = false;
+    std::string DefaultTileMode = "auto";
 };
 
 class SettingsManager {

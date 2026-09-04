@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <dwmapi.h>
 #include <WebView2.h>
 #include <WebView2EnvironmentOptions.h>
 #include <wrl.h>
@@ -187,6 +188,7 @@ void SendStatusMessage(const std::string& msg, bool isError = false);
 void SendSettingsData();
 void UpdateUI();
 void ValidateAllAccountsAsync();
+void TileRobloxWindows(const std::string& mode = "auto");
 
 uint64_t FileTimeToUInt64(const FILETIME& ft) {
     ULARGE_INTEGER uli;
@@ -205,6 +207,163 @@ void SendStatusMessage(const std::string& msg, bool isError) {
     
     std::string* script = new std::string("window.showStatus('" + escapedMsg + "', " + (isError ? "true" : "false") + ");");
     PostMessage(g_hWnd, WM_APP + 3, (WPARAM)script, 0);
+}
+
+void TileRobloxWindows(const std::string& mode) {
+    struct EnumData {
+        DWORD processId;
+        HWND hwnd;
+    };
+
+    std::vector<HWND> activeWindows;
+    auto accounts = g_accountManager.GetAccounts();
+
+    for (const auto& acc : accounts) {
+        if (acc.ProcessId != 0 && (acc.Status == 2 || acc.Status == 3)) {
+            EnumData data = { acc.ProcessId, NULL };
+            EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+                EnumData* d = (EnumData*)lParam;
+                DWORD pid = 0;
+                GetWindowThreadProcessId(hwnd, &pid);
+                if (pid == d->processId) {
+                    char className[256] = {0};
+                    GetClassNameA(hwnd, className, sizeof(className));
+                    if (std::string(className) == "WINDOWSCLIENT") {
+                        d->hwnd = hwnd;
+                        return FALSE;
+                    }
+                    char title[256] = {0};
+                    GetWindowTextA(hwnd, title, sizeof(title));
+                    if (strstr(title, "Roblox") != nullptr) {
+                        d->hwnd = hwnd;
+                        return FALSE;
+                    }
+                }
+                return TRUE;
+            }, (LPARAM)&data);
+
+            if (data.hwnd != NULL && IsWindow(data.hwnd)) {
+                if (std::find(activeWindows.begin(), activeWindows.end(), data.hwnd) == activeWindows.end()) {
+                    activeWindows.push_back(data.hwnd);
+                }
+            }
+        }
+    }
+
+    bool isIndonesian = (g_settingsManager.GetSettings().Language == "id");
+    if (activeWindows.empty()) {
+        SendStatusMessage(isIndonesian ? "Tidak ada jendela Roblox aktif untuk ditata!" : "No running Roblox windows to organize!", true);
+        return;
+    }
+
+    RECT rcWork = {0};
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWork, 0);
+    int totalWidth = rcWork.right - rcWork.left;
+    int totalHeight = rcWork.bottom - rcWork.top;
+
+    if (mode == "compact") {
+        int cellW = 200;
+        int cellH = 200;
+        int cols = totalWidth / cellW;
+        if (cols < 1) cols = 1;
+
+        for (size_t i = 0; i < activeWindows.size(); ++i) {
+            HWND hwnd = activeWindows[i];
+            int row = (int)(i / cols);
+            int col = (int)(i % cols);
+            int x = rcWork.left + col * cellW;
+            int y = rcWork.top + row * cellH;
+
+            if (IsIconic(hwnd)) {
+                ShowWindow(hwnd, SW_RESTORE);
+            }
+            // Bypass Roblox's WM_GETMINMAXINFO minimum size restriction (800x600)
+            // By applying WS_POPUP, Windows bypasses ptMinTrackSize clamping and allows 200x200
+            LONG style = GetWindowLong(hwnd, GWL_STYLE);
+            style &= ~WS_THICKFRAME;
+            style &= ~WS_CAPTION;
+            style |= (WS_POPUP | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_BORDER);
+            SetWindowLong(hwnd, GWL_STYLE, style);
+            SetWindowPos(hwnd, HWND_TOP, x, y, cellW, cellH, SWP_NOACTIVATE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+        }
+    } else {
+        int cols = 1;
+        int rows = 1;
+        int N = (int)activeWindows.size();
+
+        if (mode == "2x2") {
+            cols = 2; rows = 2;
+        } else if (mode == "2x3") {
+            cols = 3; rows = 2;
+        } else if (mode == "3x3") {
+            cols = 3; rows = 3;
+        } else {
+            // "auto" mode
+            if (N == 1) {
+                cols = 1; rows = 1;
+            } else if (N == 2) {
+                cols = 2; rows = 1;
+            } else if (N == 3 || N == 4) {
+                cols = 2; rows = 2;
+            } else if (N == 5 || N == 6) {
+                cols = 3; rows = 2;
+            } else if (N >= 7 && N <= 9) {
+                cols = 3; rows = 3;
+            } else {
+                cols = (int)ceil(sqrt((double)N));
+                rows = (int)ceil((double)N / (double)cols);
+            }
+        }
+
+        for (size_t i = 0; i < activeWindows.size(); ++i) {
+            HWND hwnd = activeWindows[i];
+            int row = (int)(i / cols);
+            int col = (int)(i % cols);
+
+            int x = rcWork.left + col * totalWidth / cols;
+            int xNext = rcWork.left + (col + 1) * totalWidth / cols;
+            int cellW = xNext - x;
+
+            int y = rcWork.top + row * totalHeight / rows;
+            int yNext = rcWork.top + (row + 1) * totalHeight / rows;
+            int cellH = yNext - y;
+
+            if (IsIconic(hwnd)) {
+                ShowWindow(hwnd, SW_RESTORE);
+            }
+
+            // Remove WS_THICKFRAME to prevent WM_GETMINMAXINFO clamping (which forces 800x600 and causes vertical overlap)
+            // Ensure WS_POPUP | WS_CAPTION | WS_SYSMENU are set so titlebar and controls are preserved
+            LONG style = GetWindowLong(hwnd, GWL_STYLE);
+            style &= ~WS_THICKFRAME;
+            style |= (WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+            SetWindowLong(hwnd, GWL_STYLE, style);
+
+            // Set position to compute DWM invisible margins
+            SetWindowPos(hwnd, NULL, x, y, cellW, cellH, SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+
+            // Adjust coordinates using DwmGetWindowAttribute to eliminate invisible resize drop-shadow gaps
+            RECT rWin, rFrame;
+            GetWindowRect(hwnd, &rWin);
+            if (SUCCEEDED(DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &rFrame, sizeof(rFrame)))) {
+                int leftMargin = rFrame.left - rWin.left;
+                int topMargin = rFrame.top - rWin.top;
+                int rightMargin = rWin.right - rFrame.right;
+                int bottomMargin = rWin.bottom - rFrame.bottom;
+
+                int adjX = x - leftMargin;
+                int adjY = y - topMargin;
+                int adjW = cellW + leftMargin + rightMargin;
+                int adjH = cellH + topMargin + bottomMargin;
+
+                SetWindowPos(hwnd, HWND_TOP, adjX, adjY, adjW, adjH, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+            } else {
+                SetWindowPos(hwnd, HWND_TOP, x, y, cellW, cellH, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+            }
+        }
+    }
+
+    SendStatusMessage(isIndonesian ? "Jendela berhasil ditata rapi!" : "Windows arranged successfully!", false);
 }
 
 void ProcessWebMessage(const std::string& msg) {
@@ -640,6 +799,13 @@ void ProcessWebMessage(const std::string& msg) {
                         successMsg = username + " berhasil diluncurkan!";
                     }
                     g_toastQueue.push_back({successMsg, false});
+
+                    if (g_settingsManager.GetSettings().AutoTileOnLaunch) {
+                        std::thread([]() {
+                            Sleep(3500);
+                            TileRobloxWindows(g_settingsManager.GetSettings().DefaultTileMode);
+                        }).detach();
+                    }
                 } else {
                     int newStatus = 0;
                     if (launchError == "Failed to get Auth Ticket." || launchError == "Failed to get CSRF token.") {
@@ -816,6 +982,9 @@ void ProcessWebMessage(const std::string& msg) {
             bool oldDiscordRPC = s.EnableDiscordRPC;
             s.EnableDiscordRPC = j.value("enableDiscordRPC", s.EnableDiscordRPC);
             
+            s.AutoTileOnLaunch = j.value("autoTileOnLaunch", s.AutoTileOnLaunch);
+            s.DefaultTileMode = j.value("defaultTileMode", s.DefaultTileMode);
+
             g_settingsManager.SetSettings(s);
             
             if (oldDiscordRPC != s.EnableDiscordRPC) {
@@ -838,6 +1007,17 @@ void ProcessWebMessage(const std::string& msg) {
             } else if (!silent) {
                 SendStatusMessage("Settings saved successfully.", false);
             }
+        }
+        else if (action == "tile_windows") {
+            std::string mode = j.value("mode", "auto");
+            TileRobloxWindows(mode);
+        }
+        else if (action == "save_tile_settings") {
+            Settings s = g_settingsManager.GetSettings();
+            s.AutoTileOnLaunch = j.value("autoTileOnLaunch", s.AutoTileOnLaunch);
+            s.DefaultTileMode = j.value("defaultTileMode", s.DefaultTileMode);
+            g_settingsManager.SetSettings(s);
+            SendSettingsData();
         }
         else if (action == "create_master_password") {
             std::string password = j.value("password", "");
@@ -1114,6 +1294,8 @@ void SendSettingsData() {
     jOut["globalPlaceId"] = s.GlobalPlaceId;
     jOut["globalPrivateServerLink"] = s.GlobalPrivateServerLink;
     jOut["hasMasterPassword"] = s.HasMasterPassword;
+    jOut["autoTileOnLaunch"] = s.AutoTileOnLaunch;
+    jOut["defaultTileMode"] = s.DefaultTileMode;
     std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
     g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
 }

@@ -262,6 +262,79 @@ constexpr const char* UI_BODY = R"HTML(
                                 <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
                             </svg>
                         </button>
+                        <div class="tile-dropdown-wrapper">
+                            <button
+                                class="btn-icon"
+                                id="btn-tile-windows"
+                                onclick="window.toggleTileDropdown(event)"
+                                title="Window Grid Organizer"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
+                            </button>
+                            <div class="tile-dropdown-menu" id="tile-dropdown-menu">
+                                <div class="tile-dropdown-header">
+                                    <span data-i18n="lbl_tile_windows">Window Grid</span>
+                                </div>
+                                <button class="tile-dropdown-item" onclick="window.tileWindows('auto')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                    </svg>
+                                    <span data-i18n="lbl_auto_grid">Auto Grid</span>
+                                </button>
+                                <button class="tile-dropdown-item" onclick="window.tileWindows('compact')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="2" width="20" height="20" rx="2" ry="2"></rect>
+                                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    </svg>
+                                    <span data-i18n="lbl_compact_grid">Compact (200x200)</span>
+                                </button>
+                                <button class="tile-dropdown-item" onclick="window.tileWindows('2x2')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="14" width="7" height="7"></rect>
+                                        <rect x="3" y="14" width="7" height="7"></rect>
+                                    </svg>
+                                    <span data-i18n="lbl_grid_2x2">Grid 2x2</span>
+                                </button>
+                                <button class="tile-dropdown-item" onclick="window.tileWindows('2x3')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="3" width="5.5" height="7"></rect>
+                                        <rect x="9.25" y="3" width="5.5" height="7"></rect>
+                                        <rect x="16.5" y="3" width="5.5" height="7"></rect>
+                                        <rect x="2" y="14" width="5.5" height="7"></rect>
+                                        <rect x="9.25" y="14" width="5.5" height="7"></rect>
+                                        <rect x="16.5" y="14" width="5.5" height="7"></rect>
+                                    </svg>
+                                    <span data-i18n="lbl_grid_2x3">Grid 2x3</span>
+                                </button>
+                                <button class="tile-dropdown-item" onclick="window.tileWindows('3x3')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="2" width="5" height="5"></rect>
+                                        <rect x="9.5" y="2" width="5" height="5"></rect>
+                                        <rect x="17" y="2" width="5" height="5"></rect>
+                                        <rect x="2" y="9.5" width="5" height="5"></rect>
+                                        <rect x="9.5" y="9.5" width="5" height="5"></rect>
+                                        <rect x="17" y="9.5" width="5" height="5"></rect>
+                                        <rect x="2" y="17" width="5" height="5"></rect>
+                                        <rect x="9.5" y="17" width="5" height="5"></rect>
+                                        <rect x="17" y="17" width="5" height="5"></rect>
+                                    </svg>
+                                    <span data-i18n="lbl_grid_3x3">Grid 3x3</span>
+                                </button>
+                                <div class="tile-dropdown-divider"></div>
+                                <label class="tile-dropdown-toggle">
+                                    <span data-i18n="lbl_auto_tile_launch">Auto-Tile on Launch</span>
+                                    <input type="checkbox" id="tile-auto-launch-cb" onchange="window.toggleAutoTile(this.checked)" />
+                                </label>
+                            </div>
+                        </div>
                         <button
                             class="btn-icon danger"
                             onclick="window.showKillAllPrompt(true)"

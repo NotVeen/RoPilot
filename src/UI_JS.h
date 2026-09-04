@@ -245,6 +245,13 @@ const translations = {
         desc_hard_reset_warning: "Are you sure? This will PERMANENTLY DELETE all your accounts and settings. This action cannot be undone.",
         desc_type_reset_to_confirm: "Type \"RESET\" to confirm:",
         btn_delete_everything: "Delete Everything",
+        lbl_tile_windows: "Window Grid",
+        lbl_auto_grid: "Auto Grid",
+        lbl_compact_grid: "Compact (200x200)",
+        lbl_grid_2x2: "Grid 2x2",
+        lbl_grid_2x3: "Grid 2x3",
+        lbl_grid_3x3: "Grid 3x3",
+        lbl_auto_tile_launch: "Auto-Tile on Launch",
     },
     id: {
         nav_accounts: "Akun",
@@ -482,6 +489,13 @@ const translations = {
         desc_hard_reset_warning: "Apakah Anda yakin? Tindakan ini akan MENGHAPUS SEMUA akun dan pengaturan Anda secara permanen. Tindakan ini tidak dapat dibatalkan.",
         desc_type_reset_to_confirm: "Ketik \"RESET\" untuk mengonfirmasi:",
         btn_delete_everything: "Hapus Semuanya",
+        lbl_tile_windows: "Grid Jendela",
+        lbl_auto_grid: "Grid Otomatis",
+        lbl_compact_grid: "Ringkas (200x200)",
+        lbl_grid_2x2: "Grid 2x2",
+        lbl_grid_2x3: "Grid 2x3",
+        lbl_grid_3x3: "Grid 3x3",
+        lbl_auto_tile_launch: "Tata Otomatis saat Launch",
     },
 };
 let accountsGrid = document.getElementById("accounts-grid");
@@ -1258,6 +1272,43 @@ window.killGroupAccounts = function(groupName) {
     let targetGroup = String(groupName).trim();
     window.chrome.webview.postMessage(JSON.stringify({ action: "kill_group", group: targetGroup }));
 };
+
+window.toggleTileDropdown = function(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById("tile-dropdown-menu");
+    if (menu) {
+        menu.classList.toggle("show");
+    }
+};
+
+window.tileWindows = function(mode) {
+    const menu = document.getElementById("tile-dropdown-menu");
+    if (menu) menu.classList.remove("show");
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(JSON.stringify({
+            action: "tile_windows",
+            mode: mode || "auto"
+        }));
+    }
+};
+
+window.toggleAutoTile = function(checked) {
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(JSON.stringify({
+            action: "save_tile_settings",
+            autoTileOnLaunch: !!checked,
+            defaultTileMode: "auto"
+        }));
+    }
+};
+
+document.addEventListener("click", function(e) {
+    const wrapper = document.querySelector(".tile-dropdown-wrapper");
+    const menu = document.getElementById("tile-dropdown-menu");
+    if (menu && wrapper && !wrapper.contains(e.target)) {
+        menu.classList.remove("show");
+    }
+});
 
 window.showKillGroupPrompt = function(groupName) {
     let modal = document.getElementById("kill-group-modal");
@@ -2250,6 +2301,10 @@ if (window.chrome && window.chrome.webview) {
                 if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                 if (discordRpcToggle) discordRpcToggle.checked = msg.enableDiscordRPC;
                 if (hardwareAccelToggle) hardwareAccelToggle.checked = msg.hardwareAcceleration;
+                let autoTileCb = document.getElementById("tile-auto-launch-cb");
+                if (autoTileCb && typeof msg.autoTileOnLaunch !== "undefined") {
+                    autoTileCb.checked = !!msg.autoTileOnLaunch;
+                }
                 let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
                 let globalPsLinkInput = document.getElementById("global-accounts-ps-link");
                 if (globalPlaceIdInput && typeof msg.globalPlaceId !== "undefined") {

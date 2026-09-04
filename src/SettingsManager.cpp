@@ -40,6 +40,8 @@ void SettingsManager::Load() {
         m_Settings.HasMasterPassword = j.value("hasMasterPassword", false);
         m_Settings.MasterPasswordHash = j.value("masterPasswordHash", "");
         m_Settings.MasterPasswordSalt = j.value("masterPasswordSalt", "");
+        m_Settings.AutoTileOnLaunch = j.value("autoTileOnLaunch", false);
+        m_Settings.DefaultTileMode = j.value("defaultTileMode", "auto");
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -73,6 +75,8 @@ void SettingsManager::Save() {
         j["hasMasterPassword"] = m_Settings.HasMasterPassword;
         j["masterPasswordHash"] = m_Settings.MasterPasswordHash;
         j["masterPasswordSalt"] = m_Settings.MasterPasswordSalt;
+        j["autoTileOnLaunch"] = m_Settings.AutoTileOnLaunch;
+        j["defaultTileMode"] = m_Settings.DefaultTileMode;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {
