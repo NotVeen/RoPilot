@@ -2386,4 +2386,110 @@ input[type="range"]:focus {
     transform: translateX(14px);
     background: #ffffff;
 }
+
+/* Overall Total Stats Summary Cards */
+.analytics-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+    .analytics-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .analytics-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.analytics-summary-card {
+    background-color: var(--bg-card, #161b22);
+    border: 1px solid var(--border-color, #21262d);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.analytics-summary-card:hover {
+    border-color: var(--border-medium, #30363d);
+    transform: translateY(-1px);
+}
+
+.analytics-summary-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.analytics-summary-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.analytics-summary-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.analytics-summary-icon.green {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.analytics-summary-icon.blue {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+}
+
+.analytics-summary-icon.purple {
+    background: rgba(162, 112, 255, 0.12);
+    color: #a270ff;
+}
+
+.analytics-summary-icon.amber {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+.analytics-summary-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+
+.analytics-summary-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+[data-theme="light"] .analytics-summary-card {
+    background-color: #ffffff;
+    border-color: #e5e7eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .analytics-summary-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
 )CSS";
