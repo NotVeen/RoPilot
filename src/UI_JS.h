@@ -2476,6 +2476,7 @@ if (window.chrome && window.chrome.webview) {
                         if (fp) fp.style.display = "block";
                         
                         if (!window.isMasterPasswordVerified && !window.masterPasswordFadingOut) {
+                            document.body.classList.add("app-locked");
                             document.getElementById("master-password-overlay").style.display = "flex";
                             document.getElementById("mp-title").setAttribute("data-i18n", "lbl_unlock_ropilot");
                             document.getElementById("mp-title").innerText = translations[lang]?.lbl_unlock_ropilot || "Unlock RoPilot";
@@ -2499,6 +2500,7 @@ if (window.chrome && window.chrome.webview) {
                                     c.style.animation = null;
                                 }
                             }
+                            document.body.classList.add("app-locked");
                             document.getElementById("master-password-overlay").style.display = "flex";
                             document.getElementById("mp-title").setAttribute("data-i18n", "lbl_set_master_password");
                             document.getElementById("mp-title").innerText = translations[lang]?.lbl_set_master_password || "Set Your Master Password";

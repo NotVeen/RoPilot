@@ -12,11 +12,11 @@ constexpr const char* UI_CSS = R"CSS(
 @keyframes mpContainerFadeUp {
     from {
         opacity: 0;
-        transform: translateY(0px);
+        transform: translateY(16px);
     }
     to {
         opacity: 1;
-        transform: translateY(-20px);
+        transform: translateY(0);
     }
 }
 @keyframes spin {
@@ -486,6 +486,7 @@ input::-ms-clear {
 
 /* Titlebar */
 .titlebar {
+    position: relative;
     height: 38px;
     background-color: var(--bg-deep);
     border-bottom: 1px solid var(--border-subtle);
@@ -495,7 +496,7 @@ input::-ms-clear {
     padding: 0 8px 0 12px;
     user-select: none;
     flex-shrink: 0;
-    z-index: 50;
+    z-index: 100000;
 }
 
 .titlebar-left {
@@ -569,6 +570,11 @@ input::-ms-clear {
 }
 
 /* Layout */
+body.app-locked .titlebar {
+    background: transparent !important;
+    border-bottom: 1px solid transparent !important;
+}
+
 body.app-locked .app-container {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -1603,7 +1609,7 @@ input:checked + .slider:before {
 /* Resize Handles */
 .resize-edge {
     position: absolute;
-    z-index: 9999;
+    z-index: 100001;
 }
 .resize-edge.top {
     top: 0;
@@ -2101,10 +2107,10 @@ input[type="range"]:focus {
 /* OPTION 1: Smooth Linear Gradient */
 #master-password-overlay {
     position: fixed;
-    top: 38px;
+    top: 0;
     left: 0;
     width: 100vw;
-    height: calc(100vh - 38px);
+    height: 100vh;
     background-color: rgba(5, 5, 5, var(--bg-opacity));
     background-image: linear-gradient(-45deg, rgba(5, 5, 5, var(--bg-opacity)), rgba(28, 28, 28, var(--bg-opacity)), rgba(10, 10, 10, var(--bg-opacity)), rgba(42, 42, 42, var(--bg-opacity)));
     background-size: 400% 400%;
@@ -2130,7 +2136,7 @@ input[type="range"]:focus {
 .mp-container {
     width: 400px;
     text-align: left;
-    transform: translateY(-20px);
+    transform: translateY(0);
     animation: mpContainerFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
