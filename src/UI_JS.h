@@ -1971,16 +1971,37 @@ let lightModeToggle = document.getElementById("setting-light-mode");
 let accentColorInput = document.getElementById("setting-accent-color");
 let fontFamilyInput = document.getElementById("setting-font-family");
 
-if (accentColorInput) {
-    accentColorInput.addEventListener("input", (e) => {
-        let hex = e.target.value;
+function applyAccentColor(color, isReset = false) {
+    if (!isReset && color && typeof color === "string" && color.trim() !== "") {
+        let hex = color.trim();
         document.documentElement.style.setProperty("--accent-color", hex);
+        document.documentElement.style.setProperty("--toggle-color", hex);
         document.documentElement.style.setProperty("--accent-text", getContrastYIQ(hex));
         document.documentElement.style.setProperty("--accent-tint-hover", hex + "26");
         document.documentElement.style.setProperty("--accent-tint-active", hex + "40");
+        if (accentColorInput) {
+            accentColorInput.value = hex;
+            accentColorInput.dataset.reset = "false";
+        }
+    } else {
+        document.documentElement.style.removeProperty("--accent-color");
+        document.documentElement.style.removeProperty("--toggle-color");
+        document.documentElement.style.removeProperty("--accent-text");
+        document.documentElement.style.removeProperty("--accent-tint-hover");
+        document.documentElement.style.removeProperty("--accent-tint-active");
+        if (accentColorInput) {
+            accentColorInput.value = "#10b981";
+            accentColorInput.dataset.reset = "true";
+        }
+    }
+}
+
+if (accentColorInput) {
+    accentColorInput.addEventListener("input", (e) => {
+        applyAccentColor(e.target.value, false);
     });
     accentColorInput.addEventListener("change", (e) => {
-        accentColorInput.dataset.reset = "false";
+        applyAccentColor(e.target.value, false);
         saveSettings();
     });
 }
@@ -2351,11 +2372,7 @@ if (lightModeToggle) {
 let btnResetAccent = document.getElementById("btn-reset-accent-color");
 if (btnResetAccent && accentColorInput) {
     btnResetAccent.addEventListener("click", () => {
-        accentColorInput.dataset.reset = "true";
-        accentColorInput.value = "#ffffff";
-        document.documentElement.style.removeProperty("--accent-color");
-        document.documentElement.style.removeProperty("--accent-tint-hover");
-        document.documentElement.style.removeProperty("--accent-tint-active");
+        applyAccentColor("", true);
         saveSettings();
     });
 }
@@ -2419,21 +2436,9 @@ if (window.chrome && window.chrome.webview) {
                 }
                 if (accentColorInput) {
                     if (typeof msg.accentColor === "string" && msg.accentColor.trim() !== "") {
-                        accentColorInput.value = msg.accentColor;
-                        accentColorInput.dataset.reset = "false";
-                        document.documentElement.style.setProperty("--accent-color", msg.accentColor);
-                        document.documentElement.style.setProperty("--toggle-color", msg.accentColor);
-                        document.documentElement.style.setProperty("--accent-text", getContrastYIQ(msg.accentColor));
-                        document.documentElement.style.setProperty("--accent-tint-hover", msg.accentColor + "26");
-                        document.documentElement.style.setProperty("--accent-tint-active", msg.accentColor + "40");
+                        applyAccentColor(msg.accentColor, false);
                     } else {
-                        accentColorInput.value = "#ffffff";
-                        accentColorInput.dataset.reset = "true";
-                        document.documentElement.style.removeProperty("--accent-color");
-                        document.documentElement.style.removeProperty("--toggle-color");
-                        document.documentElement.style.removeProperty("--accent-text");
-                        document.documentElement.style.removeProperty("--accent-tint-hover");
-                        document.documentElement.style.removeProperty("--accent-tint-active");
+                        applyAccentColor("", true);
                     }
                 }
                 let fFamInput = document.getElementById("setting-font-family");

@@ -1934,6 +1934,7 @@ if (s.SidebarCollapsed) {
 std::string extraStyle = "<style>:root {";
 if (!s.AccentColor.empty()) {
     extraStyle += "--accent-color: " + s.AccentColor + ";";
+    extraStyle += "--toggle-color: " + s.AccentColor + ";";
     extraStyle += "--accent-tint-hover: " + s.AccentColor + "26;";
     extraStyle += "--accent-tint-active: " + s.AccentColor + "40;";
 }

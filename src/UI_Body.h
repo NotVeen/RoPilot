@@ -733,6 +733,7 @@ constexpr const char* UI_BODY = R"HTML(
                         <input
                             type="color"
                             id="setting-accent-color"
+                            value="#10b981"
                             style="
                                 cursor: pointer;
                                 background: var(--bg-card);
