@@ -2268,13 +2268,14 @@ input[type="range"]:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
+    padding: 7px 10px;
     font-size: 12px;
+    font-weight: 500;
     color: var(--text-main, #f0f6fc);
     cursor: pointer;
     user-select: none;
     border-radius: 6px;
-    transition: background 0.15s;
+    transition: all 0.15s ease;
 }
 
 .tile-dropdown-toggle:hover {
@@ -2282,11 +2283,56 @@ input[type="range"]:focus {
 }
 
 .tile-dropdown-toggle input[type="checkbox"] {
-    accent-color: var(--accent-color, #10b981);
+    appearance: none;
+    -webkit-appearance: none;
+    width: 32px;
+    height: 18px;
+    background: #232530;
+    border: 1.5px solid #333846;
+    border-radius: 20px;
+    position: relative;
     cursor: pointer;
+    outline: none;
     margin: 0;
-    width: 15px;
-    height: 15px;
+    flex-shrink: 0;
+    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tile-dropdown-toggle input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    top: 1.5px;
+    left: 2px;
+    background: #6b7280;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tile-dropdown-toggle:hover input[type="checkbox"]:not(:checked) {
+    border-color: #4a5063;
+    background: #282c3a;
+}
+
+.tile-dropdown-toggle:hover input[type="checkbox"]:not(:checked)::before {
+    background: #9ca3af;
+}
+
+.tile-dropdown-toggle input[type="checkbox"]:checked {
+    background: var(--accent-color, #10b981);
+    border-color: var(--accent-color, #10b981);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.tile-dropdown-toggle input[type="checkbox"]:checked::before {
+    transform: translateX(14px);
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 [data-theme="light"] .tile-dropdown-menu {
@@ -2313,5 +2359,31 @@ input[type="range"]:focus {
 
 [data-theme="light"] .tile-dropdown-toggle:hover {
     background: #f3f4f6 !important;
+}
+
+[data-theme="light"] .tile-dropdown-toggle input[type="checkbox"] {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+[data-theme="light"] .tile-dropdown-toggle input[type="checkbox"]::before {
+    background: #9ca3af;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .tile-dropdown-toggle:hover input[type="checkbox"]:not(:checked) {
+    border-color: #9ca3af;
+    background: #cbd5e1;
+}
+
+[data-theme="light"] .tile-dropdown-toggle input[type="checkbox"]:checked {
+    background: #10b981;
+    border-color: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="light"] .tile-dropdown-toggle input[type="checkbox"]:checked::before {
+    transform: translateX(14px);
+    background: #ffffff;
 }
 )CSS";
