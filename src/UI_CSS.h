@@ -127,7 +127,7 @@ constexpr const char* UI_CSS = R"CSS(
 }
 :root {
     --bg-deep: #0d0e12;
-    --bg-sidebar: #14151a;
+    --bg-sidebar: #0d0e12;
     --bg-card: #17181e;
     --bg-hover: #1b1c24;
     --bg-active: #22242e;
@@ -169,7 +169,7 @@ html {
 }
 body {
     --bg-deep: rgba(13, 14, 18, var(--bg-opacity));
-    --bg-sidebar: rgba(20, 21, 26, var(--bg-opacity));
+    --bg-sidebar: rgba(13, 14, 18, var(--bg-opacity));
     background-color: var(--bg-deep) !important;
 }
 body .card,
@@ -188,7 +188,7 @@ body .btn-add-account:hover {
 }
 [data-theme="light"] body {
     --bg-deep: rgba(248, 250, 252, var(--bg-opacity));
-    --bg-sidebar: rgba(255, 255, 255, var(--bg-opacity));
+    --bg-sidebar: rgba(248, 250, 252, var(--bg-opacity));
 }
 [data-theme="light"] body .card,
 [data-theme="light"] body #add-menu,
@@ -207,7 +207,7 @@ body .btn-add-account:hover {
 
 [data-theme="light"] {
     --bg-deep: #f8fafc;
-    --bg-sidebar: #ffffff;
+    --bg-sidebar: #f8fafc;
     --bg-card: #ffffff;
     --bg-hover: #f1f5f9;
     --bg-active: #e0e7ff;
@@ -493,13 +493,22 @@ input::-ms-reveal,
 input::-ms-clear {
     display: none;
 }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
 
 /* Titlebar */
 .titlebar {
     position: relative;
     height: 38px;
     background-color: var(--bg-deep);
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -582,7 +591,7 @@ input::-ms-clear {
 /* Layout */
 body.app-locked .titlebar {
     background: transparent !important;
-    border-bottom: 1px solid transparent !important;
+    border-bottom: none !important;
 }
 
 body.app-locked .app-container {
