@@ -635,7 +635,7 @@ body.app-locked .app-container {
     align-items: center;
     justify-content: space-between;
     height: 36px;
-    padding: 0 4px;
+    padding: 0 4px 0 10px;
     margin-bottom: 8px;
     cursor: default;
 }
@@ -643,7 +643,7 @@ body.app-locked .app-container {
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-size: 14px;
     font-weight: 700;
     color: var(--text-main);
@@ -652,11 +652,12 @@ body.app-locked .app-container {
     user-select: none;
 }
 
-.sidebar-brand-icon {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
+.sidebar-brand-icon,
+.sidebar-menu-icon {
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
+    color: var(--text-main);
 }
 
 .sidebar-toggle-btn {

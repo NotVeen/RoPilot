@@ -9,9 +9,9 @@
 - **Enhanced Anti-AFK**: Improved idle prevention that simulates benign keypresses without disrupting character positioning or Shift Lock.
 - **Window Grid Organizer**: Automatically tile Roblox windows with Auto Grid, Compact Mini Grid (200x200), or quick layout presets.
 - **Performance Analytics**: View aggregated stats across all active Roblox clients (total CPU, total RAM, instance count, and peak uptime).
-- **Crash Watchdog & Smart Auto-Rejoin**: Automatically detects unexpected Roblox crashes, error dialogs, or server disconnects and re-launches only the affected account back into the game after a configurable cooldown.
-- **Live In-Game Tracker**: Real-time detection and display of the active game name on Account Cards and Performance Analytics cards using official public Roblox APIs.
-- **Booking Low Server**: Group Launch feature where one scout account finds and books a low player server with sufficient capacity, and all other accounts in the group fill the same server.
+- **Crash Watchdog & Smart Auto-Rejoin**: Automatically detects crashes or disconnects and re-launches the affected account after a cooldown.
+- **Live Game Tracker**: Displays the current game name on Account and Analytics cards in real time.
+- **Booking Low Server**: Finds a low-player server with sufficient slots and fills it with all accounts in the group.
 
 ## 🐛 Bug Fixes
 - Fixed duplicate eye icon appearing in master password fields.
