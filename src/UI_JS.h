@@ -164,10 +164,11 @@ const translations = {
         desc_master_password: "Change your master password",
         btn_set_password: "Set Password",
         btn_change_password: "Change Password",
-        lbl_unlock_ropilot: "Unlock RoPilot",
+        lbl_welcome_ropilot: "Welcome to RoPilot",
+        lbl_unlock_ropilot: "Welcome to RoPilot",
         desc_unlock_ropilot: "Enter your master password to decrypt your accounts.",
         btn_unlock: "Unlock",
-        lbl_set_master_password: "Set Your Master Password",
+        lbl_set_master_password: "Welcome to RoPilot",
         desc_set_master_password: "Secure your accounts with a master password. This password will encrypt your local data",
         btn_save: "Save",
         placeholder_master_password: "Master Password",
@@ -427,10 +428,11 @@ const translations = {
         desc_master_password: "Ubah master password Anda",
         btn_set_password: "Atur Password",
         btn_change_password: "Ubah Password",
-        lbl_unlock_ropilot: "Buka Kunci RoPilot",
+        lbl_welcome_ropilot: "Selamat Datang di RoPilot",
+        lbl_unlock_ropilot: "Selamat Datang di RoPilot",
         desc_unlock_ropilot: "Masukkan master password Anda untuk mendekripsi akun.",
         btn_unlock: "Buka Kunci",
-        lbl_set_master_password: "Buat Master Password Anda",
+        lbl_set_master_password: "Selamat Datang di RoPilot",
         desc_set_master_password: "Amankan akun Anda dengan master password. Password ini akan mengenkripsi data lokal Anda",
         btn_save: "Simpan",
         placeholder_master_password: "Master Password",
@@ -2618,8 +2620,8 @@ if (window.chrome && window.chrome.webview) {
                         if (!window.isMasterPasswordVerified && !window.masterPasswordFadingOut) {
                             document.body.classList.add("app-locked");
                             document.getElementById("master-password-overlay").style.display = "flex";
-                            document.getElementById("mp-title").setAttribute("data-i18n", "lbl_unlock_ropilot");
-                            document.getElementById("mp-title").innerText = translations[lang]?.lbl_unlock_ropilot || "Unlock RoPilot";
+                            document.getElementById("mp-title").setAttribute("data-i18n", "lbl_welcome_ropilot");
+                            document.getElementById("mp-title").innerText = translations[lang]?.lbl_welcome_ropilot || "Welcome to RoPilot";
                             document.getElementById("mp-subtitle").setAttribute("data-i18n", "desc_unlock_ropilot");
                             document.getElementById("mp-subtitle").innerText = translations[lang]?.desc_unlock_ropilot || "Enter your master password to decrypt your accounts.";
                             document.getElementById("btn-mp-submit").setAttribute("data-i18n", "btn_unlock");
@@ -2642,8 +2644,8 @@ if (window.chrome && window.chrome.webview) {
                             }
                             document.body.classList.add("app-locked");
                             document.getElementById("master-password-overlay").style.display = "flex";
-                            document.getElementById("mp-title").setAttribute("data-i18n", "lbl_set_master_password");
-                            document.getElementById("mp-title").innerText = translations[lang]?.lbl_set_master_password || "Set Your Master Password";
+                            document.getElementById("mp-title").setAttribute("data-i18n", "lbl_welcome_ropilot");
+                            document.getElementById("mp-title").innerText = translations[lang]?.lbl_welcome_ropilot || "Welcome to RoPilot";
                             document.getElementById("mp-subtitle").setAttribute("data-i18n", "desc_set_master_password");
                             document.getElementById("mp-subtitle").innerText = translations[lang]?.desc_set_master_password || "Secure your accounts with a master password. This password will encrypt your local data";
                             document.getElementById("btn-mp-submit").setAttribute("data-i18n", "btn_save");

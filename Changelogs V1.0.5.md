@@ -17,4 +17,3 @@
 - Fixed launch failure when only a Private Server link was provided without a Place ID.
 - Fixed UI scaling affecting full-screen overlays like the unlock screen and modals.
 - Refined UI titlebar and sidebar background to seamlessly match #0d0e12 without titlebar separator line.
-- Removed up/down spinner arrows on numeric input fields (Rejoin Cooldown and Max Retries) for a cleaner UI.

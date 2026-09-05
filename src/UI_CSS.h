@@ -2207,10 +2207,10 @@ input[type="range"]:focus {
     pointer-events: none;
 }
 
-.mp-container h2 {
+.mp-container h2, #mp-title {
     margin: 0 0 10px 0;
     font-size: 24px;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
 }
 
