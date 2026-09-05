@@ -42,4 +42,6 @@ namespace RobloxAPI {
     UserInfo GetUserInfo(const std::string& cookie);
 
     bool ResolveLink(const std::string& cookie, const std::string& link, std::string& outPlaceId, std::string& outError);
+
+    std::string GetGameName(const std::string& placeId, const std::string& universeId = "", const std::string& cookie = "");
 }

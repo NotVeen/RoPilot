@@ -803,6 +803,17 @@ void ProcessWebMessage(const std::string& msg) {
                         std::string fillJs = "if(window.onPlaceIdAutoFilledOnLaunch) window.onPlaceIdAutoFilledOnLaunch('" + cookie + "', '" + resolvedPlaceId + "', '" + linkCode + "');";
                         PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(fillJs), 0);
                     }
+
+                    std::string targetPlaceId = !resolvedPlaceId.empty() ? resolvedPlaceId : placeId;
+                    if (!targetPlaceId.empty()) {
+                        std::thread([cookie, targetPlaceId]() {
+                            std::string gName = RobloxAPI::GetGameName(targetPlaceId, "", cookie);
+                            if (!gName.empty()) {
+                                g_accountManager.UpdateAccountGameName(cookie, gName);
+                                PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+                            }
+                        }).detach();
+                    }
                     
                     std::lock_guard<std::mutex> toastLock(g_toastMutex);
                     std::string successMsg = username + " launched successfully!";
@@ -1360,6 +1371,7 @@ void UpdateUI() {
         
         jAcc["CpuUsage"] = acc.Analytics.cpuUsage;
         jAcc["RamUsage"] = acc.Analytics.ramUsageMB;
+        jAcc["GameName"] = acc.GameName;
         if (acc.Analytics.hasLaunchTime) {
             auto now = std::chrono::system_clock::now();
             jAcc["RuntimeSeconds"] = std::chrono::duration_cast<std::chrono::seconds>(now - acc.Analytics.launchTime).count();
@@ -1607,6 +1619,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
 
         WatchdogManager::GetInstance().SetToastCallback([](const std::string& message, bool isError) {
             SendStatusMessage(message, isError);
+        });
+
+        WatchdogManager::GetInstance().SetGameDetectedCallback([](const std::string& cookie, const std::string& placeId, const std::string& universeId) {
+            std::thread([cookie, placeId, universeId]() {
+                std::string gName = RobloxAPI::GetGameName(placeId, universeId, cookie);
+                if (!gName.empty()) {
+                    g_accountManager.UpdateAccountGameName(cookie, gName);
+                    PostMessage(g_hWnd, WM_APP + 2, 0, 0);
+                }
+            }).detach();
         });
 
         g_accountManager.Load();

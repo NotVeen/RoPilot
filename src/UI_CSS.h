@@ -416,6 +416,16 @@ body .btn-add-account:hover {
     background-color: #2563eb !important;
 }
 
+[data-theme="light"] .game-tracker-badge {
+    background: rgba(22, 163, 74, 0.1) !important;
+    border-color: rgba(22, 163, 74, 0.28) !important;
+    color: #15803d !important;
+}
+
+[data-theme="light"] .game-tracker-badge svg {
+    color: #15803d !important;
+}
+
 [data-theme="light"] .avatar {
     background-color: #e5e7eb !important;
 }
@@ -937,6 +947,7 @@ body.app-locked .app-container {
     display: flex;
     align-items: center;
     gap: 12px;
+    padding-right: 28px;
 }
 
 .avatar {
@@ -1056,6 +1067,35 @@ body.app-locked .app-container {
 }
 .stat-value.red {
     color: var(--text-danger);
+}
+
+.game-tracker-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #4ade80;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 4px;
+    width: fit-content;
+    max-width: 100%;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.game-tracker-badge svg {
+    flex-shrink: 0;
+    color: #4ade80;
+}
+
+.game-tracker-badge .game-name-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .card-actions {

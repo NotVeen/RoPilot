@@ -26,6 +26,11 @@ void WatchdogManager::SetToastCallback(std::function<void(const std::string& mes
     m_toastCallback = callback;
 }
 
+void WatchdogManager::SetGameDetectedCallback(std::function<void(const std::string& cookie, const std::string& placeId, const std::string& universeId)> callback) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_gameDetectedCallback = callback;
+}
+
 void WatchdogManager::OnAccountLaunched(const std::string& cookie, const std::string& username, const std::string& userId, DWORD pid) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_deliberatelyStopped.erase(cookie);
@@ -249,6 +254,76 @@ bool WatchdogManager::CheckLogForDisconnect(AccountWatchdogState& state) {
                     text.find("Error code: 264") != std::string::npos) {
                     disconnectFound = true;
                 }
+            }
+        }
+
+        // Detect Place ID and Universe ID from log
+        std::string detectedPlaceId = "";
+        std::string detectedUniverseId = "";
+
+        size_t pPos = text.find("placeid:");
+        if (pPos != std::string::npos) {
+            size_t start = pPos + 8;
+            size_t end = text.find_first_not_of("0123456789", start);
+            detectedPlaceId = text.substr(start, (end != std::string::npos ? end : text.length()) - start);
+        }
+        if (detectedPlaceId.empty()) {
+            pPos = text.find("PlaceId%3a");
+            if (pPos != std::string::npos) {
+                size_t start = pPos + 10;
+                size_t end = text.find_first_not_of("0123456789", start);
+                detectedPlaceId = text.substr(start, (end != std::string::npos ? end : text.length()) - start);
+            }
+        }
+        if (detectedPlaceId.empty()) {
+            pPos = text.find("\"PlaceId\":");
+            if (pPos != std::string::npos) {
+                size_t start = pPos + 10;
+                size_t end = text.find_first_not_of("0123456789", start);
+                detectedPlaceId = text.substr(start, (end != std::string::npos ? end : text.length()) - start);
+            }
+        }
+        if (detectedPlaceId.empty()) {
+            pPos = text.find("! Joining game ");
+            if (pPos != std::string::npos) {
+                size_t plPos = text.find(" place ", pPos);
+                if (plPos != std::string::npos) {
+                    size_t start = plPos + 7;
+                    size_t end = text.find_first_not_of("0123456789", start);
+                    detectedPlaceId = text.substr(start, (end != std::string::npos ? end : text.length()) - start);
+                }
+            }
+        }
+
+        size_t uPos = text.find("universeid:");
+        if (uPos != std::string::npos) {
+            size_t start = uPos + 11;
+            size_t end = text.find_first_not_of("0123456789", start);
+            detectedUniverseId = text.substr(start, (end != std::string::npos ? end : text.length()) - start);
+        }
+        if (detectedUniverseId.empty()) {
+            uPos = text.find("UniverseId%3a");
+            if (uPos != std::string::npos) {
+                size_t start = uPos + 13;
+                size_t end = text.find_first_not_of("0123456789", start);
+                detectedUniverseId = text.substr(start, (end != std::string::npos ? end : text.length()) - start);
+            }
+        }
+        if (detectedUniverseId.empty()) {
+            uPos = text.find("\"UniverseId\":");
+            if (uPos != std::string::npos) {
+                size_t start = uPos + 13;
+                size_t end = text.find_first_not_of("0123456789", start);
+                detectedUniverseId = text.substr(start, (end != std::string::npos ? end : text.length()) - start);
+            }
+        }
+
+        if (!detectedPlaceId.empty() || !detectedUniverseId.empty()) {
+            auto cb = m_gameDetectedCallback;
+            if (cb) {
+                std::thread([cb, c = state.Cookie, p = detectedPlaceId, u = detectedUniverseId]() {
+                    cb(c, p, u);
+                }).detach();
             }
         }
     }

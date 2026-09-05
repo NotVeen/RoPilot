@@ -735,5 +735,125 @@ namespace RobloxAPI {
         return false;
     }
 
+    static std::unordered_map<std::string, std::string> s_gameNameCache;
+    static std::mutex s_gameNameMutex;
+
+    std::string GetGameName(const std::string& placeId, const std::string& universeId, const std::string& cookie) {
+        if (placeId.empty() && universeId.empty()) return "";
+
+        std::string cacheKey = !universeId.empty() ? ("u:" + universeId) : ("p:" + placeId);
+        {
+            std::lock_guard<std::mutex> lock(s_gameNameMutex);
+            auto it = s_gameNameCache.find(cacheKey);
+            if (it != s_gameNameCache.end() && !it->second.empty() && it->second != "[TITLE UNAVAILABLE]") {
+                return it->second;
+            }
+            if (!placeId.empty()) {
+                auto pit = s_gameNameCache.find("p:" + placeId);
+                if (pit != s_gameNameCache.end() && !pit->second.empty() && pit->second != "[TITLE UNAVAILABLE]") {
+                    return pit->second;
+                }
+            }
+        }
+
+        std::string gameName = "";
+
+        // 1. Try multiget-place-details with cookie or anonymous if placeId is known
+        if (!placeId.empty()) {
+            std::string path = "/v1/games/multiget-place-details?placeIds=" + placeId;
+            std::string res = HttpRequest(L"GET", L"games.roblox.com", s2ws(path), cookie);
+            try {
+                auto j = json::parse(res);
+                if (j.is_array() && !j.empty()) {
+                    std::string n = j[0].value("name", "");
+                    if (!n.empty() && n != "[TITLE UNAVAILABLE]") {
+                        gameName = n;
+                    }
+                }
+            } catch (...) {}
+        }
+
+        // 2. Resolve universeId if needed
+        std::string resolvedUniverseId = universeId;
+        if (gameName.empty() && resolvedUniverseId.empty() && !placeId.empty()) {
+            std::string path = "/universes/v1/places/" + placeId + "/universe";
+            std::string res = HttpRequest(L"GET", L"apis.roblox.com", s2ws(path), cookie);
+            try {
+                auto j = json::parse(res);
+                if (j.contains("universeId") && j["universeId"].is_number()) {
+                    resolvedUniverseId = std::to_string(j["universeId"].get<long long>());
+                }
+            } catch (...) {}
+        }
+
+        // 3. Try /v1/games?universeIds=
+        if (gameName.empty() && !resolvedUniverseId.empty()) {
+            std::string gamePath = "/v1/games?universeIds=" + resolvedUniverseId;
+            std::string gameRes = HttpRequest(L"GET", L"games.roblox.com", s2ws(gamePath), cookie);
+            try {
+                auto gj = json::parse(gameRes);
+                if (gj.contains("data") && gj["data"].is_array() && !gj["data"].empty()) {
+                    std::string n = gj["data"][0].value("name", "");
+                    if (!n.empty() && n != "[TITLE UNAVAILABLE]") {
+                        gameName = n;
+                    }
+                }
+            } catch (...) {}
+        }
+
+        // 4. Fallback: Parse canonical slug from www.roblox.com/games/{placeId}
+        // Handles 17+, unlisted, or content-restricted places where Roblox APIs return [TITLE UNAVAILABLE]
+        if (gameName.empty() && !placeId.empty()) {
+            std::string path = "/games/" + placeId;
+            std::string html = HttpRequest(L"GET", L"www.roblox.com", s2ws(path), cookie);
+            size_t pos = html.find("og:url");
+            if (pos != std::string::npos) {
+                size_t cPos = html.find("content=\"", pos);
+                if (cPos != std::string::npos && cPos < pos + 80) {
+                    cPos += 9;
+                    size_t endPos = html.find("\"", cPos);
+                    if (endPos != std::string::npos) {
+                        std::string url = html.substr(cPos, endPos - cPos);
+                        size_t pIndex = url.find(placeId + "/");
+                        if (pIndex != std::string::npos) {
+                            std::string slug = url.substr(pIndex + placeId.length() + 1);
+                            size_t q = slug.find('?');
+                            if (q != std::string::npos) slug = slug.substr(0, q);
+                            for (char& ch : slug) {
+                                if (ch == '-') ch = ' ';
+                            }
+                            size_t p20 = 0;
+                            while ((p20 = slug.find("%20", p20)) != std::string::npos) {
+                                slug.replace(p20, 3, " ");
+                                p20 += 1;
+                            }
+                            if (!slug.empty() && slug != "unnamed") {
+                                gameName = slug;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Never ever return or store [TITLE UNAVAILABLE]
+        if (gameName == "[TITLE UNAVAILABLE]") {
+            gameName = "";
+        }
+
+        if (!gameName.empty()) {
+            std::lock_guard<std::mutex> lock(s_gameNameMutex);
+            s_gameNameCache[cacheKey] = gameName;
+            if (!resolvedUniverseId.empty()) {
+                s_gameNameCache["u:" + resolvedUniverseId] = gameName;
+            }
+            if (!placeId.empty()) {
+                s_gameNameCache["p:" + placeId] = gameName;
+            }
+        }
+
+        return gameName;
+    }
+
 }
 

@@ -322,12 +322,23 @@ void AccountManager::UpdateAccountProcess(const std::string& cookie, int status,
             }
             if (status == 0) {
                 acc.ActiveAntiAFK = false;
+                acc.GameName = "";
                 acc.Analytics.hasLaunchTime = false;
                 acc.Analytics.cpuUsage = 0.0;
                 acc.Analytics.ramUsageMB = 0.0;
                 acc.Analytics.lastSystemTime = 0;
                 acc.Analytics.lastProcessTime = 0;
             }
+            break;
+        }
+    }
+}
+
+void AccountManager::UpdateAccountGameName(const std::string& cookie, const std::string& gameName) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto& acc : m_Accounts) {
+        if (acc.Cookie == cookie) {
+            acc.GameName = gameName;
             break;
         }
     }

@@ -41,6 +41,7 @@ struct Account {
     bool ActiveAntiAFK = false;
     std::string FFlagOptimization = "Default";
     AnalyticsState Analytics;
+    std::string GameName = "";
 };
 
 class AccountManager {
@@ -65,6 +66,7 @@ public:
     void RenameGroupConfig(const std::string& oldName, const std::string& newName);
 
     void UpdateAccountProcess(const std::string& cookie, int status, DWORD processId);
+    void UpdateAccountGameName(const std::string& cookie, const std::string& gameName);
     void SetActiveAntiAFK(const std::string& cookie, bool active);
     void UpdateAccountAnalytics(const std::string& cookie, const AnalyticsState& analytics);
     void UpdateAccountInfo(const std::string& cookie, const RobloxAPI::UserInfo& info);

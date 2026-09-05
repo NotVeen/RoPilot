@@ -35,6 +35,7 @@ public:
     void SetLaunchCallback(std::function<void(const std::string& cookie)> callback);
     void SetStatusUpdateCallback(std::function<void(const std::string& cookie, int status, int countdown)> callback);
     void SetToastCallback(std::function<void(const std::string& message, bool isError)> callback);
+    void SetGameDetectedCallback(std::function<void(const std::string& cookie, const std::string& placeId, const std::string& universeId)> callback);
 
     void OnAccountLaunched(const std::string& cookie, const std::string& username, const std::string& userId, DWORD pid);
     void OnAccountJoinedGame(const std::string& cookie);
@@ -67,5 +68,6 @@ private:
     std::function<void(const std::string& cookie)> m_launchCallback;
     std::function<void(const std::string& cookie, int status, int countdown)> m_statusUpdateCallback;
     std::function<void(const std::string& message, bool isError)> m_toastCallback;
+    std::function<void(const std::string& cookie, const std::string& placeId, const std::string& universeId)> m_gameDetectedCallback;
     int m_tickCounter = 0;
 };

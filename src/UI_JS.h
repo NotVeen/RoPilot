@@ -622,7 +622,7 @@ window.renderAccounts = function (accounts) {
         }
 
         let accountsStr = JSON.stringify(
-            accounts.map((a) => ({ id: a.Id, uid: a.UserId, stat: a.Status, grp: a.Group, pid: a.ProcessId, cd: a.RejoinCountdown })),
+            accounts.map((a) => ({ id: a.Id, uid: a.UserId, stat: a.Status, grp: a.Group, pid: a.ProcessId, cd: a.RejoinCountdown, gm: a.GameName })),
         );
         let groupsStr = JSON.stringify(currentGroups);
         let collapsedStr = JSON.stringify(Array.from(collapsedGroups));
@@ -663,6 +663,32 @@ window.renderAccounts = function (accounts) {
                             ? acc.ProcessId.toString()
                             : translations[document.getElementById("setting-language")?.value || "en"]?.lbl_none ||
                               "None";
+                }
+                let gameBadge = document.getElementById(`game-tracker-${userId}`);
+                if (gameBadge) {
+                    if (acc.GameName && (acc.Status === 2 || acc.Status === 3)) {
+                        gameBadge.style.display = "inline-flex";
+                        let textSpan = gameBadge.querySelector(".game-name-text");
+                        if (textSpan && textSpan.innerText !== acc.GameName) {
+                            textSpan.innerText = acc.GameName;
+                            textSpan.title = acc.GameName;
+                        }
+                    } else {
+                        gameBadge.style.display = "none";
+                    }
+                }
+                let analyticsGameBadge = document.getElementById(`analytics-game-tracker-${userId}`);
+                if (analyticsGameBadge) {
+                    if (acc.GameName && (acc.Status === 2 || acc.Status === 3)) {
+                        analyticsGameBadge.style.display = "inline-flex";
+                        let textSpan = analyticsGameBadge.querySelector(".game-name-text");
+                        if (textSpan && textSpan.innerText !== acc.GameName) {
+                            textSpan.innerText = acc.GameName;
+                            textSpan.title = acc.GameName;
+                        }
+                    } else {
+                        analyticsGameBadge.style.display = "none";
+                    }
                 }
                 let cpuBar = document.getElementById(`analytics-cpu-bar-${userId}`);
                 if (cpuBar) {
@@ -839,6 +865,10 @@ window.renderAccounts = function (accounts) {
                                     <div class="user-info">
                                         <span class="username">${document.getElementById("setting-hide-identity") && document.getElementById("setting-hide-identity").checked ? "******" : username}</span>
                                         <span class="userid">${document.getElementById("setting-hide-identity") && document.getElementById("setting-hide-identity").checked ? "******" : userId}</span>
+                                        <div class="game-tracker-badge" id="game-tracker-${userId}" style="${(acc.GameName && (acc.Status === 2 || acc.Status === 3)) ? 'display: inline-flex;' : 'display: none;'}">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg>
+                                            <span class="game-name-text" title="${escapeHtml(acc.GameName || '')}">${escapeHtml(acc.GameName || '')}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -1004,6 +1034,10 @@ window.renderAccounts = function (accounts) {
                                         <div class="user-info">
                                             <span class="username">${document.getElementById("setting-hide-identity") && document.getElementById("setting-hide-identity").checked ? "******" : escapeHtml(acc.Username)}</span>
                                             <span class="userid">PID: ${acc.ProcessId || "Loading"}</span>
+                                            <div class="game-tracker-badge" id="analytics-game-tracker-${acc.Id || acc.UserId}" style="${(acc.GameName && (acc.Status === 2 || acc.Status === 3)) ? 'display: inline-flex;' : 'display: none;'}">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="2"></rect></svg>
+                                                <span class="game-name-text" title="${escapeHtml(acc.GameName || '')}">${escapeHtml(acc.GameName || '')}</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 12px;">
