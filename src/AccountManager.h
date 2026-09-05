@@ -21,6 +21,7 @@ struct GroupLaunchConfig {
     std::string PrivateServerLink = "";
     bool ForceOverride = false;
     bool JoinLowServer = false;
+    bool BookingLowServer = false;
     bool LowestGraphics = false;
     bool AntiAFK = false;
     std::string FFlagOptimization = "Default";

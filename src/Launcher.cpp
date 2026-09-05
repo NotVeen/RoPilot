@@ -373,7 +373,7 @@ namespace Launcher {
                 }
             } else {
                 if (!jobId.empty()) {
-                    uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGameJob%26placeId%3D" + localPlaceId + "%26gameId%3D" + jobId;
+                    uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGameJob%26placeId%3D" + localPlaceId + "%26gameJobId%3D" + jobId + "%26isPlayTogetherGame%3Dfalse";
                 } else {
                     uri += "+placelauncherurl:https%3A%2F%2Fassetgame.roblox.com%2Fgame%2FPlaceLauncher.ashx%3Frequest%3DRequestGame%26placeId%3D" + localPlaceId + "%26isPlayTogetherGame%3Dfalse";
                 }

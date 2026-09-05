@@ -108,6 +108,7 @@ void AccountManager::Load(const std::string& password, const std::string& salt) 
                         cfg.PrivateServerLink = gObj.value("PrivateServerLink", "");
                         cfg.ForceOverride = gObj.value("ForceOverride", false);
                         cfg.JoinLowServer = gObj.value("JoinLowServer", false);
+                        cfg.BookingLowServer = gObj.value("BookingLowServer", false);
                         cfg.LowestGraphics = gObj.value("LowestGraphics", false);
                         cfg.AntiAFK = gObj.value("AntiAFK", false);
                         cfg.FFlagOptimization = gObj.value("FFlagOptimization", "Default");
@@ -186,6 +187,7 @@ void AccountManager::Save(const std::string& password, const std::string& salt) 
         item["PrivateServerLink"] = pair.second.PrivateServerLink;
         item["ForceOverride"] = pair.second.ForceOverride;
         item["JoinLowServer"] = pair.second.JoinLowServer;
+        item["BookingLowServer"] = pair.second.BookingLowServer;
         item["LowestGraphics"] = pair.second.LowestGraphics;
         item["AntiAFK"] = pair.second.AntiAFK;
         item["FFlagOptimization"] = pair.second.FFlagOptimization;

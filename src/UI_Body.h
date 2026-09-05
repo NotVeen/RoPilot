@@ -4173,6 +4173,18 @@ constexpr const char* UI_BODY = R"HTML(
                     </label>
                 </div>
 
+                <!-- Booking Low Server -->
+                <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                    <div>
+                        <div style="font-size: 13px; font-weight: 500; color: var(--text-main);" data-i18n="lbl_booking_low_server">Booking Low Server</div>
+                        <div style="font-size: 11px; color: var(--text-muted);" data-i18n="desc_booking_low_server">First account finds the lowest ping & player server, and other accounts fill the same server</div>
+                    </div>
+                    <label class="switch" style="margin-left: 12px; flex-shrink: 0;">
+                        <input type="checkbox" id="group-setup-booking-low-server" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
                 <!-- Lowest Graphics -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
                     <div>

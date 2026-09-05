@@ -710,6 +710,7 @@ void ProcessWebMessage(const std::string& msg) {
             std::string cookie = j.value("cookie", "");
             std::string placeId = j.value("placeId", "");
             std::string linkCode = j.value("linkCode", "");
+            std::string passedJobId = j.value("jobId", "");
             bool forceRejoin = j.value("forceRejoin", false);
             bool joinLowServer = j.value("joinLowServer", false);
             bool lowestGraphics = j.value("lowestGraphics", false);
@@ -751,12 +752,12 @@ void ProcessWebMessage(const std::string& msg) {
             g_accountManager.UpdateAccountProcess(cookie, 1, 0);
             PostMessage(g_hWnd, WM_APP + 2, 0, 0);
 
-            std::thread([cookie, placeId, linkCode, username, joinLowServer, lowestGraphics, fflagOpt]() {
+            std::thread([cookie, placeId, linkCode, username, joinLowServer, lowestGraphics, fflagOpt, passedJobId]() {
                 static std::mutex launchMutex;
                 std::lock_guard<std::mutex> lock(launchMutex);
                 
-                std::string jobId = "";
-                if (joinLowServer && !placeId.empty()) {
+                std::string jobId = passedJobId;
+                if (jobId.empty() && joinLowServer && !placeId.empty()) {
                     jobId = RobloxAPI::GetLowestServer(placeId, cookie);
                 }
                 
@@ -910,12 +911,28 @@ void ProcessWebMessage(const std::string& msg) {
                 cfg.PrivateServerLink = j.value("psLink", "");
                 cfg.ForceOverride = j.value("forceOverride", false);
                 cfg.JoinLowServer = j.value("joinLowServer", false);
+                cfg.BookingLowServer = j.value("bookingLowServer", false);
                 cfg.LowestGraphics = j.value("lowestGraphics", false);
                 cfg.AntiAFK = j.value("antiAfk", false);
                 cfg.FFlagOptimization = j.value("fflagOptimization", "Default");
                 g_accountManager.SetGroupConfig(groupName, cfg);
                 UpdateUI();
             }
+        }
+        else if (action == "get_lowest_server") {
+            std::string requestId = j.value("requestId", "");
+            std::string placeId = j.value("placeId", "");
+            std::string cookie = j.value("cookie", "");
+            int minSlots = j.value("minSlots", 1);
+            std::thread([requestId, placeId, cookie, minSlots]() {
+                std::string serverId = RobloxAPI::GetLowestServer(placeId, cookie, minSlots);
+                json resp;
+                resp["action"] = "lowest_server_result";
+                resp["requestId"] = requestId;
+                resp["jobId"] = serverId;
+                std::string js = "if(window.onLowestServerResult){window.onLowestServerResult(" + resp.dump() + ");}";
+                PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+            }).detach();
         }
         else if (action == "rename_group") {
             std::string oldName = j.value("oldName", "");
@@ -1396,6 +1413,7 @@ void UpdateUI() {
         item["PrivateServerLink"] = pair.second.PrivateServerLink;
         item["ForceOverride"] = pair.second.ForceOverride;
         item["JoinLowServer"] = pair.second.JoinLowServer;
+        item["BookingLowServer"] = pair.second.BookingLowServer;
         item["LowestGraphics"] = pair.second.LowestGraphics;
         item["AntiAFK"] = pair.second.AntiAFK;
         item["FFlagOptimization"] = pair.second.FFlagOptimization;

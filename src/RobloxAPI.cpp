@@ -590,7 +590,7 @@ namespace RobloxAPI {
         return true;
     }
 
-    std::string GetLowestServer(const std::string& placeId, const std::string& cookie) {
+    std::string GetLowestServer(const std::string& placeId, const std::string& cookie, int minFreeSlots) {
         if (placeId.empty()) return "";
         std::string path = "/v1/games/" + placeId + "/servers/Public?sortOrder=Asc&limit=100";
         std::string response = HttpRequest(L"GET", L"games.roblox.com", s2ws(path), cookie);
@@ -609,8 +609,9 @@ namespace RobloxAPI {
                         int maxPlayers = server["maxPlayers"].get<int>();
                         int ping = server.value("ping", 999999);
 
-                        // Ignore full servers
-                        if (playing >= maxPlayers) continue;
+                        // Ensure sufficient free slots
+                        int freeSlots = maxPlayers - playing;
+                        if (freeSlots < minFreeSlots) continue;
 
                         if (playing < lowestPlaying || (playing == lowestPlaying && ping < bestPing)) {
                             lowestPlaying = playing;
@@ -619,7 +620,25 @@ namespace RobloxAPI {
                         }
                     }
                 }
-                return bestServerId;
+
+                if (!bestServerId.empty()) return bestServerId;
+
+                // Fallback: If no server has minFreeSlots, pick the one with most free slots
+                if (minFreeSlots > 1) {
+                    int maxFree = 0;
+                    for (const auto& server : j["data"]) {
+                        if (server.contains("id") && server.contains("playing") && server.contains("maxPlayers")) {
+                            int playing = server["playing"].get<int>();
+                            int maxPlayers = server["maxPlayers"].get<int>();
+                            int freeSlots = maxPlayers - playing;
+                            if (freeSlots > maxFree) {
+                                maxFree = freeSlots;
+                                bestServerId = server["id"].get<std::string>();
+                            }
+                        }
+                    }
+                    return bestServerId;
+                }
             }
         } catch (...) {
             // Parsing error

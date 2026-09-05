@@ -70,6 +70,12 @@ const translations = {
         lbl_join_low_server: "Join Low Server",
         desc_join_low_server:
             "Automatically finds and joins a public server with the lowest player count and best ping",
+        lbl_booking_low_server: "Booking Low Server",
+        desc_booking_low_server:
+            "First account finds the lowest ping & player server, and other accounts fill the same server",
+        toast_booking_low_server: "Finding and booking the lowest server for group {0}...",
+        toast_booking_success: "Server booked! Launching {0} accounts to the same server...",
+        toast_booking_fallback: "Could not find a server with enough slots, launching normally...",
         lbl_lowest_graphics: "Lowest Graphics",
         desc_lowest_graphics: "Automatically sets graphics quality to level 1 for maximum performance. Sets to automatic when turned off",
         lbl_anti_afk: "Anti-AFK",
@@ -338,6 +344,12 @@ const translations = {
         lbl_join_low_server: "Bergabung ke Server Sepi",
         desc_join_low_server:
             "Secara otomatis mencari dan bergabung ke server publik dengan pemain paling sedikit dan ping terbaik",
+        lbl_booking_low_server: "Booking Low Server",
+        desc_booking_low_server:
+            "Akun pertama mencari server dengan pemain tersedikit dan ping terbaik, lalu akun lain di grup akan mengisi server yang sama",
+        toast_booking_low_server: "Mencari dan mem-booking server terendah untuk grup {0}...",
+        toast_booking_success: "Server berhasil dibooking! Meluncurkan {0} akun ke server yang sama...",
+        toast_booking_fallback: "Tidak ditemukan server dengan slot mencukupi, meluncurkan secara standar...",
         lbl_lowest_graphics: "Grafik Terendah",
         desc_lowest_graphics: "Secara otomatis menyetel kualitas grafik ke tingkat 1 untuk performa maksimum. Akan kembali ke otomatis jika opsi ini dimatikan",
         lbl_anti_afk: "Anti-AFK",
@@ -1245,7 +1257,40 @@ window.updateAccounts = function (jsonStr) {
     }
 };
 
-window.launchAccount = function (cookie, username, btnElement) {
+window._lowestServerCallbacks = {};
+window.getLowestServer = function (placeId, cookie, minSlots) {
+    return new Promise((resolve) => {
+        let reqId = "req_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5);
+        if (!window._lowestServerCallbacks) window._lowestServerCallbacks = {};
+        window._lowestServerCallbacks[reqId] = resolve;
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(JSON.stringify({
+                action: "get_lowest_server",
+                requestId: reqId,
+                placeId: placeId,
+                cookie: cookie,
+                minSlots: minSlots || 1
+            }));
+        } else {
+            resolve("");
+        }
+        setTimeout(() => {
+            if (window._lowestServerCallbacks && window._lowestServerCallbacks[reqId]) {
+                delete window._lowestServerCallbacks[reqId];
+                resolve("");
+            }
+        }, 10000);
+    });
+};
+
+window.onLowestServerResult = function (data) {
+    if (data && data.requestId && window._lowestServerCallbacks && window._lowestServerCallbacks[data.requestId]) {
+        window._lowestServerCallbacks[data.requestId](data.jobId || "");
+        delete window._lowestServerCallbacks[data.requestId];
+    }
+};
+
+window.launchAccount = function (cookie, username, btnElement, passedJobId) {
     if (btnElement) {
         btnElement.innerHTML =
             '<svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>';
@@ -1323,7 +1368,8 @@ window.launchAccount = function (cookie, username, btnElement) {
             cookie: cookie,
             placeId: gameId,
             linkCode: psLink,
-            joinLowServer: joinLowServer,
+            jobId: passedJobId || "",
+            joinLowServer: passedJobId ? false : joinLowServer,
             lowestGraphics: lowestGraphics,
             antiAfk: antiAfk,
             fflagOptimization: fflagOpt,
@@ -1367,7 +1413,7 @@ window.launchAllAccounts = function () {
     }
 };
 
-window.launchGroupAccounts = function(groupName) {
+window.launchGroupAccounts = async function (groupName) {
     let globalPlaceIdInput = document.getElementById("global-accounts-game-id");
     let globalPsLinkInput = document.getElementById("global-accounts-ps-link");
     let globalGameId = globalPlaceIdInput ? globalPlaceIdInput.value.trim() : "";
@@ -1375,33 +1421,89 @@ window.launchGroupAccounts = function(groupName) {
     let skippedAny = false;
     let launchedAny = false;
 
-    currentAccounts.forEach(acc => {
-        if (acc.Group === groupName) {
-            if (acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3) {
-                let gcfg = (groupName && currentGroupConfigs && currentGroupConfigs[groupName]) ? currentGroupConfigs[groupName] : null;
-                let hasGroupTarget = !!(gcfg && (gcfg.PlaceId || gcfg.PrivateServerLink));
-                let hasIndividualTarget = !!(acc.PlaceId || acc.PrivateServerLink);
-                let hasGlobalTarget = !!(globalGameId || globalPsLink);
-                let hasTarget = hasIndividualTarget || hasGroupTarget || hasGlobalTarget;
+    let lang = document.getElementById("setting-language")?.value || "en";
+    let dict = translations[lang] || translations["en"];
 
-                if (!hasTarget) {
-                    skippedAny = true;
-                    return;
-                }
-                launchedAny = true;
-                window.launchAccount(acc.Cookie, acc.Username, document.getElementById(`launch-${acc.Id || acc.UserId || acc.Cookie}`));
-            }
+    let gcfg = (groupName && currentGroupConfigs && currentGroupConfigs[groupName]) ? currentGroupConfigs[groupName] : null;
+
+    let groupAccs = currentAccounts.filter((acc) => acc.Group === groupName && acc.Status !== 1 && acc.Status !== 2 && acc.Status !== 3);
+    if (groupAccs.length === 0) return;
+
+    let eligibleAccounts = [];
+    groupAccs.forEach((acc) => {
+        let hasGroupTarget = !!(gcfg && (gcfg.PlaceId || gcfg.PrivateServerLink));
+        let hasIndividualTarget = !!(acc.PlaceId || acc.PrivateServerLink);
+        let hasGlobalTarget = !!(globalGameId || globalPsLink);
+        let hasTarget = hasIndividualTarget || hasGroupTarget || hasGlobalTarget;
+
+        if (!hasTarget) {
+            skippedAny = true;
+        } else {
+            eligibleAccounts.push(acc);
         }
     });
 
-    if (skippedAny) {
-        let lang = document.getElementById("setting-language")?.value || "en";
-        let dict = translations[lang] || translations["en"];
-        if (!launchedAny) {
+    if (eligibleAccounts.length === 0) {
+        if (skippedAny) {
             window.showStatus(dict.toast_global_placeid_empty || "You need to fill in the Place ID/Private Server Link globally or individually first!", true);
-        } else {
-            window.showStatus(dict.toast_skipped_accounts || "Some accounts were skipped because they don't have a Place ID/Private Server Link setup.", true);
         }
+        return;
+    }
+
+    let isBooking = !!(gcfg && gcfg.BookingLowServer);
+    let commonPlaceId = "";
+    let isPsLink = false;
+
+    if (isBooking) {
+        if (gcfg && gcfg.ForceOverride && (gcfg.PlaceId || gcfg.PrivateServerLink)) {
+            commonPlaceId = gcfg.PlaceId || "";
+            isPsLink = !!gcfg.PrivateServerLink;
+        } else if (gcfg && (gcfg.PlaceId || gcfg.PrivateServerLink)) {
+            commonPlaceId = gcfg.PlaceId || "";
+            isPsLink = !!gcfg.PrivateServerLink;
+        } else if (globalGameId || globalPsLink) {
+            commonPlaceId = globalGameId;
+            isPsLink = !!globalPsLink;
+        } else if (eligibleAccounts[0]) {
+            commonPlaceId = eligibleAccounts[0].PlaceId || "";
+            isPsLink = !!eligibleAccounts[0].PrivateServerLink;
+        }
+    }
+
+    let bookedJobId = "";
+    if (isBooking && commonPlaceId && !isPsLink && eligibleAccounts.length > 0) {
+        let scout = eligibleAccounts[0];
+        let toastMsg = (dict.toast_booking_low_server || "Finding and booking the lowest server for group {0}...").replace("{0}", groupName);
+        window.showStatus(toastMsg, false);
+
+        try {
+            bookedJobId = await window.getLowestServer(commonPlaceId, scout.Cookie, eligibleAccounts.length);
+        } catch (e) {
+            console.error("Booking error:", e);
+        }
+
+        if (bookedJobId) {
+            let successMsg = (dict.toast_booking_success || "Server booked! Launching {0} accounts to the same server...").replace("{0}", eligibleAccounts.length);
+            window.showStatus(successMsg, false);
+        } else {
+            let fallbackMsg = dict.toast_booking_fallback || "Could not find a server with enough slots, launching normally...";
+            window.showStatus(fallbackMsg, true);
+        }
+    }
+
+    for (let i = 0; i < eligibleAccounts.length; i++) {
+        let acc = eligibleAccounts[i];
+        let btn = document.getElementById(`launch-${acc.Id || acc.UserId || acc.Cookie}`);
+        window.launchAccount(acc.Cookie, acc.Username, btn, bookedJobId || "");
+        launchedAny = true;
+
+        if (i < eligibleAccounts.length - 1) {
+            await new Promise((r) => setTimeout(r, 2000));
+        }
+    }
+
+    if (skippedAny && launchedAny) {
+        window.showStatus(dict.toast_skipped_accounts || "Some accounts were skipped because they don't have a Place ID/Private Server Link setup.", true);
     }
 };
 
@@ -1984,6 +2086,11 @@ window.showStatus = function (msg, isError) {
                 }
             }
         }
+    }
+
+    // Limit active toasts to at most 3 at a time to prevent flooding
+    while (container.children.length >= 3) {
+        container.removeChild(container.firstElementChild);
     }
 
     let toast = document.createElement("div");
@@ -4675,6 +4782,8 @@ window.openGroupLaunchSetupModal = function(groupName) {
     }
     if (forceOverrideInput) forceOverrideInput.checked = !!cfg.ForceOverride;
     if (joinLowServerInput) joinLowServerInput.checked = !!cfg.JoinLowServer;
+    let bookingLowServerInput = document.getElementById("group-setup-booking-low-server");
+    if (bookingLowServerInput) bookingLowServerInput.checked = !!cfg.BookingLowServer;
     if (lowestGraphicsInput) lowestGraphicsInput.checked = !!cfg.LowestGraphics;
     if (antiAfkInput) antiAfkInput.checked = !!cfg.AntiAFK;
     let fflagVal = cfg.FFlagOptimization || "Default";
@@ -4697,6 +4806,7 @@ window.saveCurrentGroupSetup = function () {
     let psLink = document.getElementById("group-setup-ps-link")?.value.trim() || "";
     let forceOverride = document.getElementById("group-setup-force-override")?.checked || false;
     let joinLowServer = document.getElementById("group-setup-join-low-server")?.checked || false;
+    let bookingLowServer = document.getElementById("group-setup-booking-low-server")?.checked || false;
     let lowestGraphics = document.getElementById("group-setup-lowest-graphics")?.checked || false;
     let antiAfk = document.getElementById("group-setup-anti-afk")?.checked || false;
     let fflagOpt = document.getElementById("group-setup-fflag")?.value || "Default";
@@ -4706,6 +4816,7 @@ window.saveCurrentGroupSetup = function () {
         PrivateServerLink: psLink,
         ForceOverride: forceOverride,
         JoinLowServer: joinLowServer,
+        BookingLowServer: bookingLowServer,
         LowestGraphics: lowestGraphics,
         AntiAFK: antiAfk,
         FFlagOptimization: fflagOpt
@@ -4722,6 +4833,7 @@ window.saveCurrentGroupSetup = function () {
             psLink: psLink,
             forceOverride: forceOverride,
             joinLowServer: joinLowServer,
+            bookingLowServer: bookingLowServer,
             lowestGraphics: lowestGraphics,
             antiAfk: antiAfk,
             fflagOptimization: fflagOpt
@@ -4732,6 +4844,7 @@ window.saveCurrentGroupSetup = function () {
 document.getElementById("group-setup-place-id")?.addEventListener("input", window.saveCurrentGroupSetup);
 document.getElementById("group-setup-force-override")?.addEventListener("change", window.saveCurrentGroupSetup);
 document.getElementById("group-setup-join-low-server")?.addEventListener("change", window.saveCurrentGroupSetup);
+document.getElementById("group-setup-booking-low-server")?.addEventListener("change", window.saveCurrentGroupSetup);
 document.getElementById("group-setup-lowest-graphics")?.addEventListener("change", window.saveCurrentGroupSetup);
 document.getElementById("group-setup-anti-afk")?.addEventListener("change", window.saveCurrentGroupSetup);
 

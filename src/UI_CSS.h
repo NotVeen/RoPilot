@@ -1267,29 +1267,6 @@ body.app-locked .app-container {
     border-color: var(--btn-danger-hover);
 }
 
-/* Toast */
-.toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background-color: #333;
-    color: #fff;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-weight: 500;
-    font-size: 14px;
-    transform: translateY(100px);
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    border: 1px solid #444;
-}
-
-.toast.show {
-    transform: translateY(0);
-    opacity: 1;
-}
-
 /* Empty State */
 .empty-state {
     grid-column: 1 / -1;
@@ -1522,38 +1499,65 @@ body.is-dragging-card .card {
     bottom: 24px;
     right: 24px;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
+    flex-direction: column-reverse;
+    gap: 8px;
     z-index: 999999;
     pointer-events: none;
+    max-height: calc(100vh - 48px);
 }
 
 .toast {
-    background: #111111;
+    position: relative;
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     color: var(--text-main);
-    padding: 12px 16px;
-    border-radius: 12px;
+    padding: 10px 16px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     transform: translateX(120%);
-    transition: transform 0.3s ease;
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
     pointer-events: auto;
+    max-width: 380px;
+    word-break: break-word;
 }
 
 .toast.show {
     transform: translateX(0);
+    opacity: 1;
 }
 
 .toast.error {
-    background: #2a1111;
-    border: 1px solid #4a1a1a;
+    background: #201315;
+    border: 1px solid #4a1d24;
 }
 
 .toast.success {
-    background: #112a1a;
-    border: 1px solid #1a4a2a;
+    background: #102117;
+    border: 1px solid #1a452a;
+}
+
+[data-theme="light"] .toast {
+    background: #ffffff;
+    border-color: var(--border-color);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .toast.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+[data-theme="light"] .toast.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
 }
 
 /* Toggle Switch CSS */
