@@ -10,9 +10,10 @@
 - **Window Grid Organizer**: Automatically tile Roblox windows with Auto Grid, Compact Mini Grid (200x200), or quick layout presets.
 - **Performance Analytics**: View aggregated stats across all active Roblox clients (total CPU, total RAM, instance count, and peak uptime).
 - **Crash Watchdog & Smart Auto-Rejoin**: Automatically detects crashes or disconnects and re-launches the affected account after a cooldown (you can toggle it in settings).
-- **Discord Webhook Alerts**: Send real-time alerts to your Discord channel for crash watchdog events and smart auto-rejoin progress with player headshot avatars and game info.
+- **Discord Webhook Alerts**: Send real-time alerts to your Discord channel for crash watchdog events and smart auto-rejoin progress.
 - **Live Game Tracker**: Displays the current game name on Account and Analytics cards in real time.
 - **Booking Low Server**: Finds a low-player server with sufficient slots and fills it with all accounts in the group.
+- **Place ID Auto-Extract**: Automatically parses and extracts the numeric Place ID when pasting full Roblox game URLs into Place ID input fields.
 
 ## 🐛 Bug Fixes
 - Fixed duplicate eye icon appearing in master password fields.

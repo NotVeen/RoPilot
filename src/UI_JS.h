@@ -3534,6 +3534,17 @@ function calculateAccountAge(createdIsoStr) {
         return isId ? `${diffDays} Hari` : `${diffDays} Day${diffDays !== 1 ? "s" : ""}`;
     }
 }
+window.extractPlaceId = function (val) {
+    if (!val || typeof val !== "string") return "";
+    let trimmed = val.trim();
+    if (!trimmed) return "";
+    let match = trimmed.match(/(?:roblox\.com\/games\/|games\/|[?&]placeid=)(\d+)/i);
+    if (match && match[1]) {
+        return match[1];
+    }
+    return trimmed;
+};
+
 let psMismatchToastTimer = null;
 window.notifyPlaceIdMismatch = function (isId) {
     if (psMismatchToastTimer) clearTimeout(psMismatchToastTimer);
@@ -3723,6 +3734,13 @@ window.doValidateGameLaunchInputs = function () {
 
     if (!placeIdInput || !psLinkInput) return;
 
+    if (typeof window.extractPlaceId === "function") {
+        let parsed = window.extractPlaceId(placeIdInput.value);
+        if (parsed !== placeIdInput.value) {
+            placeIdInput.value = parsed;
+        }
+    }
+
     let placeId = placeIdInput.value.trim();
     let psLink = psLinkInput.value.trim();
 
@@ -3831,6 +3849,13 @@ window.doValidateGlobalAccountsGameLaunchInputs = function () {
     let mismatchMsg = isId ? "Tautan Server Pribadi tidak sesuai dengan ID Tempat." : "The Private Server link does not match the Place ID.";
 
     if (!placeIdInput || !psLinkInput) return;
+
+    if (typeof window.extractPlaceId === "function") {
+        let parsed = window.extractPlaceId(placeIdInput.value);
+        if (parsed !== placeIdInput.value) {
+            placeIdInput.value = parsed;
+        }
+    }
 
     let placeId = placeIdInput.value.trim();
     let psLink = psLinkInput.value.trim();
@@ -4959,7 +4984,15 @@ window.saveCurrentGroupSetup = function () {
     let groupName = document.getElementById("group-setup-group-name")?.value || "";
     if (!groupName) return;
 
-    let placeId = document.getElementById("group-setup-place-id")?.value.trim() || "";
+    let placeInput = document.getElementById("group-setup-place-id");
+    if (placeInput && typeof window.extractPlaceId === "function") {
+        let parsed = window.extractPlaceId(placeInput.value);
+        if (parsed !== placeInput.value) {
+            placeInput.value = parsed;
+        }
+    }
+
+    let placeId = placeInput?.value.trim() || "";
     let psLink = document.getElementById("group-setup-ps-link")?.value.trim() || "";
     let forceOverride = document.getElementById("group-setup-force-override")?.checked || false;
     let joinLowServer = document.getElementById("group-setup-join-low-server")?.checked || false;
@@ -5052,6 +5085,21 @@ if (groupPsInput) {
     groupPsInput.addEventListener("input", handleGroupPsInput);
     groupPsInput.addEventListener("paste", () => setTimeout(handleGroupPsInput, 50));
 }
+
+document.addEventListener("paste", (e) => {
+    let target = e.target;
+    if (target && (target.id === "global-game-id" || target.id === "global-accounts-game-id" || target.id === "group-setup-place-id")) {
+        let pastedData = (e.clipboardData || window.clipboardData)?.getData("text");
+        if (pastedData && typeof window.extractPlaceId === "function") {
+            let extracted = window.extractPlaceId(pastedData);
+            if (extracted && extracted !== pastedData) {
+                e.preventDefault();
+                target.value = extracted;
+                target.dispatchEvent(new Event("input"));
+            }
+        }
+    }
+}, true);
 
 document.addEventListener("keydown", (e) => {
     let overlay = document.getElementById("master-password-overlay");
