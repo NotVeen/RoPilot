@@ -673,7 +673,7 @@ void WebhookManager::SendTestWebhook(const std::string& webhookUrl, std::functio
     std::string details =
         std::string("**Client:** RoPilot Multi-Instance Manager\n") +
         "**Type:** Discord Webhook\n" +
-        "**Monitored Events:** Crash Watchdog & Smart Auto-Rejoin\n" +
+        "**Monitored Events:** Crash Watchdog & Auto-Rejoin\n" +
         "**Status:** Ready to dispatch real-time alerts\n" +
         "**Timestamp:** <t:" + std::to_string(now) + ":F>";
 

@@ -230,7 +230,7 @@ constexpr const char* UI_BODY = R"HTML(
         <div id="page-accounts" class="page-container active">
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end">
                 <div>
-                    <h1 class="page-title" data-i18n="lbl_manage_accounts">
+                    <h1 class="page-title" style="margin: 0 0 2px 0; font-size: 22px; font-weight: 700" data-i18n="lbl_manage_accounts">
                         Manage Accounts
                     </h1>
                     <div class="page-subtitle" data-i18n="desc_accounts_page">
@@ -442,7 +442,7 @@ constexpr const char* UI_BODY = R"HTML(
         <div id="page-analytics" class="page-container">
             <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-end">
                 <div>
-                    <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700">
+                    <h1 class="page-title" style="margin: 0 0 2px 0; font-size: 22px; font-weight: 700">
                         <span data-i18n="lbl_performance_analytics">Performance Analytics</span>
                     </h1>
                     <div class="page-subtitle" data-i18n="desc_analytics">
@@ -506,7 +506,7 @@ constexpr const char* UI_BODY = R"HTML(
                 <div class="analytics-summary-card">
                     <div class="analytics-summary-content">
                         <span class="analytics-summary-title" data-i18n="lbl_total_instances">Active Instances</span>
-                        <div class="analytics-summary-value text-indigo" id="total-instances-val">0 Active</div>
+                        <div class="analytics-summary-value" id="total-instances-val">0 Active</div>
                     </div>
                     <div class="analytics-summary-watermark">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -596,8 +596,8 @@ constexpr const char* UI_BODY = R"HTML(
         <div id="page-webhook" class="page-container">
             <div class="page-header" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-end">
                 <div>
-                    <h1 class="page-title" style="margin: 0 0 4px 0; font-size: 20px; font-weight: 700" data-i18n="nav_webhook">Webhook</h1>
-                    <div class="page-subtitle" style="font-size: 12px;" data-i18n="desc_webhook_page">Configure Discord Webhook notifications.</div>
+                    <h1 class="page-title" style="margin: 0 0 2px 0; font-size: 22px; font-weight: 700" data-i18n="nav_webhook">Webhook</h1>
+                    <div class="page-subtitle" data-i18n="desc_webhook_page">Configure Discord Webhook notifications.</div>
                 </div>
             </div>
 
@@ -706,7 +706,7 @@ constexpr const char* UI_BODY = R"HTML(
                 <div class="setting-item" style="padding: 7px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
                     <div>
                         <div class="setting-title" style="font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--text-main)" data-i18n="lbl_notify_rejoin">
-                            Smart Auto-Rejoin Status
+                            Auto-Rejoin Status
                         </div>
                         <div class="setting-desc" style="font-size: 11.5px; color: var(--text-muted)" data-i18n="desc_notify_rejoin">
                             Send notification updates when Watchdog successfully reconnects or reaches retry limit.
@@ -727,7 +727,7 @@ constexpr const char* UI_BODY = R"HTML(
                 style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-end"
             >
                 <div>
-                    <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700" data-i18n="nav_settings">
+                    <h1 class="page-title" style="margin: 0 0 2px 0; font-size: 22px; font-weight: 700" data-i18n="nav_settings">
                         Settings
                     </h1>
                     <div class="page-subtitle" data-i18n="desc_settings">Configure RoPilot preferences.</div>

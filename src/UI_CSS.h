@@ -911,14 +911,16 @@ body.app-locked .app-container {
 }
 
 .page-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin: 0 0 2px 0;
+    letter-spacing: -0.01em;
 }
 
 .page-subtitle {
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.4;
 }
 
 /* Cards Grid / Wrappers */
@@ -2654,17 +2656,24 @@ input[type="range"]:focus {
 }
 
 
-/* Compact Settings & Webhook Page Styles with Balanced Hierarchy */
+/* Compact Page Header Styles with Balanced Hierarchy */
+#page-accounts .page-title,
+#page-analytics .page-title,
 #page-settings .page-title,
 #page-webhook .page-title,
+#page-accounts .page-header h1,
+#page-analytics .page-header h1,
 #page-settings .page-header h1,
 #page-webhook .page-header h1 {
     font-size: 22px !important;
     font-weight: 700 !important;
+    margin-top: 0 !important;
     margin-bottom: 2px !important;
     letter-spacing: -0.01em !important;
 }
 
+#page-accounts .page-subtitle,
+#page-analytics .page-subtitle,
 #page-settings .page-subtitle,
 #page-webhook .page-subtitle {
     font-size: 13px !important;
