@@ -45,7 +45,7 @@ If you're a developer and want to build it from scratch:
 3. Run `build.bat` and let it do its thing.
 
 ## VirusTotal & False Positives
-You can check out the latest VirusTotal scan for the executable here: **[VirusTotal Scan Results](https://www.virustotal.com/gui/file/832cd335e6caa462b8e88ba942974cbb94ba35d716b4127380b74f44b846526f)**
+You can check out the latest VirusTotal scan for the executable here: **[VirusTotal Scan Results](https://www.virustotal.com/gui/file/3eec35dd66983ea9d4d92fa69ed05b3824bbc0c5df83f4578343edb89ba8c83b)**
 
 Some antiviruses (especially those relying on AI or machine learning) might flag RoPilot as suspicious. Please don't panic, these are just **False Positives**! This happens because:
 1. RoPilot is a brand new, unsigned executable (Code Signing Certificates are expensive!).
