@@ -31,6 +31,10 @@ struct Settings {
     bool AutoRejoin = false;
     int RejoinDelay = 10;
     int MaxRejoinRetries = 3;
+    bool WebhookEnabled = false;
+    std::string WebhookUrl = "";
+    bool WebhookNotifyCrash = true;
+    bool WebhookNotifyRejoin = true;
 };
 
 class SettingsManager {

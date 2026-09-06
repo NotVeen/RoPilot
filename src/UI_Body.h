@@ -164,6 +164,23 @@ constexpr const char* UI_BODY = R"HTML(
             </svg>
             <span class="nav-text" data-i18n="nav_analytics">Analytics</span>
         </div>
+        <div class="nav-item" id="nav-webhook">
+            <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                style="flex-shrink: 0"
+            >
+                <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c0-2.21 1.79-4 4-4h1"></path>
+                <path d="M6 7.02h5.99c1.1 0 1.95-.94 2.48-1.9A4 4 0 0 1 22 7c0 2.21-1.79 4-4 4h-1"></path>
+            </svg>
+            <span class="nav-text" data-i18n="nav_webhook">Webhook</span>
+        </div>
         <div class="nav-item" id="nav-settings">
             <svg
                 width="20"
@@ -571,6 +588,134 @@ constexpr const char* UI_BODY = R"HTML(
                     </svg>
                     <h3 data-i18n="lbl_no_active_instances">No Active Instances</h3>
                     <p data-i18n="desc_accounts">Launch an account to see real-time analytics.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Webhook Page -->
+        <div id="page-webhook" class="page-container">
+            <div class="page-header" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-end">
+                <div>
+                    <h1 class="page-title" style="margin: 0 0 4px 0; font-size: 20px; font-weight: 700" data-i18n="nav_webhook">Webhook</h1>
+                    <div class="page-subtitle" style="font-size: 12px;" data-i18n="desc_webhook_page">Configure Discord Webhook notifications.</div>
+                </div>
+            </div>
+
+            <!-- Webhook Connection Card -->
+            <div class="settings-category" style="margin-bottom: 12px">
+                <div class="setting-group" style="padding: 10px 0px 6px 0px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted)">
+                        <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c0-2.21 1.79-4 4-4h1"></path>
+                        <path d="M6 7.02h5.99c1.1 0 1.95-.94 2.48-1.9A4 4 0 0 1 22 7c0 2.21-1.79 4-4 4h-1"></path>
+                    </svg>
+                    <h3 style="margin: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);" data-i18n="lbl_webhook_connection">
+                        Discord Integration
+                    </h3>
+                </div>
+
+                <!-- Enable Toggle -->
+                <div class="setting-item" style="padding: 7px 0px; display: flex; justify-content: space-between; align-items: center">
+                    <div>
+                        <div class="setting-title" style="font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--text-main)" data-i18n="lbl_enable_webhook">
+                            Enable Webhook Notifications
+                        </div>
+                        <div class="setting-desc" style="font-size: 11.5px; color: var(--text-muted)" data-i18n="desc_enable_webhook">
+                            Send real-time alerts directly to your private Discord channel.
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-webhook-enabled" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Webhook URL Input -->
+                <div class="setting-item" style="padding: 7px 0px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--separator-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                        <div>
+                            <div class="setting-title" style="font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--text-main)" data-i18n="lbl_webhook_url">
+                                Discord Webhook URL
+                            </div>
+                            <div class="setting-desc" style="font-size: 11.5px; color: var(--text-muted)" data-i18n="desc_webhook_url">
+                                Paste the Webhook URL copied from your Discord Channel Settings.
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                        <div class="webhook-input-wrapper">
+                            <input
+                                type="password"
+                                id="setting-webhook-url"
+                                class="webhook-url-input"
+                                placeholder="https://discord.com/api/webhooks/..."
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <button
+                                type="button"
+                                id="btn-toggle-webhook-url"
+                                title="Show / Hide URL"
+                            >
+                                <svg id="icon-eye-webhook" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                        <button id="btn-test-webhook" class="btn btn-primary">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                            <span data-i18n="btn_test_webhook">Test Webhook</span>
+                        </button>
+                    </div>
+                    <div id="webhook-test-status" style="font-size: 11.5px; display: none; margin-top: 4px;"></div>
+                </div>
+            </div>
+
+            <!-- Event Triggers Card -->
+            <div class="settings-category" style="margin-bottom: 12px">
+                <div class="setting-group" style="padding: 10px 0px 6px 0px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted)">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <h3 style="margin: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted);" data-i18n="lbl_notification_events">
+                        Notification Events
+                    </h3>
+                </div>
+
+                <!-- Crash Alert Checkbox -->
+                <div class="setting-item" style="padding: 7px 0px; display: flex; justify-content: space-between; align-items: center">
+                    <div>
+                        <div class="setting-title" style="font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--text-main)" data-i18n="lbl_notify_crash">
+                            Crash & Disconnect Alert
+                        </div>
+                        <div class="setting-desc" style="font-size: 11.5px; color: var(--text-muted)" data-i18n="desc_notify_crash">
+                            Trigger an alert when an active Roblox instance crashes, freezes, or disconnects.
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-webhook-notify-crash" checked />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- Auto-Rejoin Alert Checkbox -->
+                <div class="setting-item" style="padding: 7px 0px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--separator-color);">
+                    <div>
+                        <div class="setting-title" style="font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--text-main)" data-i18n="lbl_notify_rejoin">
+                            Smart Auto-Rejoin Status
+                        </div>
+                        <div class="setting-desc" style="font-size: 11.5px; color: var(--text-muted)" data-i18n="desc_notify_rejoin">
+                            Send notification updates when Watchdog successfully reconnects or reaches retry limit.
+                        </div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-webhook-notify-rejoin" checked />
+                        <span class="slider"></span>
+                    </label>
                 </div>
             </div>
         </div>

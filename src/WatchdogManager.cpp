@@ -1,4 +1,5 @@
 #include "WatchdogManager.h"
+#include "WebhookManager.h"
 #include <filesystem>
 #include <fstream>
 #include <algorithm>
@@ -31,7 +32,7 @@ void WatchdogManager::SetGameDetectedCallback(std::function<void(const std::stri
     m_gameDetectedCallback = callback;
 }
 
-void WatchdogManager::OnAccountLaunched(const std::string& cookie, const std::string& username, const std::string& userId, DWORD pid) {
+void WatchdogManager::OnAccountLaunched(const std::string& cookie, const std::string& username, const std::string& userId, DWORD pid, const std::string& placeId, const std::string& gameName) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_deliberatelyStopped.erase(cookie);
 
@@ -39,6 +40,8 @@ void WatchdogManager::OnAccountLaunched(const std::string& cookie, const std::st
     state.Cookie = cookie;
     state.Username = username;
     state.UserId = userId;
+    state.PlaceId = placeId;
+    state.GameName = gameName;
     state.ProcessId = pid;
     state.Status = WatchdogStatus::Monitoring;
     state.CountdownSeconds = 0;
@@ -51,7 +54,22 @@ void WatchdogManager::OnAccountJoinedGame(const std::string& cookie) {
     std::lock_guard<std::mutex> lock(m_mutex);
     auto it = m_states.find(cookie);
     if (it != m_states.end()) {
+        if (it->second.RetryCount > 0) {
+            WebhookManager::GetInstance().SendRejoinAlert(
+                it->second.Username, it->second.UserId,
+                it->second.GameName, it->second.PlaceId,
+                it->second.RetryCount, 3, true
+            );
+        }
         it->second.RetryCount = 0;
+    }
+}
+
+void WatchdogManager::UpdateGameName(const std::string& cookie, const std::string& gameName) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    auto it = m_states.find(cookie);
+    if (it != m_states.end() && !gameName.empty()) {
+        it->second.GameName = gameName;
     }
 }
 
@@ -318,6 +336,10 @@ bool WatchdogManager::CheckLogForDisconnect(AccountWatchdogState& state) {
             }
         }
 
+        if (!detectedPlaceId.empty()) {
+            state.PlaceId = detectedPlaceId;
+        }
+
         if (!detectedPlaceId.empty() || !detectedUniverseId.empty()) {
             auto cb = m_gameDetectedCallback;
             if (cb) {
@@ -405,6 +427,12 @@ void WatchdogManager::TriggerDisconnect(AccountWatchdogState& state, int rejoinD
         state.Status = WatchdogStatus::Rejoining;
         state.CountdownSeconds = (rejoinDelay > 0) ? rejoinDelay : 10;
 
+        WebhookManager::GetInstance().SendCrashAlert(
+            state.Username, state.UserId, state.GameName, state.PlaceId,
+            "Roblox client disconnected / crashed",
+            state.CountdownSeconds, state.RetryCount, maxRetries
+        );
+
         if (m_statusUpdateCallback) {
             m_statusUpdateCallback(state.Cookie, 5, state.CountdownSeconds);
         }
@@ -419,6 +447,12 @@ void WatchdogManager::TriggerDisconnect(AccountWatchdogState& state, int rejoinD
             m_toastCallback(toastMsg, false);
         }
     } else {
+        if (state.RetryCount >= maxRetries) {
+            WebhookManager::GetInstance().SendRejoinAlert(
+                state.Username, state.UserId, state.GameName, state.PlaceId,
+                state.RetryCount, maxRetries, false
+            );
+        }
         if (state.RetryCount >= maxRetries && m_toastCallback) {
             std::string toastMsg;
             if (language == "id") {

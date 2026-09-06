@@ -19,6 +19,8 @@ struct AccountWatchdogState {
     std::string Cookie;
     std::string Username;
     std::string UserId;
+    std::string PlaceId;
+    std::string GameName;
     DWORD ProcessId = 0;
     WatchdogStatus Status = WatchdogStatus::Idle;
     int CountdownSeconds = 0;
@@ -37,8 +39,9 @@ public:
     void SetToastCallback(std::function<void(const std::string& message, bool isError)> callback);
     void SetGameDetectedCallback(std::function<void(const std::string& cookie, const std::string& placeId, const std::string& universeId)> callback);
 
-    void OnAccountLaunched(const std::string& cookie, const std::string& username, const std::string& userId, DWORD pid);
+    void OnAccountLaunched(const std::string& cookie, const std::string& username, const std::string& userId, DWORD pid, const std::string& placeId = "", const std::string& gameName = "");
     void OnAccountJoinedGame(const std::string& cookie);
+    void UpdateGameName(const std::string& cookie, const std::string& gameName);
     void MarkDeliberatelyStopped(const std::string& cookie);
     bool IsDeliberatelyStopped(const std::string& cookie);
     void ClearDeliberatelyStopped(const std::string& cookie);

@@ -18,6 +18,7 @@
 #include "Crypto.h"
 #include "Updater.h"
 #include "WatchdogManager.h"
+#include "WebhookManager.h"
 #include <json.hpp>
 #include <iostream>
 #include <regex>
@@ -768,13 +769,17 @@ void ProcessWebMessage(const std::string& msg) {
                     g_accountManager.UpdateAccountProcess(cookie, 2, outPID);
 
                     std::string userIdStr = "";
+                    std::string userGameName = "";
+                    std::string userPlaceId = placeId;
                     for (const auto& a : g_accountManager.GetAccounts()) {
                         if (a.Cookie == cookie) {
                             userIdStr = std::to_string(a.Info.UserId);
+                            userGameName = a.GameName;
+                            if (userPlaceId.empty()) userPlaceId = a.PlaceId;
                             break;
                         }
                     }
-                    WatchdogManager::GetInstance().OnAccountLaunched(cookie, username, userIdStr, outPID);
+                    WatchdogManager::GetInstance().OnAccountLaunched(cookie, username, userIdStr, outPID, userPlaceId, userGameName);
 
                     if (!resolvedPlaceId.empty()) {
                         // If account placeId was empty AND account has matching private server link, update it
@@ -1027,6 +1032,11 @@ void ProcessWebMessage(const std::string& msg) {
             
             s.AutoTileOnLaunch = j.value("autoTileOnLaunch", s.AutoTileOnLaunch);
             s.DefaultTileMode = j.value("defaultTileMode", s.DefaultTileMode);
+
+            s.WebhookEnabled = j.value("webhookEnabled", s.WebhookEnabled);
+            s.WebhookUrl = j.value("webhookUrl", s.WebhookUrl);
+            s.WebhookNotifyCrash = j.value("webhookNotifyCrash", s.WebhookNotifyCrash);
+            s.WebhookNotifyRejoin = j.value("webhookNotifyRejoin", s.WebhookNotifyRejoin);
 
             g_settingsManager.SetSettings(s);
             
@@ -1317,6 +1327,21 @@ void ProcessWebMessage(const std::string& msg) {
             g_accountManager.UpdateAccountProcess(cookie, 0, 0);
             UpdateUI();
         }
+        else if (action == "test_webhook") {
+            std::string webhookUrl = j.value("webhookUrl", "");
+            if (webhookUrl.empty()) {
+                Settings s = g_settingsManager.GetSettings();
+                webhookUrl = s.WebhookUrl;
+            }
+            WebhookManager::GetInstance().SendTestWebhook(webhookUrl, [](bool success, const std::string& message) {
+                json jResp;
+                jResp["action"] = "webhook_test_result";
+                jResp["success"] = success;
+                jResp["message"] = message;
+                std::string js = "window.postMessage(" + jResp.dump() + ", '*');";
+                PostMessage(g_hWnd, WM_APP + 3, (WPARAM)new std::string(js), 0);
+            });
+        }
     } catch (...) {}
 }
 
@@ -1351,6 +1376,10 @@ void SendSettingsData() {
     jOut["autoRejoin"] = s.AutoRejoin;
     jOut["rejoinDelay"] = s.RejoinDelay;
     jOut["maxRejoinRetries"] = s.MaxRejoinRetries;
+    jOut["webhookEnabled"] = s.WebhookEnabled;
+    jOut["webhookUrl"] = s.WebhookUrl;
+    jOut["webhookNotifyCrash"] = s.WebhookNotifyCrash;
+    jOut["webhookNotifyRejoin"] = s.WebhookNotifyRejoin;
     std::string js = "window.postMessage(" + jOut.dump() + ", '*');";
     g_webview->ExecuteScript(s2ws(js).c_str(), nullptr);
 }
@@ -1644,6 +1673,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmd
                 std::string gName = RobloxAPI::GetGameName(placeId, universeId, cookie);
                 if (!gName.empty()) {
                     g_accountManager.UpdateAccountGameName(cookie, gName);
+                    WatchdogManager::GetInstance().UpdateGameName(cookie, gName);
                     PostMessage(g_hWnd, WM_APP + 2, 0, 0);
                 }
             }).detach();

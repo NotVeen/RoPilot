@@ -131,11 +131,11 @@ constexpr const char* UI_CSS = R"CSS(
     --bg-card: #17181e;
     --bg-hover: #1b1c24;
     --bg-active: #22242e;
-    --border-color: #232530;
+    --border-color: #282b3a;
     --border-subtle: #1f2128;
     --border-medium: #2a2f3e;
     --border-faint: rgba(255, 255, 255, 0.05);
-    --separator-color: #20222a;
+    --separator-color: rgba(255, 255, 255, 0.04);
     --stat-bg: #111216;
     --text-main: #ffffff;
     --text-secondary: #9ca3af;
@@ -211,11 +211,11 @@ body .btn-add-account:hover {
     --bg-card: #ffffff;
     --bg-hover: #f1f5f9;
     --bg-active: #e0e7ff;
-    --border-color: #e2e8f0;
+    --border-color: #cbd5e1;
     --border-subtle: #e2e8f0;
-    --border-medium: #cbd5e1;
+    --border-medium: #94a3b8;
     --border-faint: rgba(0, 0, 0, 0.05);
-    --separator-color: #f1f5f9;
+    --separator-color: rgba(0, 0, 0, 0.05);
     --stat-bg: #f8fafc;
     --text-main: #0f172a;
     --text-secondary: #475569;
@@ -2651,5 +2651,168 @@ input[type="range"]:focus {
 [data-theme="light"] .analytics-summary-watermark {
     opacity: 0.10;
     color: #0f172a;
+}
+
+
+/* Compact Settings & Webhook Page Styles with Balanced Hierarchy */
+#page-settings .page-title,
+#page-webhook .page-title,
+#page-settings .page-header h1,
+#page-webhook .page-header h1 {
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    margin-bottom: 2px !important;
+    letter-spacing: -0.01em !important;
+}
+
+#page-settings .page-subtitle,
+#page-webhook .page-subtitle {
+    font-size: 13px !important;
+    color: var(--text-muted) !important;
+    line-height: 1.4 !important;
+}
+
+#page-settings .setting-group,
+#page-webhook .setting-group {
+    padding: 12px 0px 6px 0px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+#page-settings .setting-group svg,
+#page-webhook .setting-group svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+#page-settings .setting-group h3,
+#page-webhook .setting-group h3 {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: var(--text-muted) !important;
+}
+
+#page-settings .setting-item,
+#page-webhook .setting-item {
+    padding: 8px 0px !important;
+}
+
+#page-settings .setting-item[style*="border-top"],
+#page-webhook .setting-item[style*="border-top"] {
+    border-top: 1px solid var(--separator-color) !important;
+}
+
+#page-settings .setting-title,
+#page-webhook .setting-title {
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    margin-bottom: 2px !important;
+    color: var(--text-main) !important;
+}
+
+#page-settings .setting-desc,
+#page-webhook .setting-desc {
+    font-size: 12px !important;
+    color: var(--text-muted) !important;
+    line-height: 1.4 !important;
+}
+
+#page-settings .settings-input,
+#page-settings input[type="text"],
+#page-settings input[type="number"],
+.webhook-url-input {
+    font-size: 12.5px !important;
+    height: 34px !important;
+}
+
+#page-settings .dropdown-selected {
+    font-size: 12.5px !important;
+    padding: 7px 12px !important;
+    border-radius: 6px !important;
+}
+
+
+/* Custom Webhook URL Input & Test Button */
+.webhook-input-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.webhook-url-input {
+    width: 100%;
+    background: var(--btn-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 0 34px 0 10px;
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+    font-size: 12px;
+    height: 34px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.webhook-url-input:focus {
+    border-color: var(--accent-color, #6366f1);
+    background: var(--bg-hover);
+}
+
+.webhook-url-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+[data-theme="light"] .webhook-url-input {
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+}
+
+[data-theme="light"] .webhook-url-input:focus {
+    border-color: #6366f1 !important;
+}
+
+#btn-toggle-webhook-url {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-radius: 4px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+#btn-toggle-webhook-url:hover {
+    color: var(--text-main) !important;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] #btn-toggle-webhook-url:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+#btn-test-webhook {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    cursor: pointer;
 }
 )CSS";

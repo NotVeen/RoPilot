@@ -44,6 +44,10 @@ void SettingsManager::Load() {
         m_Settings.AutoRejoin = j.value("autoRejoin", false);
         m_Settings.RejoinDelay = j.value("rejoinDelay", 10);
         m_Settings.MaxRejoinRetries = j.value("maxRejoinRetries", 3);
+        m_Settings.WebhookEnabled = j.value("webhookEnabled", false);
+        m_Settings.WebhookUrl = j.value("webhookUrl", "");
+        m_Settings.WebhookNotifyCrash = j.value("webhookNotifyCrash", true);
+        m_Settings.WebhookNotifyRejoin = j.value("webhookNotifyRejoin", true);
     } catch (...) {
         // Failed to parse or read, keep defaults
     }
@@ -81,6 +85,10 @@ void SettingsManager::Save() {
         j["autoRejoin"] = m_Settings.AutoRejoin;
         j["rejoinDelay"] = m_Settings.RejoinDelay;
         j["maxRejoinRetries"] = m_Settings.MaxRejoinRetries;
+        j["webhookEnabled"] = m_Settings.WebhookEnabled;
+        j["webhookUrl"] = m_Settings.WebhookUrl;
+        j["webhookNotifyCrash"] = m_Settings.WebhookNotifyCrash;
+        j["webhookNotifyRejoin"] = m_Settings.WebhookNotifyRejoin;
         
         std::ofstream file(m_FilePath);
         if (file.is_open()) {

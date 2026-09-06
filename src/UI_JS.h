@@ -272,6 +272,22 @@ const translations = {
         lbl_max_rejoin_retries: "Max Rejoin Retries",
         desc_max_rejoin_retries: "Maximum reconnection attempts before stopping",
         lbl_rejoining_in: "Rejoining in",
+        nav_webhook: "Webhook",
+        desc_webhook_page: "Configure Discord Webhook notifications.",
+        lbl_webhook_connection: "Discord Integration",
+        lbl_enable_webhook: "Enable Webhook Notifications",
+        desc_enable_webhook: "Send real-time alerts directly to your private Discord channel.",
+        lbl_webhook_url: "Discord Webhook URL",
+        desc_webhook_url: "Paste the Webhook URL copied from your Discord Channel Settings.",
+        btn_test_webhook: "Test Webhook",
+        lbl_notification_events: "Notification Events",
+        lbl_notify_crash: "Crash & Disconnect Alert",
+        desc_notify_crash: "Trigger an alert when an active Roblox instance crashes, freezes, or disconnects.",
+        lbl_notify_rejoin: "Smart Auto-Rejoin Status",
+        desc_notify_rejoin: "Send notification updates when Watchdog successfully reconnects or reaches retry limit.",
+        toast_webhook_url_empty: "Please enter a Discord Webhook URL first.",
+        toast_webhook_sent: "Test webhook sent successfully!",
+        toast_webhook_failed: "Failed to send test webhook: ",
     },
     id: {
         nav_menu: "Menu",
@@ -536,6 +552,22 @@ const translations = {
         lbl_max_rejoin_retries: "Batas Percobaan Rejoin",
         desc_max_rejoin_retries: "Batas maksimal percobaan penyambungan ulang sebelum berhenti",
         lbl_rejoining_in: "Rejoining in",
+        nav_webhook: "Webhook",
+        desc_webhook_page: "Konfigurasi notifikasi Discord Webhook.",
+        lbl_webhook_connection: "Integrasi Discord",
+        lbl_enable_webhook: "Aktifkan Notifikasi Webhook",
+        desc_enable_webhook: "Kirim peringatan waktu nyata langsung ke channel Discord pribadi Anda.",
+        lbl_webhook_url: "URL Webhook Discord",
+        desc_webhook_url: "Tempelkan URL Webhook yang disalin dari Pengaturan Channel Discord Anda.",
+        btn_test_webhook: "Uji Webhook",
+        lbl_notification_events: "Pemicu Notifikasi",
+        lbl_notify_crash: "Peringatan Crash & Terputus",
+        desc_notify_crash: "Kirim notifikasi ketika instance Roblox yang aktif crash, hang, atau terputus.",
+        lbl_notify_rejoin: "Status Smart Auto-Rejoin",
+        desc_notify_rejoin: "Kirim pembaruan notifikasi ketika Watchdog berhasil menyambung ulang atau mencapai batas coba.",
+        toast_webhook_url_empty: "Harap masukkan URL Webhook Discord terlebih dahulu.",
+        toast_webhook_sent: "Uji webhook berhasil dikirim!",
+        toast_webhook_failed: "Gagal mengirim uji webhook: ",
     },
 };
 let accountsGrid = document.getElementById("accounts-grid");
@@ -1800,11 +1832,13 @@ if (sidebarBrandHeader) {
 
 let navAccounts = document.getElementById("nav-accounts");
 let navAnalytics = document.getElementById("nav-analytics");
+let navWebhook = document.getElementById("nav-webhook");
 let navSettings = document.getElementById("nav-settings");
 let pageAccounts = document.getElementById("page-accounts");
 let pageAnalytics = document.getElementById("page-analytics");
+let pageWebhook = document.getElementById("page-webhook");
 let pageSettings = document.getElementById("page-settings");
-let pages = [pageAccounts, pageAnalytics, pageSettings];
+let pages = [pageAccounts, pageAnalytics, pageWebhook, pageSettings];
 
 function applyLanguage(lang) {
     if (!translations[lang]) lang = "en";
@@ -1828,7 +1862,7 @@ function applyLanguage(lang) {
 }
 
 function switchPage(activeNav, activePage) {
-    [navAccounts, navAnalytics, navSettings].forEach((nav) => {
+    [navAccounts, navAnalytics, navWebhook, navSettings].forEach((nav) => {
         if (nav) nav.classList.remove("active");
     });
     if (activeNav) activeNav.classList.add("active");
@@ -1849,6 +1883,11 @@ if (navAccounts) {
 if (navAnalytics) {
     navAnalytics.addEventListener("click", () => {
         switchPage(navAnalytics, pageAnalytics);
+    });
+}
+if (navWebhook) {
+    navWebhook.addEventListener("click", () => {
+        switchPage(navWebhook, pageWebhook);
     });
 }
 if (navSettings) {
@@ -2280,6 +2319,18 @@ function saveSettings(silent = false) {
             maxRejoinRetries: document.getElementById("setting-max-rejoin-retries")
                 ? parseInt(document.getElementById("setting-max-rejoin-retries").value) || 3
                 : 3,
+            webhookEnabled: document.getElementById("setting-webhook-enabled")
+                ? document.getElementById("setting-webhook-enabled").checked
+                : false,
+            webhookUrl: document.getElementById("setting-webhook-url")
+                ? document.getElementById("setting-webhook-url").value.trim()
+                : "",
+            webhookNotifyCrash: document.getElementById("setting-webhook-notify-crash")
+                ? document.getElementById("setting-webhook-notify-crash").checked
+                : true,
+            webhookNotifyRejoin: document.getElementById("setting-webhook-notify-rejoin")
+                ? document.getElementById("setting-webhook-notify-rejoin").checked
+                : true,
         }),
     );
 }
@@ -2319,6 +2370,79 @@ if (rejoinDelayInput) {
 if (maxRejoinRetriesInput) {
     maxRejoinRetriesInput.addEventListener("change", (e) => {
         saveSettings();
+    });
+}
+
+let whEnabledCb = document.getElementById("setting-webhook-enabled");
+if (whEnabledCb) {
+    whEnabledCb.addEventListener("change", () => saveSettings());
+}
+let whUrlInput = document.getElementById("setting-webhook-url");
+if (whUrlInput) {
+    whUrlInput.addEventListener("change", () => saveSettings());
+}
+let whNotifyCrashCb = document.getElementById("setting-webhook-notify-crash");
+if (whNotifyCrashCb) {
+    whNotifyCrashCb.addEventListener("change", () => saveSettings());
+}
+let whNotifyRejoinCb = document.getElementById("setting-webhook-notify-rejoin");
+if (whNotifyRejoinCb) {
+    whNotifyRejoinCb.addEventListener("change", () => saveSettings());
+}
+
+let btnToggleWhUrl = document.getElementById("btn-toggle-webhook-url");
+if (btnToggleWhUrl) {
+    btnToggleWhUrl.addEventListener("click", () => {
+        let input = document.getElementById("setting-webhook-url");
+        if (!input) return;
+        let icon = document.getElementById("icon-eye-webhook");
+        if (input.type === "password") {
+            input.type = "text";
+            if (icon) {
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            }
+        } else {
+            input.type = "password";
+            if (icon) {
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+            }
+        }
+    });
+}
+
+let btnTestWebhook = document.getElementById("btn-test-webhook");
+if (btnTestWebhook) {
+    btnTestWebhook.addEventListener("click", () => {
+        let input = document.getElementById("setting-webhook-url");
+        let url = input ? input.value.trim() : "";
+        let lang = document.getElementById("setting-language")?.value || "en";
+        let statusEl = document.getElementById("webhook-test-status");
+        if (!url) {
+            if (typeof showStatus === "function") {
+                showStatus(translations[lang]?.toast_webhook_url_empty || "Please enter a Discord Webhook URL first.", true);
+            }
+            if (statusEl) {
+                statusEl.style.display = "block";
+                statusEl.style.color = "#ef4444";
+                statusEl.textContent = translations[lang]?.toast_webhook_url_empty || "Please enter a Discord Webhook URL first.";
+            }
+            return;
+        }
+
+        saveSettings(true);
+
+        btnTestWebhook.disabled = true;
+        btnTestWebhook.style.opacity = "0.6";
+        if (statusEl) {
+            statusEl.style.display = "block";
+            statusEl.style.color = "var(--text-muted)";
+            statusEl.textContent = lang === "id" ? "Mengirim uji webhook..." : "Sending test webhook...";
+        }
+
+        window.chrome.webview.postMessage(JSON.stringify({
+            action: "test_webhook",
+            webhookUrl: url
+        }));
     });
 }
 
@@ -2603,6 +2727,22 @@ if (window.chrome && window.chrome.webview) {
                 if (maxRejoinRetriesInput && typeof msg.maxRejoinRetries !== "undefined") {
                     maxRejoinRetriesInput.value = msg.maxRejoinRetries;
                 }
+                let whEnabledCb = document.getElementById("setting-webhook-enabled");
+                if (whEnabledCb && typeof msg.webhookEnabled !== "undefined") {
+                    whEnabledCb.checked = !!msg.webhookEnabled;
+                }
+                let whUrlInput = document.getElementById("setting-webhook-url");
+                if (whUrlInput && typeof msg.webhookUrl !== "undefined") {
+                    whUrlInput.value = msg.webhookUrl;
+                }
+                let whNotifyCrashCb = document.getElementById("setting-webhook-notify-crash");
+                if (whNotifyCrashCb && typeof msg.webhookNotifyCrash !== "undefined") {
+                    whNotifyCrashCb.checked = !!msg.webhookNotifyCrash;
+                }
+                let whNotifyRejoinCb = document.getElementById("setting-webhook-notify-rejoin");
+                if (whNotifyRejoinCb && typeof msg.webhookNotifyRejoin !== "undefined") {
+                    whNotifyRejoinCb.checked = !!msg.webhookNotifyRejoin;
+                }
                 let autoTileCb = document.getElementById("tile-auto-launch-cb");
                 if (autoTileCb && typeof msg.autoTileOnLaunch !== "undefined") {
                     autoTileCb.checked = !!msg.autoTileOnLaunch;
@@ -2792,6 +2932,35 @@ if (window.chrome && window.chrome.webview) {
                 if (clModal) clModal.classList.add("show");
             } else if (msg.action === "start_update") {
                 window.chrome.webview.postMessage(JSON.stringify({ action: "start_update" }));
+            } else if (msg.action === "webhook_test_result") {
+                let btnTestWebhook = document.getElementById("btn-test-webhook");
+                if (btnTestWebhook) {
+                    btnTestWebhook.disabled = false;
+                    btnTestWebhook.style.opacity = "1";
+                }
+                let statusEl = document.getElementById("webhook-test-status");
+                let lang = document.getElementById("setting-language")?.value || "en";
+                if (msg.success) {
+                    let succText = translations[lang]?.toast_webhook_sent || "Test webhook sent successfully!";
+                    if (typeof showStatus === "function") {
+                        showStatus(succText, false);
+                    }
+                    if (statusEl) {
+                        statusEl.style.display = "block";
+                        statusEl.style.color = "#10b981";
+                        statusEl.textContent = succText;
+                    }
+                } else {
+                    let failText = (translations[lang]?.toast_webhook_failed || "Failed to send test webhook: ") + (msg.message || "");
+                    if (typeof showStatus === "function") {
+                        showStatus(failText, true);
+                    }
+                    if (statusEl) {
+                        statusEl.style.display = "block";
+                        statusEl.style.color = "#ef4444";
+                        statusEl.textContent = failText;
+                    }
+                }
             } else if (msg.action === "shortcut_success") {
                 if (typeof showStatus === "function") {
                     let lang = document.getElementById("setting-language")?.value || "en";
