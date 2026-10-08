@@ -675,6 +675,8 @@ window.renderAccounts = function (accounts) {
         let groupsStr = JSON.stringify(currentGroups);
         let collapsedStr = JSON.stringify(Array.from(collapsedGroups));
 
+        let isHideIdentity = !!(document.getElementById("setting-hide-identity") && document.getElementById("setting-hide-identity").checked);
+
         let canQuickUpdate = false;
         if (
             window.lastRenderedAccountsString === accountsStr &&
@@ -682,6 +684,7 @@ window.renderAccounts = function (accounts) {
             window.lastRenderedCollapsedString === collapsedStr &&
             window.lastRenderedSearchTerm === currentSearchTerm &&
             window.lastRenderedAnalyticsSearchTerm === currentAnalyticsSearchTerm &&
+            window.lastRenderedHideIdentity === isHideIdentity &&
             !window.forceRender
         ) {
             canQuickUpdate = true;
@@ -693,6 +696,7 @@ window.renderAccounts = function (accounts) {
         window.lastRenderedCollapsedString = collapsedStr;
         window.lastRenderedSearchTerm = currentSearchTerm;
         window.lastRenderedAnalyticsSearchTerm = currentAnalyticsSearchTerm;
+        window.lastRenderedHideIdentity = isHideIdentity;
 
         if (canQuickUpdate) {
             accounts.forEach((acc) => {
@@ -2464,6 +2468,9 @@ if (minimizeTrayToggle) {
 if (hideIdentityToggle) {
     hideIdentityToggle.addEventListener("change", (e) => {
         saveSettings();
+        window.forceRender = true;
+        window.lastRenderedAccountsString = "";
+        window.lastRenderedHideIdentity = undefined;
         if (window.renderAccounts) window.renderAccounts(currentAccounts);
     });
 }
@@ -2614,6 +2621,7 @@ if (fflagDropdownSel && fflagDropdownOpts && fflagInput) {
     });
 }
 
+
 if (cpuLimitSlider) {
     cpuLimitSlider.addEventListener("input", (e) => {
         if (cpuLimitValue) cpuLimitValue.textContent = e.target.value + "%";
@@ -2710,7 +2718,16 @@ if (window.chrome && window.chrome.webview) {
                 if (autoUpdateToggle) autoUpdateToggle.checked = msg.autoUpdate;
                 if (startupToggle) startupToggle.checked = msg.runOnStartup;
                 if (minimizeTrayToggle) minimizeTrayToggle.checked = msg.minimizeToTrayOnClose;
-                if (hideIdentityToggle) hideIdentityToggle.checked = msg.hideIdentity;
+                if (hideIdentityToggle) {
+                    let oldVal = hideIdentityToggle.checked;
+                    hideIdentityToggle.checked = !!msg.hideIdentity;
+                    if (oldVal !== hideIdentityToggle.checked) {
+                        window.forceRender = true;
+                        window.lastRenderedAccountsString = "";
+                        window.lastRenderedHideIdentity = undefined;
+                        if (window.renderAccounts) window.renderAccounts(currentAccounts);
+                    }
+                }
                 if (alwaysOnTopToggle) alwaysOnTopToggle.checked = msg.alwaysOnTop;
                 if (autoKillExitToggle) autoKillExitToggle.checked = msg.autoKillOnExit;
                 if (discordRpcToggle) discordRpcToggle.checked = msg.enableDiscordRPC;
@@ -2755,6 +2772,7 @@ if (window.chrome && window.chrome.webview) {
                 if (globalPsLinkInput && typeof msg.globalPrivateServerLink !== "undefined") {
                     globalPsLinkInput.value = msg.globalPrivateServerLink;
                 }
+
                 if (typeof msg.sidebarCollapsed !== "undefined") {
                     let sb = document.getElementById("sidebar");
                     if (sb) {
@@ -4038,6 +4056,7 @@ window.openUtilityModal = function (cookie, userId, avatarSrc, username) {
         }
     }
 
+
     currentUtilityTabIndex = 0;
     setTimeout(() => {
         updateTabIndicator(0, utilityTabs[0], false);
@@ -4972,6 +4991,7 @@ window.openGroupLaunchSetupModal = function(groupName) {
     if (fflagInput) fflagInput.value = fflagVal;
     if (fflagText) fflagText.textContent = fflagVal;
 
+
     modal.classList.add("show");
 };
 
@@ -5000,7 +5020,6 @@ window.saveCurrentGroupSetup = function () {
     let lowestGraphics = document.getElementById("group-setup-lowest-graphics")?.checked || false;
     let antiAfk = document.getElementById("group-setup-anti-afk")?.checked || false;
     let fflagOpt = document.getElementById("group-setup-fflag")?.value || "Default";
-
     let cfg = {
         PlaceId: placeId,
         PrivateServerLink: psLink,

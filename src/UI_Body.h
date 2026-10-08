@@ -25,7 +25,7 @@ constexpr const char* UI_BODY = R"HTML(
         <span
             ><strong style="font-weight: 700; font-size: 13px; letter-spacing: -0.2px">RoPilot</strong
             ><span style="color: var(--text-muted); font-size: 11px; margin-left: 8px; font-weight: 500"
-                >v1.0.5 by NotVeen</span
+                >v1.0.5.1 by NotVeen</span
             ></span
         >
     </div>

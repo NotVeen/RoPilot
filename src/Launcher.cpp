@@ -15,6 +15,7 @@
 #include <mutex>
 #include "ActiveClientLock.h"
 #include "AccountManager.h"
+#include "../vendor/json.hpp"
 
 extern AccountManager g_accountManager;
 
@@ -59,36 +60,215 @@ namespace Launcher {
         }
     }
 
-    std::string FindRobloxExecutable() {
-        char localPath[MAX_PATH];
-        char progPath[MAX_PATH];
-        std::vector<fs::path> pathsToCheck;
-        
-        if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, localPath))) {
-            pathsToCheck.push_back(fs::path(localPath) / "Roblox" / "Versions");
-            pathsToCheck.push_back(fs::path(localPath) / "Fishstrap" / "Versions");
-            pathsToCheck.push_back(fs::path(localPath) / "Bloxstrap" / "Versions");
+    static std::string ExtractPathFromCommand(const std::string& cmd) {
+        if (cmd.empty()) return "";
+        std::string path;
+        if (cmd.front() == '"') {
+            size_t endQuote = cmd.find('"', 1);
+            if (endQuote != std::string::npos) {
+                path = cmd.substr(1, endQuote - 1);
+            }
+        } else {
+            size_t space = cmd.find(' ');
+            if (space != std::string::npos) {
+                path = cmd.substr(0, space);
+            } else {
+                path = cmd;
+            }
         }
-        if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROGRAM_FILESX86, NULL, 0, progPath))) {
-            pathsToCheck.push_back(fs::path(progPath) / "Roblox" / "Versions");
+        return path;
+    }
+
+    static std::string GetRegistryProtocolCommand() {
+        HKEY hKey = NULL;
+        char buffer[1024] = {0};
+        DWORD bufferSize = sizeof(buffer);
+        
+        if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Classes\\roblox-player\\shell\\open\\command", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+            if (RegQueryValueExA(hKey, NULL, NULL, NULL, (LPBYTE)buffer, &bufferSize) == ERROR_SUCCESS) {
+                RegCloseKey(hKey);
+                return std::string(buffer);
+            }
+            RegCloseKey(hKey);
         }
 
-        for (const auto& robloxPath : pathsToCheck) {
-            if (fs::exists(robloxPath)) {
-                for (const auto& entry : fs::directory_iterator(robloxPath)) {
-                    if (entry.is_directory()) {
-                        fs::path exePath = entry.path() / "RobloxPlayerBeta.exe";
-                        if (fs::exists(exePath)) {
-                            return exePath.string();
-                        }
-                        fs::path launcherPath = entry.path() / "RobloxPlayerLauncher.exe";
-                        if (fs::exists(launcherPath)) {
-                            return launcherPath.string();
+        bufferSize = sizeof(buffer);
+        if (RegOpenKeyExA(HKEY_CLASSES_ROOT, "roblox-player\\shell\\open\\command", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+            if (RegQueryValueExA(hKey, NULL, NULL, NULL, (LPBYTE)buffer, &bufferSize) == ERROR_SUCCESS) {
+                RegCloseKey(hKey);
+                return std::string(buffer);
+            }
+            RegCloseKey(hKey);
+        }
+
+        return "";
+    }
+
+    static std::string FindExecutableInVersions(const fs::path& versionsPath) {
+        std::error_code ec;
+        if (!fs::exists(versionsPath, ec) || !fs::is_directory(versionsPath, ec)) {
+            return "";
+        }
+
+        std::string bestExe;
+        fs::file_time_type bestTime;
+        bool found = false;
+
+        try {
+            for (const auto& entry : fs::directory_iterator(versionsPath, fs::directory_options::skip_permission_denied, ec)) {
+                if (ec) break;
+                if (entry.is_directory(ec)) {
+                    fs::path exePath = entry.path() / "RobloxPlayerBeta.exe";
+                    if (fs::exists(exePath, ec)) {
+                        auto writeTime = fs::last_write_time(exePath, ec);
+                        if (!found || (!ec && writeTime > bestTime)) {
+                            bestTime = writeTime;
+                            bestExe = exePath.string();
+                            found = true;
                         }
                     }
                 }
             }
+        } catch (...) {}
+
+        if (found) return bestExe;
+
+        // Check if RobloxPlayerBeta.exe is directly in versionsPath
+        fs::path directExe = versionsPath / "RobloxPlayerBeta.exe";
+        if (fs::exists(directExe, ec)) {
+            return directExe.string();
         }
+
+        // Fallback: check RobloxPlayerLauncher.exe if RobloxPlayerBeta.exe not found
+        try {
+            for (const auto& entry : fs::directory_iterator(versionsPath, fs::directory_options::skip_permission_denied, ec)) {
+                if (ec) break;
+                if (entry.is_directory(ec)) {
+                    fs::path launcherPath = entry.path() / "RobloxPlayerLauncher.exe";
+                    if (fs::exists(launcherPath, ec)) {
+                        return launcherPath.string();
+                    }
+                }
+            }
+        } catch (...) {}
+
+        return "";
+    }
+
+    static std::string FindRobloxCandidateInFolder(const fs::path& folder) {
+        std::error_code ec;
+        if (!fs::exists(folder, ec)) return "";
+
+        // Check if folder contains Versions directory
+        fs::path vPath = folder / "Versions";
+        std::string exe = FindExecutableInVersions(vPath);
+        if (!exe.empty()) return exe;
+
+        // Check directly in folder
+        fs::path directExe = folder / "RobloxPlayerBeta.exe";
+        if (fs::exists(directExe, ec)) return directExe.string();
+
+        return "";
+    }
+
+    std::string FindRobloxExecutable() {
+        char localPath[MAX_PATH];
+        char progPath[MAX_PATH];
+        char prog64Path[MAX_PATH];
+
+        std::string localAppDirStr;
+        if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, localPath))) {
+            localAppDirStr = localPath;
+        }
+
+        // 1. Prioritize known custom bootstrappers in %LOCALAPPDATA%
+        if (!localAppDirStr.empty()) {
+            static const std::vector<std::string> knownBootstrappers = {
+                "Fishstrap", "Bloxstrap", "Froststrap", "Noxstrap", "Voidstrap"
+            };
+            for (const auto& bsName : knownBootstrappers) {
+                fs::path bsFolder = fs::path(localAppDirStr) / bsName;
+                std::string cand = FindRobloxCandidateInFolder(bsFolder);
+                if (!cand.empty()) {
+                    return cand;
+                }
+            }
+        }
+
+        // 2. Check Registry Protocol Handler (if registered to a custom bootstrapper)
+        std::string regCmd = GetRegistryProtocolCommand();
+        if (!regCmd.empty()) {
+            std::string regExe = ExtractPathFromCommand(regCmd);
+            std::error_code ec;
+            if (!regExe.empty() && fs::exists(regExe, ec)) {
+                fs::path p(regExe);
+                
+                // Determine if this path belongs to the standard "Roblox" folder or a custom bootstrapper
+                bool isInsideRobloxFolder = false;
+                for (const auto& part : p) {
+                    if (_stricmp(part.string().c_str(), "Roblox") == 0) {
+                        isInsideRobloxFolder = true;
+                        break;
+                    }
+                }
+
+                // If registry points to a custom bootstrapper outside the "Roblox" folder
+                if (!isInsideRobloxFolder) {
+                    if (_stricmp(p.filename().string().c_str(), "RobloxPlayerBeta.exe") == 0) {
+                        return p.string();
+                    }
+                    std::string cand = FindRobloxCandidateInFolder(p.parent_path());
+                    if (!cand.empty()) {
+                        return cand;
+                    }
+                }
+            }
+        }
+
+        // 3. Dynamic search in %LOCALAPPDATA%: scan all other folders EXCEPT "Roblox"
+        if (!localAppDirStr.empty()) {
+            std::error_code ec;
+            fs::path localAppDir(localAppDirStr);
+            try {
+                fs::directory_iterator it(localAppDir, ec);
+                fs::directory_iterator end;
+                while (!ec && it != end) {
+                    try {
+                        if (it->is_directory(ec) && !ec) {
+                            std::string folderName = it->path().filename().string();
+                            if (_stricmp(folderName.c_str(), "Roblox") != 0) {
+                                std::string cand = FindRobloxCandidateInFolder(it->path());
+                                if (!cand.empty()) {
+                                    return cand;
+                                }
+                            }
+                        }
+                    } catch (...) {}
+                    ec.clear();
+                    it.increment(ec);
+                }
+            } catch (...) {}
+        }
+
+        // 4. Fallback: if RobloxPlayerBeta.exe is only found in default "Roblox" folder
+        std::vector<fs::path> defaultRobloxPaths;
+        if (!localAppDirStr.empty()) {
+            defaultRobloxPaths.push_back(fs::path(localAppDirStr) / "Roblox");
+        }
+        if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROGRAM_FILESX86, NULL, 0, progPath))) {
+            defaultRobloxPaths.push_back(fs::path(progPath) / "Roblox");
+        }
+        if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROGRAM_FILES, NULL, 0, prog64Path))) {
+            defaultRobloxPaths.push_back(fs::path(prog64Path) / "Roblox");
+        }
+
+        for (const auto& robloxDir : defaultRobloxPaths) {
+            std::string cand = FindRobloxCandidateInFolder(robloxDir);
+            if (!cand.empty()) {
+                return cand;
+            }
+        }
+
         return "";
     }
 
@@ -150,7 +330,7 @@ namespace Launcher {
             
             fs::path settingsFile = clientSettingsDir / "ClientAppSettings.json";
             std::string content = "{}";
-            
+
             if (fflagOpt == "Medium") {
                 content = R"({
   "DFIntDebugFRMQualityLevelOverride": "4",
@@ -195,7 +375,7 @@ namespace Launcher {
   "FFlagDebugSkyGray": "True"
 })";
             }
-            
+
             std::ofstream outFile(settingsFile, std::ios::trunc);
             if (outFile.is_open()) {
                 outFile << content;
